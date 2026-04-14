@@ -1,0 +1,14 @@
+# Copy this file to local.properties and fill in the values below.
+# This file (.template) is committed to git; local.properties is excluded via .gitignore.
+
+# TMDB API key (obtain from https://developer.themoviedb.org)
+TMDB_API_KEY=your_tmdb_api_key_here
+
+# Supabase project URL (Supabase dashboard > Settings > API)
+SUPABASE_URL=https://your-project-id.supabase.co
+
+# Supabase anon public key
+SUPABASE_ANON_KEY=your_supabase_anon_key_here
+
+# Android SDK path (set automatically by Android Studio)
+sdk.dir=/Users/your_username/Library/Android/sdk

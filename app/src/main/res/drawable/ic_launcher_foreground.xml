@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- 필름 아이콘 (영화 로그 앱) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M72,36H36c-2.2,0-4,1.8-4,4v28c0,2.2,1.8,4,4,4h36c2.2,0,4-1.8,4-4V40C76,37.8,74.2,36,72,36z" />
+    <path
+        android:fillColor="#1A1A2E"
+        android:pathData="M40,40h4v4h-4zM64,40h4v4h-4zM40,64h4v4h-4zM64,64h4v4h-4z" />
+    <path
+        android:fillColor="#E94560"
+        android:pathData="M50,46l12,8l-12,8z" />
+</vector>
