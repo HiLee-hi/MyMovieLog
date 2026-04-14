@@ -19,13 +19,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mymovie.log.presentation.calendar.CalendarScreen
+import com.mymovie.log.presentation.detail.MovieDetailScreen
 import com.mymovie.log.presentation.home.HomeScreen
 import com.mymovie.log.presentation.library.LibraryScreen
 import com.mymovie.log.presentation.profile.ProfileScreen
@@ -40,6 +43,10 @@ sealed class Screen(val route: String) {
     object Calendar : Screen("calendar")
     object Stats : Screen("stats")
     object Profile : Screen("profile")
+    object MovieDetail : Screen("movie_detail/{movieId}") {
+        const val ARG_MOVIE_ID = "movieId"
+        fun createRoute(movieId: Int) = "movie_detail/$movieId"
+    }
 }
 
 data class BottomNavItem(
@@ -72,8 +79,9 @@ fun AppNavHost(appViewModel: AppViewModel = hiltViewModel()) {
         }
     }
 
-    // Calendar is hidden from BottomNav (accessed via button on Home screen)
+    // Calendar and MovieDetail are hidden from BottomNav
     val showBottomBar = currentDestination?.route != Screen.Calendar.route
+        && currentDestination?.route != Screen.MovieDetail.route
 
     Scaffold(
         bottomBar = {
@@ -115,6 +123,22 @@ fun AppNavHost(appViewModel: AppViewModel = hiltViewModel()) {
             composable(Screen.Search.route) {
                 LaunchedEffect(Unit) { AppLogger.d("NAVIGATION", "Screen: Search") }
                 SearchScreen(
+                    onMovieClick = { movieId ->
+                        AppLogger.d("NAVIGATION", "Search → MovieDetail: movieId=$movieId")
+                        navController.navigate(Screen.MovieDetail.createRoute(movieId))
+                    }
+                )
+            }
+            composable(
+                route = Screen.MovieDetail.route,
+                arguments = listOf(navArgument(Screen.MovieDetail.ARG_MOVIE_ID) { type = NavType.IntType })
+            ) {
+                LaunchedEffect(Unit) { AppLogger.d("NAVIGATION", "Screen: MovieDetail") }
+                MovieDetailScreen(
+                    onBack = {
+                        AppLogger.d("NAVIGATION", "MovieDetail → Back")
+                        navController.popBackStack()
+                    },
                     isLoggedIn = isLoggedIn,
                     onNavigateToLogin = navigateToProfile
                 )

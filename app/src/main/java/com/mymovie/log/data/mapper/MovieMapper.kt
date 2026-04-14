@@ -25,5 +25,6 @@ fun MovieDetailDto.toDomain() = Movie(
     backdropPath = backdropPath,
     releaseDate = releaseDate,
     voteAverage = voteAverage,
-    genreIds = genres.map { it.id }
+    genreIds = genres.map { it.id },
+    genres = genres.map { it.name }
 )
