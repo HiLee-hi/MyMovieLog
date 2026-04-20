@@ -18,6 +18,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -39,14 +40,19 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.mymovie.log.domain.model.MovieRecord
+import com.mymovie.log.domain.model.WatchStatus
+import com.mymovie.log.presentation.ui.RecordDetailBottomSheet
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     onNavigateToCalendar: () -> Unit,
+    onNavigateToLibraryTab: (WatchStatus) -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val selectedRecord by viewModel.selectedRecord.collectAsStateWithLifecycle()
+    val editRecordState by viewModel.editRecordState.collectAsStateWithLifecycle()
 
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(
@@ -64,7 +70,6 @@ fun HomeScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp)
         ) {
-            // Stats summary cards
             StatsSummaryRow(
                 totalWatched = uiState.totalWatched,
                 thisMonthCount = uiState.thisMonthCount
@@ -72,28 +77,47 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Recently watched section
-            SectionHeader(title = "최근에 본 영화")
+            SectionHeader(
+                title = "최근에 본 영화",
+                onMoreClick = { onNavigateToLibraryTab(WatchStatus.WATCHED) }
+            )
             Spacer(modifier = Modifier.height(8.dp))
             if (uiState.recentWatched.isEmpty()) {
                 EmptyMessage("아직 감상 기록이 없어요. 영화를 검색해 기록해보세요!")
             } else {
-                MoviePosterRow(records = uiState.recentWatched)
+                MoviePosterRow(
+                    records = uiState.recentWatched,
+                    onRecordClick = viewModel::selectRecord
+                )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Wishlist preview section
-            SectionHeader(title = "보고 싶은 영화")
+            SectionHeader(
+                title = "보고 싶은 영화",
+                onMoreClick = { onNavigateToLibraryTab(WatchStatus.WISHLIST) }
+            )
             Spacer(modifier = Modifier.height(8.dp))
             if (uiState.wishlistPreview.isEmpty()) {
                 EmptyMessage("위시리스트가 비어있어요. 보고 싶은 영화를 추가해보세요!")
             } else {
-                MoviePosterRow(records = uiState.wishlistPreview)
+                MoviePosterRow(
+                    records = uiState.wishlistPreview,
+                    onRecordClick = viewModel::selectRecord
+                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
         }
+    }
+
+    selectedRecord?.let { record ->
+        RecordDetailBottomSheet(
+            record = record,
+            editState = editRecordState,
+            onDismiss = viewModel::clearSelectedRecord,
+            onSave = viewModel::updateRecord
+        )
     }
 }
 
@@ -132,8 +156,28 @@ private fun StatCard(modifier: Modifier = Modifier, label: String, value: String
 }
 
 @Composable
-private fun SectionHeader(title: String) {
-    Text(text = title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+private fun SectionHeader(title: String, onMoreClick: (() -> Unit)? = null) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.weight(1f)
+        )
+        if (onMoreClick != null) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+                contentDescription = "더 보기",
+                modifier = Modifier
+                    .size(16.dp)
+                    .clickable { onMoreClick() },
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
 }
 
 @Composable
@@ -153,13 +197,13 @@ private fun EmptyMessage(message: String) {
 }
 
 @Composable
-private fun MoviePosterRow(records: List<MovieRecord>) {
+private fun MoviePosterRow(records: List<MovieRecord>, onRecordClick: (MovieRecord) -> Unit = {}) {
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         contentPadding = PaddingValues(end = 8.dp)
     ) {
         items(records) { record ->
-            MoviePosterItem(record = record)
+            MoviePosterItem(record = record, onClick = { onRecordClick(record) })
         }
     }
 }

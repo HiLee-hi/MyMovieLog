@@ -25,6 +25,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.mymovie.log.domain.model.WatchStatus
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mymovie.log.presentation.calendar.CalendarScreen
@@ -37,9 +38,15 @@ import com.mymovie.log.presentation.stats.StatsScreen
 import com.mymovie.log.util.AppLogger
 
 sealed class Screen(val route: String) {
+    open val clickRoute: String get() = route
+
     object Home : Screen("home")
     object Search : Screen("search")
-    object Library : Screen("library")
+    object Library : Screen("library?tab={tab}") {
+        override val clickRoute = "library"
+        const val ARG_TAB = "tab"
+        fun createRoute(tab: String? = null) = if (tab != null) "library?tab=$tab" else "library"
+    }
     object Calendar : Screen("calendar")
     object Stats : Screen("stats")
     object Profile : Screen("profile")
@@ -62,6 +69,15 @@ val bottomNavItems = listOf(
     BottomNavItem(Screen.Stats, "통계", Icons.Default.BarChart),
     BottomNavItem(Screen.Profile, "프로필", Icons.Default.Person)
 )
+
+fun navigateToLibraryTab(navController: androidx.navigation.NavController, tab: WatchStatus) {
+    AppLogger.d("NAVIGATION", "Navigate to Library tab: ${tab.value}")
+    navController.navigate(Screen.Library.createRoute(tab.value)) {
+        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+        launchSingleTop = true
+        restoreState = false
+    }
+}
 
 @Composable
 fun AppNavHost(appViewModel: AppViewModel = hiltViewModel()) {
@@ -92,7 +108,7 @@ fun AppNavHost(appViewModel: AppViewModel = hiltViewModel()) {
                             selected = currentDestination?.hierarchy?.any { it.route == item.screen.route } == true,
                             onClick = {
                                 AppLogger.d("NAVIGATION", "BottomNav tab: ${item.screen.route}")
-                                navController.navigate(item.screen.route) {
+                                navController.navigate(item.screen.clickRoute) {
                                     popUpTo(navController.graph.findStartDestination().id) {
                                         saveState = true
                                     }
@@ -115,10 +131,15 @@ fun AppNavHost(appViewModel: AppViewModel = hiltViewModel()) {
         ) {
             composable(Screen.Home.route) {
                 LaunchedEffect(Unit) { AppLogger.d("NAVIGATION", "Screen: Home") }
-                HomeScreen(onNavigateToCalendar = {
-                    AppLogger.d("NAVIGATION", "Home → Calendar")
-                    navController.navigate(Screen.Calendar.route)
-                })
+                HomeScreen(
+                    onNavigateToCalendar = {
+                        AppLogger.d("NAVIGATION", "Home → Calendar")
+                        navController.navigate(Screen.Calendar.route)
+                    },
+                    onNavigateToLibraryTab = { tab ->
+                        navigateToLibraryTab(navController, tab)
+                    }
+                )
             }
             composable(Screen.Search.route) {
                 LaunchedEffect(Unit) { AppLogger.d("NAVIGATION", "Screen: Search") }
@@ -143,7 +164,14 @@ fun AppNavHost(appViewModel: AppViewModel = hiltViewModel()) {
                     onNavigateToLogin = navigateToProfile
                 )
             }
-            composable(Screen.Library.route) {
+            composable(
+                route = Screen.Library.route,
+                arguments = listOf(navArgument(Screen.Library.ARG_TAB) {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                })
+            ) {
                 LaunchedEffect(Unit) { AppLogger.d("NAVIGATION", "Screen: Library") }
                 LibraryScreen(
                     isLoggedIn = isLoggedIn,

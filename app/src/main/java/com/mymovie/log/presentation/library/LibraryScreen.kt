@@ -1,6 +1,7 @@
 package com.mymovie.log.presentation.library
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,6 +46,7 @@ import coil.compose.AsyncImage
 import com.mymovie.log.domain.model.MovieRecord
 import com.mymovie.log.domain.model.WatchStatus
 import com.mymovie.log.presentation.ui.LoginRequiredContent
+import com.mymovie.log.presentation.ui.RecordDetailBottomSheet
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,6 +58,8 @@ fun LibraryScreen(
     val selectedTab by viewModel.selectedTab.collectAsStateWithLifecycle()
     val watchedRecords by viewModel.watchedRecords.collectAsStateWithLifecycle()
     val wishlistRecords by viewModel.wishlistRecords.collectAsStateWithLifecycle()
+    val selectedRecord by viewModel.selectedRecord.collectAsStateWithLifecycle()
+    val editRecordState by viewModel.editRecordState.collectAsStateWithLifecycle()
 
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(title = { Text("라이브러리", fontWeight = FontWeight.Bold) })
@@ -91,13 +95,30 @@ fun LibraryScreen(
                 )
             }
         } else {
-            MovieGrid(records = currentRecords, onDelete = viewModel::deleteRecord)
+            MovieGrid(
+                records = currentRecords,
+                onRecordClick = viewModel::selectRecord,
+                onDelete = viewModel::deleteRecord
+            )
         }
+    }
+
+    selectedRecord?.let { record ->
+        RecordDetailBottomSheet(
+            record = record,
+            editState = editRecordState,
+            onDismiss = viewModel::clearSelectedRecord,
+            onSave = viewModel::updateRecord
+        )
     }
 }
 
 @Composable
-private fun MovieGrid(records: List<MovieRecord>, onDelete: (String) -> Unit) {
+private fun MovieGrid(
+    records: List<MovieRecord>,
+    onRecordClick: (MovieRecord) -> Unit,
+    onDelete: (String) -> Unit
+) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(3),
         contentPadding = PaddingValues(8.dp),
@@ -105,7 +126,11 @@ private fun MovieGrid(records: List<MovieRecord>, onDelete: (String) -> Unit) {
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(records, key = { it.id }) { record ->
-            MovieGridItem(record = record, onDelete = { onDelete(record.id) })
+            MovieGridItem(
+                record = record,
+                onClick = { onRecordClick(record) },
+                onDelete = { onDelete(record.id) }
+            )
         }
     }
 }
@@ -162,7 +187,9 @@ private fun MovieGridItem(record: MovieRecord, onClick: () -> Unit = {}, onDelet
         }
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onClick() },
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AsyncImage(

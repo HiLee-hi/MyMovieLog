@@ -17,6 +17,14 @@ app/build/
 *.keystore
 keystore.properties
 google-services.json
+release.properties
+signing.properties
+
+# ============================================================
+# 환경변수 파일
+# ============================================================
+.env
+.env.*
 
 # ============================================================
 # IDE — Android Studio / IntelliJ
