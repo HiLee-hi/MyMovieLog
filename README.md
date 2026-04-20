@@ -7,18 +7,18 @@ TMDB에서 영화를 검색하고, 감상 기록·별점·리뷰를 저장하며
 
 ## 기술 스택
 
-| 분류 | 사용 기술 |
-|------|-----------|
-| 언어 | Kotlin |
-| UI | Jetpack Compose + Material3 |
-| 아키텍처 | MVVM + Clean Architecture |
-| DI | Hilt |
-| 네트워크 | Retrofit2 + OkHttp |
-| 이미지 | Coil |
-| 로컬 DB | Room |
-| 서버 | Supabase (PostgreSQL + Auth + Storage) |
-| 영화 데이터 | TMDB API |
-| 캘린더 | kizitonwose/calendar-compose |
+| 분류        | 사용 기술                              |
+| ----------- | -------------------------------------- |
+| 언어        | Kotlin                                 |
+| UI          | Jetpack Compose + Material3            |
+| 아키텍처    | MVVM + Clean Architecture              |
+| DI          | Hilt                                   |
+| 네트워크    | Retrofit2 + OkHttp                     |
+| 이미지      | Coil                                   |
+| 로컬 DB     | Room                                   |
+| 서버        | Supabase (PostgreSQL + Auth + Storage) |
+| 영화 데이터 | TMDB API                               |
+| 캘린더      | kizitonwose/calendar-compose           |
 
 ---
 
@@ -116,11 +116,11 @@ sdk.dir=/Users/your_username/Library/Android/sdk
 
 [Semantic Versioning](https://semver.org) 을 따릅니다.
 
-| 변경 유형 | 버전 증가 | 예시 |
-|-----------|-----------|------|
-| 큰 구조 변경 / 호환성 깨짐 | major | 1.0.0 → 2.0.0 |
-| 새 기능 추가 | minor | 1.0.0 → 1.1.0 |
-| 버그 수정 | patch | 1.0.0 → 1.0.1 |
+| 변경 유형                  | 버전 증가 | 예시          |
+| -------------------------- | --------- | ------------- |
+| 큰 구조 변경 / 호환성 깨짐 | major     | 1.0.0 → 2.0.0 |
+| 새 기능 추가               | minor     | 1.0.0 → 1.1.0 |
+| 버그 수정                  | patch     | 1.0.0 → 1.0.1 |
 
 버전은 `gradle.properties`의 `VERSION_MAJOR / VERSION_MINOR / VERSION_PATCH`에서 관리합니다.
 
