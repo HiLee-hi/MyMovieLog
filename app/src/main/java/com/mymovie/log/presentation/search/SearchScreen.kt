@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
@@ -39,6 +38,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.LoadState
+import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
 import com.mymovie.log.domain.model.Movie
 
@@ -49,7 +50,7 @@ fun SearchScreen(
     viewModel: SearchViewModel = hiltViewModel()
 ) {
     val query by viewModel.query.collectAsStateWithLifecycle()
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val lazyPagingItems = viewModel.searchResults.collectAsLazyPagingItems()
     var isSearchActive by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -72,47 +73,79 @@ fun SearchScreen(
                 }
             }
         ) {
-            SearchResultContent(uiState = uiState, onMovieClick = { onMovieClick(it.id) })
+            SearchResultContent(
+                query = query,
+                lazyPagingItems = lazyPagingItems,
+                onMovieClick = { onMovieClick(it.id) }
+            )
         }
 
         if (!isSearchActive) {
-            SearchResultContent(uiState = uiState, onMovieClick = { onMovieClick(it.id) })
+            SearchResultContent(
+                query = query,
+                lazyPagingItems = lazyPagingItems,
+                onMovieClick = { onMovieClick(it.id) }
+            )
         }
     }
 }
 
 @Composable
-private fun SearchResultContent(uiState: SearchUiState, onMovieClick: (Movie) -> Unit) {
-    when (uiState) {
-        is SearchUiState.Idle -> {
+private fun SearchResultContent(
+    query: String,
+    lazyPagingItems: androidx.paging.compose.LazyPagingItems<Movie>,
+    onMovieClick: (Movie) -> Unit
+) {
+    val refreshState = lazyPagingItems.loadState.refresh
+
+    when {
+        query.isBlank() -> {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("영화를 검색해보세요", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
-        is SearchUiState.Loading -> {
+        refreshState is LoadState.Loading -> {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
         }
-        is SearchUiState.Success -> {
-            if (uiState.movies.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("검색 결과가 없어요", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            } else {
-                LazyColumn(
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(uiState.movies) { movie ->
+        refreshState is LoadState.Error -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(
+                    "오류: ${refreshState.error.message}",
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+        }
+        lazyPagingItems.itemCount == 0 -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("검색 결과가 없어요", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+        else -> {
+            LazyColumn(
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(lazyPagingItems.itemCount) { index ->
+                    val movie = lazyPagingItems[index]
+                    if (movie != null) {
                         MovieSearchItem(movie = movie, onClick = { onMovieClick(movie) })
                     }
                 }
-            }
-        }
-        is SearchUiState.Error -> {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("오류: ${uiState.message}", color = MaterialTheme.colorScheme.error)
+
+                if (lazyPagingItems.loadState.append is LoadState.Loading) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                        }
+                    }
+                }
             }
         }
     }

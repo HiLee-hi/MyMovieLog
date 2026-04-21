@@ -21,6 +21,7 @@ ktor = "3.1.2"
 calendarCompose = "2.5.0"
 coroutines = "1.8.1"
 kotlinxSerialization = "1.7.1"
+paging = "3.3.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -69,6 +70,10 @@ ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref =
 
 # Calendar
 calendar-compose = { group = "com.kizitonwose.calendar", name = "compose", version.ref = "calendarCompose" }
+
+# Paging
+paging-runtime = { group = "androidx.paging", name = "paging-runtime", version.ref = "paging" }
+paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "paging" }
 
 # Coroutines
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }

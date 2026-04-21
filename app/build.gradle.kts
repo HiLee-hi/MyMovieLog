@@ -110,6 +110,10 @@ dependencies {
     // Calendar
     implementation(libs.calendar.compose)
 
+    // Paging
+    implementation(libs.paging.runtime)
+    implementation(libs.paging.compose)
+
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
 
