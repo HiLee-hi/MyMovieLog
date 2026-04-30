@@ -26,6 +26,9 @@ class SearchViewModel @Inject constructor(
     private val _query = MutableStateFlow("")
     val query: StateFlow<String> = _query.asStateFlow()
 
+    private val _isSearchActive = MutableStateFlow(false)
+    val isSearchActive: StateFlow<Boolean> = _isSearchActive.asStateFlow()
+
     val searchResults = _query
         .debounce(400)
         .flatMapLatest { query ->
@@ -36,5 +39,14 @@ class SearchViewModel @Inject constructor(
 
     fun onQueryChange(newQuery: String) {
         _query.value = newQuery
+    }
+
+    fun onActiveChange(active: Boolean) {
+        _isSearchActive.value = active
+    }
+
+    fun clearSearch() {
+        _query.value = ""
+        _isSearchActive.value = false
     }
 }

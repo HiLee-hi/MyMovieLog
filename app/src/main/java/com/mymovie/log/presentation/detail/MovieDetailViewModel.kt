@@ -49,6 +49,9 @@ class MovieDetailViewModel @Inject constructor(
     private val _addRecordState = MutableStateFlow<AddRecordState>(AddRecordState.Idle)
     val addRecordState: StateFlow<AddRecordState> = _addRecordState.asStateFlow()
 
+    private val _recordSavedThisSession = MutableStateFlow(false)
+    val recordSavedThisSession: StateFlow<Boolean> = _recordSavedThisSession.asStateFlow()
+
     val existingRecord: StateFlow<MovieRecord?> = getRecordByTmdbIdUseCase(movieId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
@@ -110,6 +113,7 @@ class MovieDetailViewModel @Inject constructor(
                 upsertRecordUseCase(record)
                 AppLogger.i("VM_DETAIL", "Record saved successfully")
                 _addRecordState.value = AddRecordState.Success
+                _recordSavedThisSession.value = true
             } catch (e: Exception) {
                 AppLogger.e("VM_DETAIL", "Save record failed: ${e.message}", e)
                 _addRecordState.value = AddRecordState.Error(e.message ?: "저장 실패")

@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -28,6 +29,7 @@ import androidx.navigation.navArgument
 import com.mymovie.log.domain.model.WatchStatus
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.mymovie.log.presentation.search.SearchViewModel
 import com.mymovie.log.presentation.calendar.CalendarScreen
 import com.mymovie.log.presentation.detail.MovieDetailScreen
 import com.mymovie.log.presentation.home.HomeScreen
@@ -141,9 +143,20 @@ fun AppNavHost(appViewModel: AppViewModel = hiltViewModel()) {
                     }
                 )
             }
-            composable(Screen.Search.route) {
+            composable(Screen.Search.route) { searchEntry ->
                 LaunchedEffect(Unit) { AppLogger.d("NAVIGATION", "Screen: Search") }
+                val searchViewModel: SearchViewModel = hiltViewModel()
+                val recordSaved by remember {
+                    searchEntry.savedStateHandle.getStateFlow("recordSaved", false)
+                }.collectAsStateWithLifecycle()
+                LaunchedEffect(recordSaved) {
+                    if (recordSaved) {
+                        searchViewModel.clearSearch()
+                        searchEntry.savedStateHandle["recordSaved"] = false
+                    }
+                }
                 SearchScreen(
+                    viewModel = searchViewModel,
                     onMovieClick = { movieId ->
                         AppLogger.d("NAVIGATION", "Search → MovieDetail: movieId=$movieId")
                         navController.navigate(Screen.MovieDetail.createRoute(movieId))
@@ -156,8 +169,13 @@ fun AppNavHost(appViewModel: AppViewModel = hiltViewModel()) {
             ) {
                 LaunchedEffect(Unit) { AppLogger.d("NAVIGATION", "Screen: MovieDetail") }
                 MovieDetailScreen(
-                    onBack = {
-                        AppLogger.d("NAVIGATION", "MovieDetail → Back")
+                    onBack = { recordSaved ->
+                        AppLogger.d("NAVIGATION", "MovieDetail → Back (recordSaved=$recordSaved)")
+                        if (recordSaved) {
+                            navController.previousBackStackEntry
+                                ?.savedStateHandle
+                                ?.set("recordSaved", true)
+                        }
                         navController.popBackStack()
                     },
                     isLoggedIn = isLoggedIn,

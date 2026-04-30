@@ -30,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -49,7 +50,7 @@ import com.mymovie.log.presentation.ui.AddRecordBottomSheet
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MovieDetailScreen(
-    onBack: () -> Unit,
+    onBack: (recordSaved: Boolean) -> Unit,
     isLoggedIn: Boolean = true,
     onNavigateToLogin: () -> Unit = {},
     viewModel: MovieDetailViewModel = hiltViewModel()
@@ -58,13 +59,16 @@ fun MovieDetailScreen(
     val showBottomSheet by viewModel.showBottomSheet.collectAsStateWithLifecycle()
     val addRecordState by viewModel.addRecordState.collectAsStateWithLifecycle()
     val existingRecord by viewModel.existingRecord.collectAsStateWithLifecycle()
+    val recordSaved by viewModel.recordSavedThisSession.collectAsStateWithLifecycle()
+
+    BackHandler { onBack(recordSaved) }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {},
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = { onBack(recordSaved) }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "뒤로가기")
                     }
                 },

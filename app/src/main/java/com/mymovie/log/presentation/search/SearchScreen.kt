@@ -27,9 +27,6 @@ import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,16 +47,16 @@ fun SearchScreen(
     viewModel: SearchViewModel = hiltViewModel()
 ) {
     val query by viewModel.query.collectAsStateWithLifecycle()
+    val isSearchActive by viewModel.isSearchActive.collectAsStateWithLifecycle()
     val lazyPagingItems = viewModel.searchResults.collectAsLazyPagingItems()
-    var isSearchActive by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize()) {
         SearchBar(
             query = query,
             onQueryChange = viewModel::onQueryChange,
-            onSearch = { isSearchActive = false },
+            onSearch = { viewModel.onActiveChange(false) },
             active = isSearchActive,
-            onActiveChange = { isSearchActive = it },
+            onActiveChange = viewModel::onActiveChange,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = if (isSearchActive) 0.dp else 16.dp, vertical = 8.dp),
