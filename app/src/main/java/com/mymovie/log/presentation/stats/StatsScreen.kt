@@ -80,7 +80,7 @@ fun StatsScreen(
                 MonthStatRow(
                     month = label,
                     count = count,
-                    maxCount = uiState.monthlyStats.values.maxOrNull() ?: 1
+                    maxCount = uiState.monthlyStats.values.maxOrNull()?.takeIf { it > 0 } ?: 1
                 )
             }
         }

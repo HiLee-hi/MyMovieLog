@@ -45,6 +45,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.mymovie.log.domain.model.Movie
+import com.mymovie.log.domain.model.MovieRecord
 import com.mymovie.log.domain.model.WatchStatus
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -60,6 +61,7 @@ sealed class AddRecordState {
 @Composable
 fun AddRecordBottomSheet(
     movie: Movie,
+    existingRecord: MovieRecord? = null,
     addRecordState: AddRecordState,
     onDismiss: () -> Unit,
     onSave: (WatchStatus, Float?, LocalDate?, String?, String?) -> Unit
@@ -73,11 +75,11 @@ fun AddRecordBottomSheet(
         }
     }
 
-    var selectedStatus by remember { mutableStateOf(WatchStatus.WATCHED) }
-    var rating by remember { mutableFloatStateOf(0f) }
-    var watchedAt by remember { mutableStateOf<LocalDate?>(null) }
-    var review by remember { mutableStateOf("") }
-    var memo by remember { mutableStateOf("") }
+    var selectedStatus by remember { mutableStateOf(existingRecord?.status ?: WatchStatus.WATCHED) }
+    var rating by remember { mutableFloatStateOf(existingRecord?.rating ?: 0f) }
+    var watchedAt by remember { mutableStateOf(existingRecord?.watchedAt) }
+    var review by remember { mutableStateOf(existingRecord?.review ?: "") }
+    var memo by remember { mutableStateOf(existingRecord?.memo ?: "") }
     var showDatePicker by remember { mutableStateOf(false) }
 
     val context = LocalContext.current

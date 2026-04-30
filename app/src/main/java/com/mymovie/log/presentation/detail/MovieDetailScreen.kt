@@ -57,6 +57,7 @@ fun MovieDetailScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val showBottomSheet by viewModel.showBottomSheet.collectAsStateWithLifecycle()
     val addRecordState by viewModel.addRecordState.collectAsStateWithLifecycle()
+    val existingRecord by viewModel.existingRecord.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -103,6 +104,7 @@ fun MovieDetailScreen(
             is DetailUiState.Success -> {
                 MovieDetailContent(
                     movie = state.movie,
+                    isRecorded = existingRecord != null,
                     modifier = Modifier.padding(innerPadding),
                     onRecordClick = {
                         if (isLoggedIn) viewModel.onRecordClick() else onNavigateToLogin()
@@ -112,6 +114,7 @@ fun MovieDetailScreen(
                 if (showBottomSheet) {
                     AddRecordBottomSheet(
                         movie = state.movie,
+                        existingRecord = existingRecord,
                         addRecordState = addRecordState,
                         onDismiss = viewModel::onDismissSheet,
                         onSave = { status, rating, watchedAt, review, memo ->
@@ -127,6 +130,7 @@ fun MovieDetailScreen(
 @Composable
 private fun MovieDetailContent(
     movie: Movie,
+    isRecorded: Boolean = false,
     modifier: Modifier = Modifier,
     onRecordClick: () -> Unit
 ) {
@@ -264,7 +268,7 @@ private fun MovieDetailContent(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
-            Text("기록하기", style = MaterialTheme.typography.labelLarge)
+            Text(if (isRecorded) "기록 수정" else "기록하기", style = MaterialTheme.typography.labelLarge)
         }
     }
 }
