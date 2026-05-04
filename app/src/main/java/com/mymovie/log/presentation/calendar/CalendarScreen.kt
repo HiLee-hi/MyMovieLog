@@ -51,9 +51,13 @@ import com.kizitonwose.calendar.core.CalendarDay
 import com.kizitonwose.calendar.core.DayPosition
 import com.kizitonwose.calendar.core.firstDayOfWeekFromLocale
 import com.mymovie.log.domain.model.MovieRecord
+import com.mymovie.log.presentation.ui.RecordDetailBottomSheet
 import kotlinx.coroutines.launch
 import com.mymovie.log.presentation.ui.LoginRequiredContent
+import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.format.TextStyle
+import java.util.Locale
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 
@@ -69,12 +73,15 @@ fun CalendarScreen(
     val watchedDates by viewModel.watchedDates.collectAsStateWithLifecycle()
     val selectedDate by viewModel.selectedDate.collectAsStateWithLifecycle()
     val selectedDateRecords by viewModel.selectedDateRecords.collectAsStateWithLifecycle()
+    val selectedRecord by viewModel.selectedRecord.collectAsStateWithLifecycle()
+    val editRecordState by viewModel.editRecordState.collectAsStateWithLifecycle()
 
+    val firstDayOfWeek = firstDayOfWeekFromLocale()
     val calendarState = rememberCalendarState(
         startMonth = YearMonth.now().minusMonths(12),
         endMonth = YearMonth.now(),
         firstVisibleMonth = currentMonth,
-        firstDayOfWeek = firstDayOfWeekFromLocale()
+        firstDayOfWeek = firstDayOfWeek
     )
     val scope = rememberCoroutineScope()
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -114,8 +121,8 @@ fun CalendarScreen(
             }
         )
 
-        // Day-of-week header
-        DayOfWeekHeader()
+        // Day-of-week header aligned with firstDayOfWeek
+        DayOfWeekHeader(firstDayOfWeek = firstDayOfWeek)
 
         // Update current month when the calendar is scrolled
         LaunchedEffect(calendarState.firstVisibleMonth) {
@@ -157,9 +164,19 @@ fun CalendarScreen(
         ) {
             DateRecordsBottomSheet(
                 date = selectedDate!!,
-                records = selectedDateRecords
+                records = selectedDateRecords,
+                onRecordClick = viewModel::selectRecord
             )
         }
+    }
+
+    selectedRecord?.let { record ->
+        RecordDetailBottomSheet(
+            record = record,
+            editState = editRecordState,
+            onDismiss = viewModel::clearSelectedRecord,
+            onSave = viewModel::updateRecord
+        )
     }
 }
 
@@ -195,8 +212,11 @@ private fun MonthNavigationHeader(
 }
 
 @Composable
-private fun DayOfWeekHeader() {
-    val days = listOf("일", "월", "화", "수", "목", "금", "토")
+private fun DayOfWeekHeader(firstDayOfWeek: DayOfWeek) {
+    val days = (0 until 7).map { offset ->
+        val dow = DayOfWeek.of(((firstDayOfWeek.value - 1 + offset) % 7) + 1)
+        dow.getDisplayName(TextStyle.NARROW, Locale.getDefault())
+    }
     Row(modifier = Modifier.fillMaxWidth()) {
         days.forEach { day ->
             Text(
@@ -256,7 +276,11 @@ private fun CalendarDayCell(
 }
 
 @Composable
-private fun DateRecordsBottomSheet(date: LocalDate, records: List<MovieRecord>) {
+private fun DateRecordsBottomSheet(
+    date: LocalDate,
+    records: List<MovieRecord>,
+    onRecordClick: (MovieRecord) -> Unit
+) {
     val formatter = DateTimeFormatter.ofPattern("M월 d일 (E)")
     Column(
         modifier = Modifier
@@ -288,7 +312,7 @@ private fun DateRecordsBottomSheet(date: LocalDate, records: List<MovieRecord>) 
                 contentPadding = PaddingValues(bottom = 16.dp)
             ) {
                 items(records) { record ->
-                    DateRecordItem(record = record)
+                    DateRecordItem(record = record, onClick = { onRecordClick(record) })
                 }
             }
         }
@@ -296,9 +320,11 @@ private fun DateRecordsBottomSheet(date: LocalDate, records: List<MovieRecord>) 
 }
 
 @Composable
-private fun DateRecordItem(record: MovieRecord) {
+private fun DateRecordItem(record: MovieRecord, onClick: () -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
         verticalAlignment = Alignment.CenterVertically
     ) {
         AsyncImage(

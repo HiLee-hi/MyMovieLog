@@ -3,8 +3,11 @@ package com.mymovie.log.presentation.calendar
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mymovie.log.domain.model.MovieRecord
+import com.mymovie.log.domain.model.WatchStatus
 import com.mymovie.log.domain.usecase.GetRecordsByDateUseCase
 import com.mymovie.log.domain.usecase.GetWatchedDatesByMonthUseCase
+import com.mymovie.log.domain.usecase.UpsertRecordUseCase
+import com.mymovie.log.presentation.ui.AddRecordState
 import com.mymovie.log.util.AppLogger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -14,6 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.YearMonth
 import javax.inject.Inject
@@ -22,7 +26,8 @@ import javax.inject.Inject
 @HiltViewModel
 class CalendarViewModel @Inject constructor(
     private val getWatchedDatesByMonthUseCase: GetWatchedDatesByMonthUseCase,
-    private val getRecordsByDateUseCase: GetRecordsByDateUseCase
+    private val getRecordsByDateUseCase: GetRecordsByDateUseCase,
+    private val upsertRecordUseCase: UpsertRecordUseCase
 ) : ViewModel() {
 
     // Currently displayed month
@@ -64,5 +69,49 @@ class CalendarViewModel @Inject constructor(
     fun onBottomSheetDismissed() {
         AppLogger.d("VM_CALENDAR", "BottomSheet dismissed")
         _selectedDate.value = null
+        _selectedRecord.value = null
+        _editRecordState.value = AddRecordState.Idle
+    }
+
+    private val _selectedRecord = MutableStateFlow<MovieRecord?>(null)
+    val selectedRecord: StateFlow<MovieRecord?> = _selectedRecord.asStateFlow()
+
+    private val _editRecordState = MutableStateFlow<AddRecordState>(AddRecordState.Idle)
+    val editRecordState: StateFlow<AddRecordState> = _editRecordState.asStateFlow()
+
+    fun selectRecord(record: MovieRecord) {
+        _selectedRecord.value = record
+        _editRecordState.value = AddRecordState.Idle
+    }
+
+    fun clearSelectedRecord() {
+        _selectedRecord.value = null
+        _editRecordState.value = AddRecordState.Idle
+    }
+
+    fun updateRecord(
+        status: WatchStatus,
+        rating: Float?,
+        watchedAt: LocalDate?,
+        review: String?,
+        memo: String?
+    ) {
+        val record = _selectedRecord.value ?: return
+        viewModelScope.launch {
+            _editRecordState.value = AddRecordState.Saving
+            runCatching {
+                upsertRecordUseCase(
+                    record.copy(
+                        status = status,
+                        rating = rating,
+                        watchedAt = watchedAt,
+                        review = review?.takeIf { it.isNotBlank() },
+                        memo = memo?.takeIf { it.isNotBlank() }
+                    )
+                )
+            }
+                .onSuccess { _editRecordState.value = AddRecordState.Success }
+                .onFailure { _editRecordState.value = AddRecordState.Error(it.message ?: "저장 실패") }
+        }
     }
 }
