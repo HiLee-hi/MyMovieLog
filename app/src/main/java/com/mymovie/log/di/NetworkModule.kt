@@ -1,6 +1,7 @@
 package com.mymovie.log.di
 
 import com.mymovie.log.BuildConfig
+import com.mymovie.log.data.remote.holiday.HolidayApiService
 import com.mymovie.log.data.remote.tmdb.TmdbApi
 import com.mymovie.log.util.AppLogger
 import dagger.Module
@@ -12,6 +13,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import javax.inject.Named
 import javax.inject.Singleton
 
 @Module
@@ -53,5 +55,29 @@ object NetworkModule {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(TmdbApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    @Named("holiday")
+    fun provideHolidayOkHttpClient(): OkHttpClient {
+        val loggingInterceptor = HttpLoggingInterceptor().apply {
+            level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BASIC
+                    else HttpLoggingInterceptor.Level.NONE
+        }
+        return OkHttpClient.Builder()
+            .addInterceptor(loggingInterceptor)
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideHolidayApiService(@Named("holiday") client: OkHttpClient): HolidayApiService {
+        return Retrofit.Builder()
+            .baseUrl("http://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService/")
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(HolidayApiService::class.java)
     }
 }

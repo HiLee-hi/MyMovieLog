@@ -3,6 +3,7 @@ package com.mymovie.log.di
 import android.content.Context
 import androidx.room.Room
 import com.mymovie.log.data.local.room.AppDatabase
+import com.mymovie.log.data.local.room.HolidayDao
 import com.mymovie.log.data.local.room.MovieRecordDao
 import com.mymovie.log.util.AppLogger
 import dagger.Module
@@ -28,4 +29,8 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideMovieRecordDao(db: AppDatabase): MovieRecordDao = db.movieRecordDao()
+
+    @Provides
+    @Singleton
+    fun provideHolidayDao(db: AppDatabase): HolidayDao = db.holidayDao()
 }

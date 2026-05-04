@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mymovie.log.domain.model.MovieRecord
 import com.mymovie.log.domain.model.WatchStatus
+import com.mymovie.log.domain.usecase.GetHolidaysByMonthUseCase
 import com.mymovie.log.domain.usecase.GetRecordsByDateUseCase
 import com.mymovie.log.domain.usecase.GetWatchedDatesByMonthUseCase
 import com.mymovie.log.domain.usecase.UpsertRecordUseCase
@@ -27,6 +28,7 @@ import javax.inject.Inject
 class CalendarViewModel @Inject constructor(
     private val getWatchedDatesByMonthUseCase: GetWatchedDatesByMonthUseCase,
     private val getRecordsByDateUseCase: GetRecordsByDateUseCase,
+    private val getHolidaysByMonthUseCase: GetHolidaysByMonthUseCase,
     private val upsertRecordUseCase: UpsertRecordUseCase
 ) : ViewModel() {
 
@@ -37,6 +39,12 @@ class CalendarViewModel @Inject constructor(
     // Selected date (triggers BottomSheet display)
     private val _selectedDate = MutableStateFlow<LocalDate?>(null)
     val selectedDate: StateFlow<LocalDate?> = _selectedDate.asStateFlow()
+
+    val holidayDates: StateFlow<Set<LocalDate>> = _currentMonth
+        .flatMapLatest { month ->
+            getHolidaysByMonthUseCase(month.year, month.monthValue)
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
     // Set of watched dates in the current month (used for dot markers)
     val watchedDates: StateFlow<Set<LocalDate>> = _currentMonth

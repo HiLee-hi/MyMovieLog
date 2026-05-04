@@ -1,9 +1,11 @@
 package com.mymovie.log.di
 
 import com.mymovie.log.data.repository.AuthRepositoryImpl
+import com.mymovie.log.data.repository.HolidayRepositoryImpl
 import com.mymovie.log.data.repository.MovieRecordRepositoryImpl
 import com.mymovie.log.data.repository.MovieRepositoryImpl
 import com.mymovie.log.domain.repository.AuthRepository
+import com.mymovie.log.domain.repository.HolidayRepository
 import com.mymovie.log.domain.repository.MovieRecordRepository
 import com.mymovie.log.domain.repository.MovieRepository
 import dagger.Binds
@@ -27,4 +29,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindAuthRepository(impl: AuthRepositoryImpl): AuthRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindHolidayRepository(impl: HolidayRepositoryImpl): HolidayRepository
 }

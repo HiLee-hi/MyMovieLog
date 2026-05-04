@@ -1,6 +1,11 @@
 # Copy this file to local.properties and fill in the values below.
 # This file (.template) is committed to git; local.properties is excluded via .gitignore.
 
+# 공공데이터포털 API 인증키 (data.go.kr → 한국천문연구원_특일 정보 서비스 신청 후 발급)
+# 마이페이지 → 인증키 발급현황 → "일반 인증키" 항목의 [인코딩] 탭 키를 그대로 붙여넣기
+# (디코딩 키 사용 시 +, = 등 특수문자가 URL에서 깨짐)
+PUBLIC_DATA_API_KEY=your_public_data_api_key_here
+
 # TMDB API key (obtain from https://developer.themoviedb.org)
 TMDB_API_KEY=your_tmdb_api_key_here
 
