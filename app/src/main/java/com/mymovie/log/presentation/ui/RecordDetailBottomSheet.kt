@@ -15,9 +15,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.StarHalf
-import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -149,7 +146,7 @@ fun RecordDetailBottomSheet(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text("별점", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.width(48.dp))
-                    DetailStarRatingRow(
+                    StarRatingRow(
                         rating = rating,
                         onRatingChange = { rating = it },
                         modifier = Modifier.weight(1f)
@@ -254,34 +251,6 @@ fun RecordDetailBottomSheet(
                     Text("저장")
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun DetailStarRatingRow(
-    rating: Float,
-    onRatingChange: (Float) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        for (star in 1..5) {
-            val filled = rating >= star
-            val halfFilled = !filled && rating >= star - 0.5f
-            Icon(
-                imageVector = when {
-                    filled -> Icons.Default.Star
-                    halfFilled -> Icons.Default.StarHalf
-                    else -> Icons.Outlined.StarBorder
-                },
-                contentDescription = "$star 점",
-                tint = if (filled || halfFilled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
-                modifier = Modifier
-                    .size(32.dp)
-                    .clickable {
-                        onRatingChange(if (rating == star.toFloat()) star - 0.5f else star.toFloat())
-                    }
-            )
         }
     }
 }

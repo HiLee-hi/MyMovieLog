@@ -171,7 +171,9 @@ private fun MovieSearchItem(movie: Movie, onClick: () -> Unit) {
                 Text(text = movie.originalTitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = movie.releaseDate.take(4), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (movie.releaseDate.length >= 4) {
+                Text(text = movie.releaseDate.take(4), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
             Spacer(modifier = Modifier.height(4.dp))
             Text(text = movie.overview, style = MaterialTheme.typography.bodySmall, maxLines = 3, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
