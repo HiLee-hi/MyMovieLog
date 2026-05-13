@@ -14,7 +14,8 @@ data class MovieRecord(
     val rating: Float? = null,         // 0.5 ~ 5.0
     val review: String? = null,
     val memo: String? = null,
-    val watchedAt: LocalDate? = null,  // date the movie was watched
+    val watchedAt: LocalDate? = null,
+    val photoUrls: List<String> = emptyList(),
     val createdAt: String = ""
 ) {
     val posterUrl: String?

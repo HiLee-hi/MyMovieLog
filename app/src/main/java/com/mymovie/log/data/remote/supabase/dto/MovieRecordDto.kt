@@ -16,6 +16,7 @@ data class MovieRecordDto(
     @SerialName("rating") val rating: Float? = null,
     @SerialName("review") val review: String? = null,
     @SerialName("memo") val memo: String? = null,
-    @SerialName("watched_at") val watchedAt: String? = null, // "YYYY-MM-DD"
+    @SerialName("watched_at") val watchedAt: String? = null,
+    @SerialName("photo_urls") val photoUrls: List<String> = emptyList(),
     @SerialName("created_at") val createdAt: String = ""
 )

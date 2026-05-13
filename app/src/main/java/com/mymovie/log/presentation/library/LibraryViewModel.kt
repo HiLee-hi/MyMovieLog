@@ -1,12 +1,16 @@
 package com.mymovie.log.presentation.library
 
+import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mymovie.log.domain.model.MovieRecord
 import com.mymovie.log.domain.model.WatchStatus
+import com.mymovie.log.domain.repository.AuthRepository
 import com.mymovie.log.domain.usecase.DeleteRecordUseCase
 import com.mymovie.log.domain.usecase.GetRecordsUseCase
+import com.mymovie.log.domain.usecase.GetSignedPhotoUrlsUseCase
+import com.mymovie.log.domain.usecase.UploadPhotosUseCase
 import com.mymovie.log.domain.usecase.UpsertRecordUseCase
 import com.mymovie.log.presentation.ui.AddRecordState
 import com.mymovie.log.util.AppLogger
@@ -15,6 +19,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -25,6 +30,9 @@ class LibraryViewModel @Inject constructor(
     getRecordsUseCase: GetRecordsUseCase,
     private val deleteRecordUseCase: DeleteRecordUseCase,
     private val upsertRecordUseCase: UpsertRecordUseCase,
+    private val uploadPhotosUseCase: UploadPhotosUseCase,
+    private val getSignedPhotoUrlsUseCase: GetSignedPhotoUrlsUseCase,
+    private val authRepository: AuthRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -46,6 +54,13 @@ class LibraryViewModel @Inject constructor(
     private val _editRecordState = MutableStateFlow<AddRecordState>(AddRecordState.Idle)
     val editRecordState: StateFlow<AddRecordState> = _editRecordState.asStateFlow()
 
+    private val _attachedUris = MutableStateFlow<List<Uri>>(emptyList())
+    val attachedUris: StateFlow<List<Uri>> = _attachedUris.asStateFlow()
+
+    private val _keptExistingPhotoPaths = MutableStateFlow<List<String>>(emptyList())
+    private val _existingPhotoSignedUrls = MutableStateFlow<List<String>>(emptyList())
+    val existingPhotoSignedUrls: StateFlow<List<String>> = _existingPhotoSignedUrls.asStateFlow()
+
     fun selectTab(status: WatchStatus) {
         AppLogger.d("VM_LIBRARY", "Tab selected: ${status.name}")
         _selectedTab.value = status
@@ -55,11 +70,46 @@ class LibraryViewModel @Inject constructor(
         AppLogger.d("VM_LIBRARY", "Record selected: id=${AppLogger.shortId(record.id)}")
         _selectedRecord.value = record
         _editRecordState.value = AddRecordState.Idle
+        _attachedUris.value = emptyList()
+        _keptExistingPhotoPaths.value = record.photoUrls
+        _existingPhotoSignedUrls.value = emptyList()
+        if (record.photoUrls.isNotEmpty()) {
+            viewModelScope.launch {
+                runCatching { getSignedPhotoUrlsUseCase(record.photoUrls) }
+                    .onSuccess { _existingPhotoSignedUrls.value = it }
+            }
+        }
     }
 
     fun clearSelectedRecord() {
         _selectedRecord.value = null
         _editRecordState.value = AddRecordState.Idle
+        _attachedUris.value = emptyList()
+        _keptExistingPhotoPaths.value = emptyList()
+        _existingPhotoSignedUrls.value = emptyList()
+    }
+
+    fun addPhoto(uri: Uri) {
+        val current = _attachedUris.value
+        if (current.size < 10 && !current.contains(uri)) {
+            _attachedUris.value = current + uri
+        }
+    }
+
+    fun setPhotos(uris: List<Uri>) {
+        _attachedUris.value = uris.take(10)
+    }
+
+    fun removePhoto(uri: Uri) {
+        _attachedUris.value = _attachedUris.value.filter { it != uri }
+    }
+
+    fun removeExistingPhoto(signedUrl: String) {
+        val index = _existingPhotoSignedUrls.value.indexOf(signedUrl)
+        if (index >= 0) {
+            _keptExistingPhotoPaths.value = _keptExistingPhotoPaths.value.filterIndexed { i, _ -> i != index }
+            _existingPhotoSignedUrls.value = _existingPhotoSignedUrls.value.filterIndexed { i, _ -> i != index }
+        }
     }
 
     fun updateRecord(
@@ -74,13 +124,20 @@ class LibraryViewModel @Inject constructor(
             _editRecordState.value = AddRecordState.Saving
             AppLogger.i("VM_LIBRARY", "Update record: id=${AppLogger.shortId(record.id)}, status=${status.value}")
             runCatching {
+                val userId = authRepository.currentUser.first()?.id ?: ""
+                val newPhotoPaths = if (_attachedUris.value.isNotEmpty()) {
+                    AppLogger.i("VM_LIBRARY", "Uploading ${_attachedUris.value.size} photos")
+                    uploadPhotosUseCase(userId, record.tmdbId, _attachedUris.value)
+                } else emptyList()
+
                 upsertRecordUseCase(
                     record.copy(
                         status = status,
                         rating = rating,
                         watchedAt = watchedAt,
                         review = review?.takeIf { it.isNotBlank() },
-                        memo = memo?.takeIf { it.isNotBlank() }
+                        memo = memo?.takeIf { it.isNotBlank() },
+                        photoUrls = _keptExistingPhotoPaths.value + newPhotoPaths
                     )
                 )
             }

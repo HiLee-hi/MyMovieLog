@@ -17,6 +17,7 @@ data class MovieRecordEntity(
     val rating: Float?,
     val review: String?,
     val memo: String?,
-    @ColumnInfo(name = "watched_at") val watchedAt: String?,  // "YYYY-MM-DD"
+    @ColumnInfo(name = "watched_at") val watchedAt: String?,
+    @ColumnInfo(name = "photo_urls") val photoUrls: String = "[]",
     @ColumnInfo(name = "created_at") val createdAt: String
 )

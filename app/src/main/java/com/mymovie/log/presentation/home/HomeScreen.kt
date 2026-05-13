@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import android.net.Uri
 import com.mymovie.log.domain.model.MovieRecord
 import com.mymovie.log.domain.model.WatchStatus
 import com.mymovie.log.presentation.ui.RecordDetailBottomSheet
@@ -48,11 +49,15 @@ import com.mymovie.log.presentation.ui.RecordDetailBottomSheet
 fun HomeScreen(
     onNavigateToCalendar: () -> Unit,
     onNavigateToLibraryTab: (WatchStatus) -> Unit = {},
+    onOpenCamera: () -> Unit = {},
+    onOpenAlbumPicker: (List<Uri>) -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val selectedRecord by viewModel.selectedRecord.collectAsStateWithLifecycle()
     val editRecordState by viewModel.editRecordState.collectAsStateWithLifecycle()
+    val attachedUris by viewModel.attachedUris.collectAsStateWithLifecycle()
+    val selectedRecordSignedPhotoUrls by viewModel.existingPhotoSignedUrls.collectAsStateWithLifecycle()
 
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(
@@ -115,6 +120,12 @@ fun HomeScreen(
         RecordDetailBottomSheet(
             record = record,
             editState = editRecordState,
+            attachedUris = attachedUris,
+            existingPhotoSignedUrls = selectedRecordSignedPhotoUrls,
+            onOpenCamera = onOpenCamera,
+            onOpenAlbumPicker = { onOpenAlbumPicker(attachedUris) },
+            onRemovePhoto = viewModel::removePhoto,
+            onRemoveExistingPhoto = viewModel::removeExistingPhoto,
             onDismiss = viewModel::clearSelectedRecord,
             onSave = viewModel::updateRecord
         )

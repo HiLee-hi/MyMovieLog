@@ -43,6 +43,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import android.net.Uri
 import coil.compose.AsyncImage
 import com.mymovie.log.domain.model.Movie
 import com.mymovie.log.presentation.ui.AddRecordBottomSheet
@@ -53,6 +54,8 @@ fun MovieDetailScreen(
     onBack: (recordSaved: Boolean) -> Unit,
     isLoggedIn: Boolean = true,
     onNavigateToLogin: () -> Unit = {},
+    onOpenCamera: () -> Unit = {},
+    onOpenAlbumPicker: (List<Uri>) -> Unit = {},
     viewModel: MovieDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -60,6 +63,8 @@ fun MovieDetailScreen(
     val addRecordState by viewModel.addRecordState.collectAsStateWithLifecycle()
     val existingRecord by viewModel.existingRecord.collectAsStateWithLifecycle()
     val recordSaved by viewModel.recordSavedThisSession.collectAsStateWithLifecycle()
+    val attachedUris by viewModel.attachedUris.collectAsStateWithLifecycle()
+    val existingPhotoSignedUrls by viewModel.existingPhotoSignedUrls.collectAsStateWithLifecycle()
 
     BackHandler { onBack(recordSaved) }
 
@@ -119,7 +124,13 @@ fun MovieDetailScreen(
                     AddRecordBottomSheet(
                         movie = state.movie,
                         existingRecord = existingRecord,
+                        existingPhotoSignedUrls = existingPhotoSignedUrls,
                         addRecordState = addRecordState,
+                        attachedUris = attachedUris,
+                        onOpenCamera = onOpenCamera,
+                        onOpenAlbumPicker = { onOpenAlbumPicker(attachedUris) },
+                        onRemovePhoto = viewModel::removePhoto,
+                        onRemoveExistingPhoto = viewModel::removeExistingPhoto,
                         onDismiss = viewModel::onDismissSheet,
                         onSave = { status, rating, watchedAt, review, memo ->
                             viewModel.saveRecord(state.movie, status, rating, watchedAt, review, memo)

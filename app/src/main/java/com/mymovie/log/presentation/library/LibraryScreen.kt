@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import android.net.Uri
 import com.mymovie.log.domain.model.MovieRecord
 import com.mymovie.log.domain.model.WatchStatus
 import com.mymovie.log.presentation.ui.LoginRequiredContent
@@ -53,6 +54,8 @@ import com.mymovie.log.presentation.ui.RecordDetailBottomSheet
 fun LibraryScreen(
     isLoggedIn: Boolean = true,
     onNavigateToLogin: () -> Unit = {},
+    onOpenCamera: () -> Unit = {},
+    onOpenAlbumPicker: (List<Uri>) -> Unit = {},
     viewModel: LibraryViewModel = hiltViewModel()
 ) {
     val selectedTab by viewModel.selectedTab.collectAsStateWithLifecycle()
@@ -60,6 +63,8 @@ fun LibraryScreen(
     val wishlistRecords by viewModel.wishlistRecords.collectAsStateWithLifecycle()
     val selectedRecord by viewModel.selectedRecord.collectAsStateWithLifecycle()
     val editRecordState by viewModel.editRecordState.collectAsStateWithLifecycle()
+    val attachedUris by viewModel.attachedUris.collectAsStateWithLifecycle()
+    val selectedRecordSignedPhotoUrls by viewModel.existingPhotoSignedUrls.collectAsStateWithLifecycle()
 
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(title = { Text("라이브러리", fontWeight = FontWeight.Bold) })
@@ -107,6 +112,12 @@ fun LibraryScreen(
         RecordDetailBottomSheet(
             record = record,
             editState = editRecordState,
+            attachedUris = attachedUris,
+            existingPhotoSignedUrls = selectedRecordSignedPhotoUrls,
+            onOpenCamera = onOpenCamera,
+            onOpenAlbumPicker = { onOpenAlbumPicker(attachedUris) },
+            onRemovePhoto = viewModel::removePhoto,
+            onRemoveExistingPhoto = viewModel::removeExistingPhoto,
             onDismiss = viewModel::clearSelectedRecord,
             onSave = viewModel::updateRecord
         )

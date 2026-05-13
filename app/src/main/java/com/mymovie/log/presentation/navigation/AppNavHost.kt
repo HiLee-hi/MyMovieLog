@@ -1,5 +1,6 @@
 package com.mymovie.log.presentation.navigation
 
+import android.net.Uri
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
@@ -33,8 +34,13 @@ import com.mymovie.log.presentation.search.SearchViewModel
 import com.mymovie.log.presentation.calendar.CalendarScreen
 import com.mymovie.log.presentation.detail.MovieDetailScreen
 import com.mymovie.log.presentation.home.HomeScreen
+import com.mymovie.log.presentation.home.HomeViewModel
 import com.mymovie.log.presentation.library.LibraryScreen
+import com.mymovie.log.presentation.library.LibraryViewModel
 import com.mymovie.log.presentation.profile.ProfileScreen
+import com.mymovie.log.presentation.camera.CameraScreen
+import com.mymovie.log.presentation.detail.MovieDetailViewModel
+import com.mymovie.log.presentation.picker.AlbumPickerScreen
 import com.mymovie.log.presentation.search.SearchScreen
 import com.mymovie.log.presentation.stats.StatsScreen
 import com.mymovie.log.util.AppLogger
@@ -56,6 +62,8 @@ sealed class Screen(val route: String) {
         const val ARG_MOVIE_ID = "movieId"
         fun createRoute(movieId: Int) = "movie_detail/$movieId"
     }
+    object Camera : Screen("camera")
+    object AlbumPicker : Screen("album_picker")
 }
 
 data class BottomNavItem(
@@ -98,8 +106,12 @@ fun AppNavHost(appViewModel: AppViewModel = hiltViewModel()) {
     }
 
     // Calendar and MovieDetail are hidden from BottomNav
-    val showBottomBar = currentDestination?.route != Screen.Calendar.route
-        && currentDestination?.route != Screen.MovieDetail.route
+    val showBottomBar = currentDestination?.route !in setOf(
+        Screen.Calendar.route,
+        Screen.MovieDetail.route,
+        Screen.Camera.route,
+        Screen.AlbumPicker.route
+    )
 
     Scaffold(
         bottomBar = {
@@ -131,8 +143,33 @@ fun AppNavHost(appViewModel: AppViewModel = hiltViewModel()) {
             startDestination = Screen.Home.route,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(Screen.Home.route) {
+            composable(Screen.Home.route) { navBackStackEntry ->
                 LaunchedEffect(Unit) { AppLogger.d("NAVIGATION", "Screen: Home") }
+                val homeViewModel: HomeViewModel = hiltViewModel()
+                val existingPhotoSignedUrlsHome by homeViewModel.existingPhotoSignedUrls.collectAsStateWithLifecycle()
+
+                val capturedPhotoUriHome by navBackStackEntry.savedStateHandle
+                    .getStateFlow("capturedPhotoUri", "")
+                    .collectAsStateWithLifecycle()
+                LaunchedEffect(capturedPhotoUriHome) {
+                    if (capturedPhotoUriHome.isNotBlank()) {
+                        AppLogger.d("NAVIGATION", "Home: Camera result received: $capturedPhotoUriHome")
+                        homeViewModel.addPhoto(Uri.parse(capturedPhotoUriHome))
+                        navBackStackEntry.savedStateHandle["capturedPhotoUri"] = ""
+                    }
+                }
+
+                val selectedPhotosHome by navBackStackEntry.savedStateHandle
+                    .getStateFlow<List<String>>("selectedPhotos", emptyList())
+                    .collectAsStateWithLifecycle()
+                LaunchedEffect(selectedPhotosHome) {
+                    if (selectedPhotosHome.isNotEmpty()) {
+                        AppLogger.d("NAVIGATION", "Home: AlbumPicker result received: ${selectedPhotosHome.size} photos")
+                        homeViewModel.setPhotos(selectedPhotosHome.map { Uri.parse(it) })
+                        navBackStackEntry.savedStateHandle["selectedPhotos"] = emptyList<String>()
+                    }
+                }
+
                 HomeScreen(
                     onNavigateToCalendar = {
                         AppLogger.d("NAVIGATION", "Home → Calendar")
@@ -140,7 +177,20 @@ fun AppNavHost(appViewModel: AppViewModel = hiltViewModel()) {
                     },
                     onNavigateToLibraryTab = { tab ->
                         navigateToLibraryTab(navController, tab)
-                    }
+                    },
+                    onOpenCamera = {
+                        AppLogger.d("NAVIGATION", "Home → Camera")
+                        navController.navigate(Screen.Camera.route)
+                    },
+                    onOpenAlbumPicker = { alreadyAttached ->
+                        AppLogger.d("NAVIGATION", "Home → AlbumPicker: ${alreadyAttached.size} already attached")
+                        navBackStackEntry.savedStateHandle["alreadyAttachedUris"] =
+                            alreadyAttached.map { it.toString() }
+                        navBackStackEntry.savedStateHandle["existingPhotoCount"] =
+                            existingPhotoSignedUrlsHome.size
+                        navController.navigate(Screen.AlbumPicker.route)
+                    },
+                    viewModel = homeViewModel
                 )
             }
             composable(Screen.Search.route) { searchEntry ->
@@ -166,8 +216,34 @@ fun AppNavHost(appViewModel: AppViewModel = hiltViewModel()) {
             composable(
                 route = Screen.MovieDetail.route,
                 arguments = listOf(navArgument(Screen.MovieDetail.ARG_MOVIE_ID) { type = NavType.IntType })
-            ) {
+            ) { navBackStackEntry ->
                 LaunchedEffect(Unit) { AppLogger.d("NAVIGATION", "Screen: MovieDetail") }
+
+                val movieDetailViewModel: MovieDetailViewModel = hiltViewModel()
+                val existingPhotoSignedUrlsDetail by movieDetailViewModel.existingPhotoSignedUrls.collectAsStateWithLifecycle()
+
+                val capturedPhotoUri by navBackStackEntry.savedStateHandle
+                    .getStateFlow("capturedPhotoUri", "")
+                    .collectAsStateWithLifecycle()
+                LaunchedEffect(capturedPhotoUri) {
+                    if (capturedPhotoUri.isNotBlank()) {
+                        AppLogger.d("NAVIGATION", "Camera result received: $capturedPhotoUri")
+                        movieDetailViewModel.addPhoto(Uri.parse(capturedPhotoUri))
+                        navBackStackEntry.savedStateHandle["capturedPhotoUri"] = ""
+                    }
+                }
+
+                val selectedPhotos by navBackStackEntry.savedStateHandle
+                    .getStateFlow<List<String>>("selectedPhotos", emptyList())
+                    .collectAsStateWithLifecycle()
+                LaunchedEffect(selectedPhotos) {
+                    if (selectedPhotos.isNotEmpty()) {
+                        AppLogger.d("NAVIGATION", "AlbumPicker result received: ${selectedPhotos.size} photos")
+                        movieDetailViewModel.setPhotos(selectedPhotos.map { Uri.parse(it) })
+                        navBackStackEntry.savedStateHandle["selectedPhotos"] = emptyList<String>()
+                    }
+                }
+
                 MovieDetailScreen(
                     onBack = { recordSaved ->
                         AppLogger.d("NAVIGATION", "MovieDetail → Back (recordSaved=$recordSaved)")
@@ -179,7 +255,20 @@ fun AppNavHost(appViewModel: AppViewModel = hiltViewModel()) {
                         navController.popBackStack()
                     },
                     isLoggedIn = isLoggedIn,
-                    onNavigateToLogin = navigateToProfile
+                    onNavigateToLogin = navigateToProfile,
+                    onOpenCamera = {
+                        AppLogger.d("NAVIGATION", "MovieDetail → Camera")
+                        navController.navigate(Screen.Camera.route)
+                    },
+                    onOpenAlbumPicker = { alreadyAttached ->
+                        AppLogger.d("NAVIGATION", "MovieDetail → AlbumPicker: ${alreadyAttached.size} already attached")
+                        navBackStackEntry.savedStateHandle["alreadyAttachedUris"] =
+                            alreadyAttached.map { it.toString() }
+                        navBackStackEntry.savedStateHandle["existingPhotoCount"] =
+                            existingPhotoSignedUrlsDetail.size
+                        navController.navigate(Screen.AlbumPicker.route)
+                    },
+                    viewModel = movieDetailViewModel
                 )
             }
             composable(
@@ -189,11 +278,49 @@ fun AppNavHost(appViewModel: AppViewModel = hiltViewModel()) {
                     nullable = true
                     defaultValue = null
                 })
-            ) {
+            ) { navBackStackEntry ->
                 LaunchedEffect(Unit) { AppLogger.d("NAVIGATION", "Screen: Library") }
+                val libraryViewModel: LibraryViewModel = hiltViewModel()
+                val existingPhotoSignedUrlsLibrary by libraryViewModel.existingPhotoSignedUrls.collectAsStateWithLifecycle()
+
+                val capturedPhotoUriLibrary by navBackStackEntry.savedStateHandle
+                    .getStateFlow("capturedPhotoUri", "")
+                    .collectAsStateWithLifecycle()
+                LaunchedEffect(capturedPhotoUriLibrary) {
+                    if (capturedPhotoUriLibrary.isNotBlank()) {
+                        AppLogger.d("NAVIGATION", "Library: Camera result received: $capturedPhotoUriLibrary")
+                        libraryViewModel.addPhoto(Uri.parse(capturedPhotoUriLibrary))
+                        navBackStackEntry.savedStateHandle["capturedPhotoUri"] = ""
+                    }
+                }
+
+                val selectedPhotosLibrary by navBackStackEntry.savedStateHandle
+                    .getStateFlow<List<String>>("selectedPhotos", emptyList())
+                    .collectAsStateWithLifecycle()
+                LaunchedEffect(selectedPhotosLibrary) {
+                    if (selectedPhotosLibrary.isNotEmpty()) {
+                        AppLogger.d("NAVIGATION", "Library: AlbumPicker result received: ${selectedPhotosLibrary.size} photos")
+                        libraryViewModel.setPhotos(selectedPhotosLibrary.map { Uri.parse(it) })
+                        navBackStackEntry.savedStateHandle["selectedPhotos"] = emptyList<String>()
+                    }
+                }
+
                 LibraryScreen(
                     isLoggedIn = isLoggedIn,
-                    onNavigateToLogin = navigateToProfile
+                    onNavigateToLogin = navigateToProfile,
+                    onOpenCamera = {
+                        AppLogger.d("NAVIGATION", "Library → Camera")
+                        navController.navigate(Screen.Camera.route)
+                    },
+                    onOpenAlbumPicker = { alreadyAttached ->
+                        AppLogger.d("NAVIGATION", "Library → AlbumPicker: ${alreadyAttached.size} already attached")
+                        navBackStackEntry.savedStateHandle["alreadyAttachedUris"] =
+                            alreadyAttached.map { it.toString() }
+                        navBackStackEntry.savedStateHandle["existingPhotoCount"] =
+                            existingPhotoSignedUrlsLibrary.size
+                        navController.navigate(Screen.AlbumPicker.route)
+                    },
+                    viewModel = libraryViewModel
                 )
             }
             composable(Screen.Calendar.route) {
@@ -226,6 +353,51 @@ fun AppNavHost(appViewModel: AppViewModel = hiltViewModel()) {
                             launchSingleTop = true
                             restoreState = true
                         }
+                    }
+                )
+            }
+            composable(Screen.Camera.route) {
+                LaunchedEffect(Unit) { AppLogger.d("NAVIGATION", "Screen: Camera") }
+                CameraScreen(
+                    onPhotoTaken = { uri ->
+                        AppLogger.d("NAVIGATION", "Camera → photo taken, pop back")
+                        navController.previousBackStackEntry?.savedStateHandle?.set(
+                            "capturedPhotoUri", uri.toString()
+                        )
+                        navController.popBackStack()
+                    },
+                    onBack = {
+                        AppLogger.d("NAVIGATION", "Camera → Back")
+                        navController.popBackStack()
+                    }
+                )
+            }
+            composable(Screen.AlbumPicker.route) {
+                LaunchedEffect(Unit) { AppLogger.d("NAVIGATION", "Screen: AlbumPicker") }
+                val alreadyAttachedStrings = navController.previousBackStackEntry
+                    ?.savedStateHandle
+                    ?.get<List<String>>("alreadyAttachedUris")
+                    ?: emptyList()
+                val alreadyAttached = remember(alreadyAttachedStrings) {
+                    alreadyAttachedStrings.map { Uri.parse(it) }
+                }
+                val existingPhotoCount = navController.previousBackStackEntry
+                    ?.savedStateHandle
+                    ?.get<Int>("existingPhotoCount")
+                    ?: 0
+                AlbumPickerScreen(
+                    alreadyAttachedUris = alreadyAttached,
+                    existingPhotoCount = existingPhotoCount,
+                    onConfirm = { selectedUris ->
+                        AppLogger.d("NAVIGATION", "AlbumPicker → confirmed ${selectedUris.size} photos, pop back")
+                        navController.previousBackStackEntry?.savedStateHandle?.set(
+                            "selectedPhotos", selectedUris.map { it.toString() }
+                        )
+                        navController.popBackStack()
+                    },
+                    onBack = {
+                        AppLogger.d("NAVIGATION", "AlbumPicker → Back")
+                        navController.popBackStack()
                     }
                 )
             }

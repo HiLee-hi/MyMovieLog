@@ -4,10 +4,12 @@ import com.mymovie.log.data.repository.AuthRepositoryImpl
 import com.mymovie.log.data.repository.HolidayRepositoryImpl
 import com.mymovie.log.data.repository.MovieRecordRepositoryImpl
 import com.mymovie.log.data.repository.MovieRepositoryImpl
+import com.mymovie.log.data.repository.PhotoRepositoryImpl
 import com.mymovie.log.domain.repository.AuthRepository
 import com.mymovie.log.domain.repository.HolidayRepository
 import com.mymovie.log.domain.repository.MovieRecordRepository
 import com.mymovie.log.domain.repository.MovieRepository
+import com.mymovie.log.domain.repository.PhotoRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -33,4 +35,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindHolidayRepository(impl: HolidayRepositoryImpl): HolidayRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindPhotoRepository(impl: PhotoRepositoryImpl): PhotoRepository
 }

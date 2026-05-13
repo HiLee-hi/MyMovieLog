@@ -1,6 +1,7 @@
 package com.mymovie.log.presentation.ui
 
 import android.app.DatePickerDialog
+import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,7 +13,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material3.BottomSheetDefaults
@@ -55,6 +58,12 @@ import java.time.format.DateTimeFormatter
 fun RecordDetailBottomSheet(
     record: MovieRecord,
     editState: AddRecordState,
+    attachedUris: List<Uri> = emptyList(),
+    existingPhotoSignedUrls: List<String> = emptyList(),
+    onOpenCamera: () -> Unit = {},
+    onOpenAlbumPicker: () -> Unit = {},
+    onRemovePhoto: (Uri) -> Unit = {},
+    onRemoveExistingPhoto: (String) -> Unit = {},
     onDismiss: () -> Unit,
     onSave: (WatchStatus, Float?, LocalDate?, String?, String?) -> Unit
 ) {
@@ -87,6 +96,7 @@ fun RecordDetailBottomSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp)
                 .padding(bottom = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -123,7 +133,6 @@ fun RecordDetailBottomSheet(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Watch status selector
             SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                 SegmentedButton(
                     selected = selectedStatus == WatchStatus.WATCHED,
@@ -140,7 +149,6 @@ fun RecordDetailBottomSheet(
             Spacer(modifier = Modifier.height(16.dp))
 
             if (selectedStatus == WatchStatus.WATCHED) {
-                // Star rating
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -160,7 +168,6 @@ fun RecordDetailBottomSheet(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Watch date picker
                 Box(modifier = Modifier.fillMaxWidth()) {
                     OutlinedTextField(
                         value = watchedAt?.format(dateFormatter) ?: "",
@@ -215,6 +222,18 @@ fun RecordDetailBottomSheet(
                     enabled = !isSaving
                 )
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            PhotoAttachSection(
+                attachedUris = attachedUris,
+                existingPhotoUrls = existingPhotoSignedUrls,
+                onOpenCamera = onOpenCamera,
+                onOpenAlbumPicker = onOpenAlbumPicker,
+                onRemovePhoto = onRemovePhoto,
+                onRemoveExistingPhoto = onRemoveExistingPhoto,
+                enabled = !isSaving
+            )
 
             if (errorMessage != null) {
                 Spacer(modifier = Modifier.height(8.dp))
