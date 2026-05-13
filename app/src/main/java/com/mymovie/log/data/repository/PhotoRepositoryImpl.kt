@@ -62,30 +62,34 @@ class PhotoRepositoryImpl @Inject constructor(
             }
         } ?: 0f
 
-        val bitmap = context.contentResolver.openInputStream(uri)?.use { stream ->
+        val original = context.contentResolver.openInputStream(uri)?.use { stream ->
             BitmapFactory.decodeStream(stream)
         } ?: throw IOException("Cannot decode image: $uri")
 
-        val scale = minOf(1f, MAX_IMAGE_DIMENSION.toFloat() / maxOf(bitmap.width, bitmap.height))
+        val scale = minOf(1f, MAX_IMAGE_DIMENSION.toFloat() / maxOf(original.width, original.height))
         val scaled = if (scale < 1f) {
             Bitmap.createScaledBitmap(
-                bitmap,
-                (bitmap.width * scale).toInt(),
-                (bitmap.height * scale).toInt(),
+                original,
+                (original.width * scale).toInt(),
+                (original.height * scale).toInt(),
                 true
-            )
-        } else bitmap
+            ).also { original.recycle() }
+        } else original
 
         val output = if (rotationDegrees != 0f) {
             Bitmap.createBitmap(
                 scaled, 0, 0, scaled.width, scaled.height,
                 Matrix().apply { postRotate(rotationDegrees) },
                 true
-            )
+            ).also { scaled.recycle() }
         } else scaled
 
-        return ByteArrayOutputStream().also { out ->
-            output.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, out)
-        }.toByteArray()
+        return try {
+            ByteArrayOutputStream().also { out ->
+                output.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, out)
+            }.toByteArray()
+        } finally {
+            output.recycle()
+        }
     }
 }

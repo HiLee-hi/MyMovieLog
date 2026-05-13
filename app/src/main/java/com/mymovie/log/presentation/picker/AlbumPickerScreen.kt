@@ -106,9 +106,11 @@ fun AlbumPickerScreen(
                     horizontalArrangement = Arrangement.spacedBy(1.dp)
                 ) {
                     items(state.photos, key = { it.uri.toString() }) { photo ->
-                        val order = viewModel.selectionOrder(photo.uri)
+                        val uriStr = photo.uri.toString()
+                        val index = selectedUris.indexOfFirst { it.toString() == uriStr }
+                        val order = if (index >= 0) index + 1 else -1
                         val isSelected = order > 0
-                        val isAtMax = viewModel.isAtMax() && !isSelected
+                        val isAtMax = (selectedUris.size + existingPhotoCount) >= 10 && !isSelected
 
                         PhotoGridItem(
                             uri = photo.uri,

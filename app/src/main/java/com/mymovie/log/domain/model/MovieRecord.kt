@@ -16,6 +16,7 @@ data class MovieRecord(
     val memo: String? = null,
     val watchedAt: LocalDate? = null,
     val photoUrls: List<String> = emptyList(),
+    val photoSourceUris: List<String> = emptyList(),
     val createdAt: String = ""
 ) {
     val posterUrl: String?

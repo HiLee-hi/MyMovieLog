@@ -147,6 +147,7 @@ fun AppNavHost(appViewModel: AppViewModel = hiltViewModel()) {
                 LaunchedEffect(Unit) { AppLogger.d("NAVIGATION", "Screen: Home") }
                 val homeViewModel: HomeViewModel = hiltViewModel()
                 val existingPhotoSignedUrlsHome by homeViewModel.existingPhotoSignedUrls.collectAsStateWithLifecycle()
+                val existingPhotoSourceUrisHome by homeViewModel.existingPhotoSourceUris.collectAsStateWithLifecycle()
 
                 val capturedPhotoUriHome by navBackStackEntry.savedStateHandle
                     .getStateFlow("capturedPhotoUri", "")
@@ -164,8 +165,19 @@ fun AppNavHost(appViewModel: AppViewModel = hiltViewModel()) {
                     .collectAsStateWithLifecycle()
                 LaunchedEffect(selectedPhotosHome) {
                     if (selectedPhotosHome.isNotEmpty()) {
-                        AppLogger.d("NAVIGATION", "Home: AlbumPicker result received: ${selectedPhotosHome.size} photos")
-                        homeViewModel.setPhotos(selectedPhotosHome.map { Uri.parse(it) })
+                        val existingSourceUris = homeViewModel.existingPhotoSourceUris.value
+                        val existingSignedUrls = homeViewModel.existingPhotoSignedUrls.value
+                        val returnedSet = selectedPhotosHome.toSet()
+                        existingSourceUris.forEachIndexed { index, sourceUri ->
+                            if (sourceUri !in returnedSet && index < existingSignedUrls.size) {
+                                homeViewModel.removeExistingPhoto(existingSignedUrls[index])
+                            }
+                        }
+                        val newUris = selectedPhotosHome
+                            .map { Uri.parse(it) }
+                            .filter { it.toString() !in existingSourceUris.toSet() }
+                        AppLogger.d("NAVIGATION", "Home: AlbumPicker result: ${selectedPhotosHome.size} total, ${newUris.size} new")
+                        homeViewModel.setPhotos(newUris)
                         navBackStackEntry.savedStateHandle["selectedPhotos"] = emptyList<String>()
                     }
                 }
@@ -183,11 +195,12 @@ fun AppNavHost(appViewModel: AppViewModel = hiltViewModel()) {
                         navController.navigate(Screen.Camera.route)
                     },
                     onOpenAlbumPicker = { alreadyAttached ->
-                        AppLogger.d("NAVIGATION", "Home → AlbumPicker: ${alreadyAttached.size} already attached")
-                        navBackStackEntry.savedStateHandle["alreadyAttachedUris"] =
-                            alreadyAttached.map { it.toString() }
-                        navBackStackEntry.savedStateHandle["existingPhotoCount"] =
-                            existingPhotoSignedUrlsHome.size
+                        val savedSourceUris = existingPhotoSourceUrisHome.map { Uri.parse(it) }
+                        val combined = alreadyAttached + savedSourceUris
+                        val unknownCount = (existingPhotoSignedUrlsHome.size - existingPhotoSourceUrisHome.size).coerceAtLeast(0)
+                        AppLogger.d("NAVIGATION", "Home → AlbumPicker: ${combined.size} attached, $unknownCount unknown")
+                        navBackStackEntry.savedStateHandle["alreadyAttachedUris"] = combined.map { it.toString() }
+                        navBackStackEntry.savedStateHandle["existingPhotoCount"] = unknownCount
                         navController.navigate(Screen.AlbumPicker.route)
                     },
                     viewModel = homeViewModel
@@ -221,6 +234,7 @@ fun AppNavHost(appViewModel: AppViewModel = hiltViewModel()) {
 
                 val movieDetailViewModel: MovieDetailViewModel = hiltViewModel()
                 val existingPhotoSignedUrlsDetail by movieDetailViewModel.existingPhotoSignedUrls.collectAsStateWithLifecycle()
+                val existingPhotoSourceUrisDetail by movieDetailViewModel.existingPhotoSourceUris.collectAsStateWithLifecycle()
 
                 val capturedPhotoUri by navBackStackEntry.savedStateHandle
                     .getStateFlow("capturedPhotoUri", "")
@@ -238,8 +252,19 @@ fun AppNavHost(appViewModel: AppViewModel = hiltViewModel()) {
                     .collectAsStateWithLifecycle()
                 LaunchedEffect(selectedPhotos) {
                     if (selectedPhotos.isNotEmpty()) {
-                        AppLogger.d("NAVIGATION", "AlbumPicker result received: ${selectedPhotos.size} photos")
-                        movieDetailViewModel.setPhotos(selectedPhotos.map { Uri.parse(it) })
+                        val existingSourceUris = movieDetailViewModel.existingPhotoSourceUris.value
+                        val existingSignedUrls = movieDetailViewModel.existingPhotoSignedUrls.value
+                        val returnedSet = selectedPhotos.toSet()
+                        existingSourceUris.forEachIndexed { index, sourceUri ->
+                            if (sourceUri !in returnedSet && index < existingSignedUrls.size) {
+                                movieDetailViewModel.removeExistingPhoto(existingSignedUrls[index])
+                            }
+                        }
+                        val newUris = selectedPhotos
+                            .map { Uri.parse(it) }
+                            .filter { it.toString() !in existingSourceUris.toSet() }
+                        AppLogger.d("NAVIGATION", "MovieDetail: AlbumPicker result: ${selectedPhotos.size} total, ${newUris.size} new")
+                        movieDetailViewModel.setPhotos(newUris)
                         navBackStackEntry.savedStateHandle["selectedPhotos"] = emptyList<String>()
                     }
                 }
@@ -261,11 +286,12 @@ fun AppNavHost(appViewModel: AppViewModel = hiltViewModel()) {
                         navController.navigate(Screen.Camera.route)
                     },
                     onOpenAlbumPicker = { alreadyAttached ->
-                        AppLogger.d("NAVIGATION", "MovieDetail → AlbumPicker: ${alreadyAttached.size} already attached")
-                        navBackStackEntry.savedStateHandle["alreadyAttachedUris"] =
-                            alreadyAttached.map { it.toString() }
-                        navBackStackEntry.savedStateHandle["existingPhotoCount"] =
-                            existingPhotoSignedUrlsDetail.size
+                        val savedSourceUris = existingPhotoSourceUrisDetail.map { Uri.parse(it) }
+                        val combined = alreadyAttached + savedSourceUris
+                        val unknownCount = (existingPhotoSignedUrlsDetail.size - existingPhotoSourceUrisDetail.size).coerceAtLeast(0)
+                        AppLogger.d("NAVIGATION", "MovieDetail → AlbumPicker: ${combined.size} attached, $unknownCount unknown")
+                        navBackStackEntry.savedStateHandle["alreadyAttachedUris"] = combined.map { it.toString() }
+                        navBackStackEntry.savedStateHandle["existingPhotoCount"] = unknownCount
                         navController.navigate(Screen.AlbumPicker.route)
                     },
                     viewModel = movieDetailViewModel
@@ -282,6 +308,7 @@ fun AppNavHost(appViewModel: AppViewModel = hiltViewModel()) {
                 LaunchedEffect(Unit) { AppLogger.d("NAVIGATION", "Screen: Library") }
                 val libraryViewModel: LibraryViewModel = hiltViewModel()
                 val existingPhotoSignedUrlsLibrary by libraryViewModel.existingPhotoSignedUrls.collectAsStateWithLifecycle()
+                val existingPhotoSourceUrisLibrary by libraryViewModel.existingPhotoSourceUris.collectAsStateWithLifecycle()
 
                 val capturedPhotoUriLibrary by navBackStackEntry.savedStateHandle
                     .getStateFlow("capturedPhotoUri", "")
@@ -299,8 +326,19 @@ fun AppNavHost(appViewModel: AppViewModel = hiltViewModel()) {
                     .collectAsStateWithLifecycle()
                 LaunchedEffect(selectedPhotosLibrary) {
                     if (selectedPhotosLibrary.isNotEmpty()) {
-                        AppLogger.d("NAVIGATION", "Library: AlbumPicker result received: ${selectedPhotosLibrary.size} photos")
-                        libraryViewModel.setPhotos(selectedPhotosLibrary.map { Uri.parse(it) })
+                        val existingSourceUris = libraryViewModel.existingPhotoSourceUris.value
+                        val existingSignedUrls = libraryViewModel.existingPhotoSignedUrls.value
+                        val returnedSet = selectedPhotosLibrary.toSet()
+                        existingSourceUris.forEachIndexed { index, sourceUri ->
+                            if (sourceUri !in returnedSet && index < existingSignedUrls.size) {
+                                libraryViewModel.removeExistingPhoto(existingSignedUrls[index])
+                            }
+                        }
+                        val newUris = selectedPhotosLibrary
+                            .map { Uri.parse(it) }
+                            .filter { it.toString() !in existingSourceUris.toSet() }
+                        AppLogger.d("NAVIGATION", "Library: AlbumPicker result: ${selectedPhotosLibrary.size} total, ${newUris.size} new")
+                        libraryViewModel.setPhotos(newUris)
                         navBackStackEntry.savedStateHandle["selectedPhotos"] = emptyList<String>()
                     }
                 }
@@ -313,11 +351,12 @@ fun AppNavHost(appViewModel: AppViewModel = hiltViewModel()) {
                         navController.navigate(Screen.Camera.route)
                     },
                     onOpenAlbumPicker = { alreadyAttached ->
-                        AppLogger.d("NAVIGATION", "Library → AlbumPicker: ${alreadyAttached.size} already attached")
-                        navBackStackEntry.savedStateHandle["alreadyAttachedUris"] =
-                            alreadyAttached.map { it.toString() }
-                        navBackStackEntry.savedStateHandle["existingPhotoCount"] =
-                            existingPhotoSignedUrlsLibrary.size
+                        val savedSourceUris = existingPhotoSourceUrisLibrary.map { Uri.parse(it) }
+                        val combined = alreadyAttached + savedSourceUris
+                        val unknownCount = (existingPhotoSignedUrlsLibrary.size - existingPhotoSourceUrisLibrary.size).coerceAtLeast(0)
+                        AppLogger.d("NAVIGATION", "Library → AlbumPicker: ${combined.size} attached, $unknownCount unknown")
+                        navBackStackEntry.savedStateHandle["alreadyAttachedUris"] = combined.map { it.toString() }
+                        navBackStackEntry.savedStateHandle["existingPhotoCount"] = unknownCount
                         navController.navigate(Screen.AlbumPicker.route)
                     },
                     viewModel = libraryViewModel

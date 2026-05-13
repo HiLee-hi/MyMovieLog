@@ -59,14 +59,6 @@ class AlbumPickerViewModel @Inject constructor(
         _selectedUris.value = current
     }
 
-    fun selectionOrder(uri: Uri): Int {
-        val uriString = uri.toString()
-        val index = _selectedUris.value.indexOfFirst { it.toString() == uriString }
-        return if (index >= 0) index + 1 else -1
-    }
-
-    fun isAtMax() = _selectedUris.value.size + reservedCount >= MAX_TOTAL_PHOTOS
-
     private fun loadPhotos() {
         viewModelScope.launch {
             _uiState.value = AlbumPickerUiState.Loading

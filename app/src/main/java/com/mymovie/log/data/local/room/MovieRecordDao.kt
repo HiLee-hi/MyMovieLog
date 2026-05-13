@@ -30,6 +30,9 @@ interface MovieRecordDao {
     """)
     fun getWatchedDatesByMonth(yearMonth: String): Flow<List<String>>
 
+    @Query("SELECT * FROM movie_records")
+    suspend fun getAllRecordsOnce(): List<MovieRecordEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertRecord(record: MovieRecordEntity)
 

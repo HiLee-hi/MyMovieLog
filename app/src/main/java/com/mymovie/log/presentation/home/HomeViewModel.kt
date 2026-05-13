@@ -73,6 +73,8 @@ class HomeViewModel @Inject constructor(
     val attachedUris: StateFlow<List<Uri>> = _attachedUris.asStateFlow()
 
     private val _keptExistingPhotoPaths = MutableStateFlow<List<String>>(emptyList())
+    private val _keptExistingPhotoSourceUris = MutableStateFlow<List<String>>(emptyList())
+    val existingPhotoSourceUris: StateFlow<List<String>> = _keptExistingPhotoSourceUris.asStateFlow()
     private val _existingPhotoSignedUrls = MutableStateFlow<List<String>>(emptyList())
     val existingPhotoSignedUrls: StateFlow<List<String>> = _existingPhotoSignedUrls.asStateFlow()
 
@@ -82,6 +84,7 @@ class HomeViewModel @Inject constructor(
         _editRecordState.value = AddRecordState.Idle
         _attachedUris.value = emptyList()
         _keptExistingPhotoPaths.value = record.photoUrls
+        _keptExistingPhotoSourceUris.value = record.photoSourceUris
         _existingPhotoSignedUrls.value = emptyList()
         if (record.photoUrls.isNotEmpty()) {
             viewModelScope.launch {
@@ -96,6 +99,7 @@ class HomeViewModel @Inject constructor(
         _editRecordState.value = AddRecordState.Idle
         _attachedUris.value = emptyList()
         _keptExistingPhotoPaths.value = emptyList()
+        _keptExistingPhotoSourceUris.value = emptyList()
         _existingPhotoSignedUrls.value = emptyList()
     }
 
@@ -118,6 +122,7 @@ class HomeViewModel @Inject constructor(
         val index = _existingPhotoSignedUrls.value.indexOf(signedUrl)
         if (index >= 0) {
             _keptExistingPhotoPaths.value = _keptExistingPhotoPaths.value.filterIndexed { i, _ -> i != index }
+            _keptExistingPhotoSourceUris.value = _keptExistingPhotoSourceUris.value.filterIndexed { i, _ -> i != index }
             _existingPhotoSignedUrls.value = _existingPhotoSignedUrls.value.filterIndexed { i, _ -> i != index }
         }
     }
@@ -147,7 +152,8 @@ class HomeViewModel @Inject constructor(
                         watchedAt = watchedAt,
                         review = review?.takeIf { it.isNotBlank() },
                         memo = memo?.takeIf { it.isNotBlank() },
-                        photoUrls = _keptExistingPhotoPaths.value + newPhotoPaths
+                        photoUrls = _keptExistingPhotoPaths.value + newPhotoPaths,
+                        photoSourceUris = _keptExistingPhotoSourceUris.value + _attachedUris.value.map { it.toString() }
                     )
                 )
             }

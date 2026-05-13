@@ -57,7 +57,8 @@ class MovieRecordRepositoryImpl @Inject constructor(
                 onConflict = "user_id,tmdb_id"
                 select()
             }.decodeSingle<com.mymovie.log.data.remote.supabase.dto.MovieRecordDto>()
-            dao.upsertRecord(saved.toDomain().toEntity())
+            // Preserve local-only photoSourceUris (device-specific URIs not stored in Supabase)
+            dao.upsertRecord(saved.toDomain().copy(photoSourceUris = record.photoSourceUris).toEntity())
             AppLogger.i("REPO_RECORD", "Upsert success: id=${saved.id?.let { AppLogger.shortId(it) }}")
         } catch (e: Exception) {
             AppLogger.e("REPO_RECORD", "Upsert failed: tmdbId=${record.tmdbId}, error=${e.message}", e)
@@ -92,10 +93,16 @@ class MovieRecordRepositoryImpl @Inject constructor(
     override suspend fun syncFromRemote() {
         AppLogger.i("REPO_RECORD", "Sync from remote started")
         try {
+            val localSourceUris = dao.getAllRecordsOnce().associate { it.id to it.photoSourceUris }
             val records = postgrest[TABLE]
                 .select()
                 .decodeList<com.mymovie.log.data.remote.supabase.dto.MovieRecordDto>()
-            dao.upsertAll(records.map { it.toDomain().toEntity() })
+            dao.upsertAll(records.map { dto ->
+                val domain = dto.toDomain()
+                domain.toEntity().copy(
+                    photoSourceUris = localSourceUris[domain.id] ?: "[]"
+                )
+            })
             AppLogger.i("REPO_RECORD", "Sync from remote success: count=${records.size}")
         } catch (e: Exception) {
             AppLogger.e("REPO_RECORD", "Sync from remote failed: ${e.message}", e)

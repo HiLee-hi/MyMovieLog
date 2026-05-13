@@ -60,8 +60,9 @@ class MovieDetailViewModel @Inject constructor(
     private val _attachedUris = MutableStateFlow<List<Uri>>(emptyList())
     val attachedUris: StateFlow<List<Uri>> = _attachedUris.asStateFlow()
 
-    // 기존 저장 사진: 경로(저장용)와 서명 URL(표시용)을 병렬 리스트로 관리
     private val _keptExistingPhotoPaths = MutableStateFlow<List<String>>(emptyList())
+    private val _keptExistingPhotoSourceUris = MutableStateFlow<List<String>>(emptyList())
+    val existingPhotoSourceUris: StateFlow<List<String>> = _keptExistingPhotoSourceUris.asStateFlow()
     private val _existingPhotoSignedUrls = MutableStateFlow<List<String>>(emptyList())
     val existingPhotoSignedUrls: StateFlow<List<String>> = _existingPhotoSignedUrls.asStateFlow()
 
@@ -89,8 +90,10 @@ class MovieDetailViewModel @Inject constructor(
 
     fun onRecordClick() {
         _showBottomSheet.value = true
-        val paths = existingRecord.value?.photoUrls.orEmpty()
+        val record = existingRecord.value
+        val paths = record?.photoUrls.orEmpty()
         _keptExistingPhotoPaths.value = paths
+        _keptExistingPhotoSourceUris.value = record?.photoSourceUris.orEmpty()
         _existingPhotoSignedUrls.value = emptyList()
         if (paths.isNotEmpty()) {
             viewModelScope.launch {
@@ -105,6 +108,7 @@ class MovieDetailViewModel @Inject constructor(
         _addRecordState.value = AddRecordState.Idle
         _attachedUris.value = emptyList()
         _keptExistingPhotoPaths.value = emptyList()
+        _keptExistingPhotoSourceUris.value = emptyList()
         _existingPhotoSignedUrls.value = emptyList()
     }
 
@@ -127,6 +131,7 @@ class MovieDetailViewModel @Inject constructor(
         val index = _existingPhotoSignedUrls.value.indexOf(signedUrl)
         if (index >= 0) {
             _keptExistingPhotoPaths.value = _keptExistingPhotoPaths.value.filterIndexed { i, _ -> i != index }
+            _keptExistingPhotoSourceUris.value = _keptExistingPhotoSourceUris.value.filterIndexed { i, _ -> i != index }
             _existingPhotoSignedUrls.value = _existingPhotoSignedUrls.value.filterIndexed { i, _ -> i != index }
         }
     }
@@ -161,7 +166,8 @@ class MovieDetailViewModel @Inject constructor(
                     review = review?.takeIf { it.isNotBlank() },
                     memo = memo?.takeIf { it.isNotBlank() },
                     watchedAt = watchedAt,
-                    photoUrls = _keptExistingPhotoPaths.value + newPhotoPaths
+                    photoUrls = _keptExistingPhotoPaths.value + newPhotoPaths,
+                    photoSourceUris = _keptExistingPhotoSourceUris.value + _attachedUris.value.map { it.toString() }
                 )
                 AppLogger.i("VM_DETAIL", "Saving record: tmdbId=${movie.id}, status=${status.value}, photos=${record.photoUrls.size}")
                 upsertRecordUseCase(record)

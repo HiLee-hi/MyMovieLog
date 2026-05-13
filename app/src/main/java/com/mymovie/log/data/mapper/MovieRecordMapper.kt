@@ -60,6 +60,7 @@ fun MovieRecordEntity.toDomain() = MovieRecord(
     memo = memo,
     watchedAt = watchedAt?.let { runCatching { LocalDate.parse(it) }.getOrNull() },
     photoUrls = runCatching { json.decodeFromString<List<String>>(photoUrls) }.getOrDefault(emptyList()),
+    photoSourceUris = runCatching { json.decodeFromString<List<String>>(photoSourceUris) }.getOrDefault(emptyList()),
     createdAt = createdAt
 )
 
@@ -78,5 +79,6 @@ fun MovieRecord.toEntity() = MovieRecordEntity(
     memo = memo,
     watchedAt = watchedAt?.toString(),
     photoUrls = json.encodeToString(photoUrls),
+    photoSourceUris = json.encodeToString(photoSourceUris),
     createdAt = createdAt
 )

@@ -83,9 +83,7 @@ fun CameraScreen(
     }
 
     LaunchedEffect(uiState) {
-        if (uiState is CameraUiState.SavedToGallery) {
-            onPhotoTaken((uiState as CameraUiState.SavedToGallery).uri)
-        }
+        (uiState as? CameraUiState.SavedToGallery)?.let { onPhotoTaken(it.uri) }
     }
 
     if (!cameraPermissionGranted) return
