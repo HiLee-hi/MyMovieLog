@@ -40,6 +40,57 @@ TMDB에서 영화를 검색하고, 감상 기록·별점·리뷰를 저장하며
 
 ---
 
+## 아키텍처
+
+MVVM + Clean Architecture 3계층 구조로 의존성은 항상 안쪽(도메인)을 향합니다.
+
+```
+presentation/          ← UI (Compose Screen + ViewModel)
+    ↓ UseCase 호출
+domain/                ← 비즈니스 로직 (UseCase, Repository 인터페이스, 도메인 모델)
+    ↓ Repository 구현체 주입 (Hilt)
+data/                  ← 데이터 소스 (Room, Supabase, TMDB API, 공휴일 API)
+```
+
+### 계층별 역할
+
+| 계층 | 패키지 | 설명 |
+|------|--------|------|
+| **Presentation** | `presentation/` | Compose Screen · ViewModel · UI 상태 관리. ViewModel은 UseCase만 호출하고 Android 프레임워크 의존성을 최소화 |
+| **Domain** | `domain/` | UseCase, Repository 인터페이스, 도메인 모델(`Movie`, `MovieRecord`, `UserProfile`). 순수 Kotlin — 외부 프레임워크 의존성 없음 |
+| **Data** | `data/` | Repository 구현체, Room Entity/DAO, Retrofit DTO, Supabase DTO, Mapper |
+
+### 데이터 흐름
+
+```
+Screen
+  │  UI 이벤트
+  ▼
+ViewModel  ──── UseCase ──── RepositoryImpl
+                                  │
+                    ┌─────────────┼──────────────┐
+                    ▼             ▼              ▼
+                Room (로컬)   Supabase       TMDB / 공휴일 API
+                              (원격 DB)       (Retrofit)
+```
+
+- **오프라인 우선**: `MovieRecordRepositoryImpl`은 Supabase 동기화 후 Room에도 저장하여 네트워크 없이 기록 조회 가능
+- **단방향 데이터 흐름**: ViewModel이 `StateFlow`로 UI 상태를 노출, Screen은 collect만 수행
+- **DI**: Hilt로 Repository 구현체를 Domain 인터페이스에 바인딩 (`RepositoryModule`)
+
+### 주요 UseCase
+
+| UseCase | 설명 |
+|---------|------|
+| `UpsertRecordUseCase` | 영화 기록 추가/수정 (Supabase + Room 동시 저장) |
+| `DeleteRecordUseCase` | 기록 삭제 + 연결 사진 Supabase Storage에서 제거 |
+| `SearchMoviesUseCase` | TMDB Paging3 기반 무한 스크롤 검색 |
+| `GetWatchedDatesByMonthUseCase` | 캘린더 dot 마커용 월별 감상 날짜 조회 |
+| `GetHolidaysByMonthUseCase` | 공휴일 API → Room 캐시 후 반환 |
+| `UploadPhotosUseCase` / `GetSignedPhotoUrlsUseCase` | Supabase Storage 사진 업로드·조회 |
+
+---
+
 ## 실행 방법
 
 ### 사전 준비

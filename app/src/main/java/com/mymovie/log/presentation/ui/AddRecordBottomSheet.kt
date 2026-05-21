@@ -45,7 +45,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -60,7 +59,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.mymovie.log.domain.model.Movie
-import com.mymovie.log.domain.model.MovieRecord
 import com.mymovie.log.domain.model.WatchStatus
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -79,10 +77,19 @@ private val THUMBNAIL_SIZE = 72.dp
 @Composable
 fun AddRecordBottomSheet(
     movie: Movie,
-    existingRecord: MovieRecord? = null,
     existingPhotoSignedUrls: List<String> = emptyList(),
     addRecordState: AddRecordState,
     attachedUris: List<Uri> = emptyList(),
+    status: WatchStatus = WatchStatus.WATCHED,
+    rating: Float = 0f,
+    watchedAt: LocalDate? = null,
+    review: String = "",
+    memo: String = "",
+    onStatusChange: (WatchStatus) -> Unit = {},
+    onRatingChange: (Float) -> Unit = {},
+    onWatchedAtChange: (LocalDate?) -> Unit = {},
+    onReviewChange: (String) -> Unit = {},
+    onMemoChange: (String) -> Unit = {},
     onOpenCamera: () -> Unit = {},
     onOpenAlbumPicker: () -> Unit = {},
     onRemovePhoto: (Uri) -> Unit = {},
@@ -99,23 +106,7 @@ fun AddRecordBottomSheet(
         }
     }
 
-    var selectedStatus by remember { mutableStateOf(existingRecord?.status ?: WatchStatus.WATCHED) }
-    var rating by remember { mutableFloatStateOf(existingRecord?.rating ?: 0f) }
-    var watchedAt by remember { mutableStateOf(existingRecord?.watchedAt) }
-    var review by remember { mutableStateOf(existingRecord?.review ?: "") }
-    var memo by remember { mutableStateOf(existingRecord?.memo ?: "") }
     var showDatePicker by remember { mutableStateOf(false) }
-
-    // existingRecord가 나중에 로드되는 경우(DB 응답 지연) 필드 동기화
-    LaunchedEffect(existingRecord) {
-        existingRecord?.let { record ->
-            selectedStatus = record.status
-            rating = record.rating ?: 0f
-            watchedAt = record.watchedAt
-            review = record.review ?: ""
-            memo = record.memo ?: ""
-        }
-    }
 
     val context = LocalContext.current
     val isSaving = addRecordState is AddRecordState.Saving
@@ -151,20 +142,20 @@ fun AddRecordBottomSheet(
 
             SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                 SegmentedButton(
-                    selected = selectedStatus == WatchStatus.WATCHED,
-                    onClick = { selectedStatus = WatchStatus.WATCHED },
+                    selected = status == WatchStatus.WATCHED,
+                    onClick = { onStatusChange(WatchStatus.WATCHED) },
                     shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)
                 ) { Text("봤어요") }
                 SegmentedButton(
-                    selected = selectedStatus == WatchStatus.WISHLIST,
-                    onClick = { selectedStatus = WatchStatus.WISHLIST },
+                    selected = status == WatchStatus.WISHLIST,
+                    onClick = { onStatusChange(WatchStatus.WISHLIST) },
                     shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
                 ) { Text("보고싶어요") }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            if (selectedStatus == WatchStatus.WATCHED) {
+            if (status == WatchStatus.WATCHED) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -172,11 +163,11 @@ fun AddRecordBottomSheet(
                     Text("별점", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.width(48.dp))
                     StarRatingRow(
                         rating = rating,
-                        onRatingChange = { rating = it },
+                        onRatingChange = onRatingChange,
                         modifier = Modifier.weight(1f)
                     )
                     if (rating > 0f) {
-                        TextButton(onClick = { rating = 0f }) {
+                        TextButton(onClick = { onRatingChange(0f) }) {
                             Text("없음", style = MaterialTheme.typography.bodySmall)
                         }
                     }
@@ -204,7 +195,7 @@ fun AddRecordBottomSheet(
                         DatePickerDialog(
                             context,
                             { _, year, month, day ->
-                                watchedAt = LocalDate.of(year, month + 1, day)
+                                onWatchedAtChange(LocalDate.of(year, month + 1, day))
                             },
                             initial.year, initial.monthValue - 1, initial.dayOfMonth
                         ).apply {
@@ -221,7 +212,7 @@ fun AddRecordBottomSheet(
 
                 OutlinedTextField(
                     value = review,
-                    onValueChange = { review = it },
+                    onValueChange = onReviewChange,
                     label = { Text("리뷰 (선택)") },
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 3,
@@ -231,7 +222,7 @@ fun AddRecordBottomSheet(
             } else {
                 OutlinedTextField(
                     value = memo,
-                    onValueChange = { memo = it },
+                    onValueChange = onMemoChange,
                     label = { Text("메모 (선택)") },
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 3,
@@ -267,11 +258,11 @@ fun AddRecordBottomSheet(
             Button(
                 onClick = {
                     onSave(
-                        selectedStatus,
-                        if (selectedStatus == WatchStatus.WATCHED && rating > 0f) rating else null,
-                        if (selectedStatus == WatchStatus.WATCHED) watchedAt else null,
-                        if (selectedStatus == WatchStatus.WATCHED) review else null,
-                        if (selectedStatus == WatchStatus.WISHLIST) memo else null
+                        status,
+                        if (status == WatchStatus.WATCHED && rating > 0f) rating else null,
+                        if (status == WatchStatus.WATCHED) watchedAt else null,
+                        if (status == WatchStatus.WATCHED) review else null,
+                        if (status == WatchStatus.WISHLIST) memo else null
                     )
                 },
                 modifier = Modifier.fillMaxWidth(),

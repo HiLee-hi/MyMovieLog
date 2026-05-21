@@ -62,6 +62,7 @@ fun MovieDetailScreen(
     val showBottomSheet by viewModel.showBottomSheet.collectAsStateWithLifecycle()
     val addRecordState by viewModel.addRecordState.collectAsStateWithLifecycle()
     val existingRecord by viewModel.existingRecord.collectAsStateWithLifecycle()
+    val recordDraft by viewModel.recordDraft.collectAsStateWithLifecycle()
     val recordSaved by viewModel.recordSavedThisSession.collectAsStateWithLifecycle()
     val attachedUris by viewModel.attachedUris.collectAsStateWithLifecycle()
     val existingPhotoSignedUrls by viewModel.existingPhotoSignedUrls.collectAsStateWithLifecycle()
@@ -123,10 +124,19 @@ fun MovieDetailScreen(
                 if (showBottomSheet) {
                     AddRecordBottomSheet(
                         movie = state.movie,
-                        existingRecord = existingRecord,
                         existingPhotoSignedUrls = existingPhotoSignedUrls,
                         addRecordState = addRecordState,
                         attachedUris = attachedUris,
+                        status = recordDraft.status,
+                        rating = recordDraft.rating,
+                        watchedAt = recordDraft.watchedAt,
+                        review = recordDraft.review,
+                        memo = recordDraft.memo,
+                        onStatusChange = viewModel::onDraftStatusChange,
+                        onRatingChange = viewModel::onDraftRatingChange,
+                        onWatchedAtChange = viewModel::onDraftWatchedAtChange,
+                        onReviewChange = viewModel::onDraftReviewChange,
+                        onMemoChange = viewModel::onDraftMemoChange,
                         onOpenCamera = onOpenCamera,
                         onOpenAlbumPicker = { onOpenAlbumPicker(attachedUris) },
                         onRemovePhoto = viewModel::removePhoto,

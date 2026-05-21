@@ -3,7 +3,11 @@ package com.mymovie.log.presentation.profile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mymovie.log.domain.model.UserProfile
-import com.mymovie.log.domain.repository.AuthRepository
+import com.mymovie.log.domain.usecase.ObserveCurrentUserUseCase
+import com.mymovie.log.domain.usecase.SignInWithEmailUseCase
+import com.mymovie.log.domain.usecase.SignInWithGoogleUseCase
+import com.mymovie.log.domain.usecase.SignOutUseCase
+import com.mymovie.log.domain.usecase.SignUpWithEmailUseCase
 import com.mymovie.log.util.AppLogger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,10 +28,14 @@ sealed class EmailAuthUiState {
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    observeCurrentUserUseCase: ObserveCurrentUserUseCase,
+    private val signInWithEmailUseCase: SignInWithEmailUseCase,
+    private val signUpWithEmailUseCase: SignUpWithEmailUseCase,
+    private val signInWithGoogleUseCase: SignInWithGoogleUseCase,
+    private val signOutUseCase: SignOutUseCase
 ) : ViewModel() {
 
-    val currentUser: StateFlow<UserProfile?> = authRepository.currentUser
+    val currentUser: StateFlow<UserProfile?> = observeCurrentUserUseCase()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     private val _emailAuthUiState = MutableStateFlow<EmailAuthUiState>(EmailAuthUiState.Idle)
@@ -37,7 +45,7 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             _emailAuthUiState.value = EmailAuthUiState.Loading
             AppLogger.i("VM_PROFILE", "Email sign-in requested: ${AppLogger.maskEmail(email)}")
-            runCatching { authRepository.signInWithEmail(email, password) }
+            runCatching { signInWithEmailUseCase(email, password) }
                 .onSuccess {
                     AppLogger.i("VM_PROFILE", "Email sign-in success")
                     _emailAuthUiState.value = EmailAuthUiState.Success
@@ -55,7 +63,7 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             _emailAuthUiState.value = EmailAuthUiState.Loading
             AppLogger.i("VM_PROFILE", "Email sign-up requested: ${AppLogger.maskEmail(email)}")
-            runCatching { authRepository.signUpWithEmail(email, password) }
+            runCatching { signUpWithEmailUseCase(email, password) }
                 .onSuccess {
                     AppLogger.i("VM_PROFILE", "Email sign-up success — verification required")
                     // Use a distinct state instead of Success because email verification is still required
@@ -73,7 +81,7 @@ class ProfileViewModel @Inject constructor(
     fun signInWithGoogle() {
         viewModelScope.launch {
             AppLogger.i("VM_PROFILE", "Google sign-in requested")
-            runCatching { authRepository.signInWithGoogle() }
+            runCatching { signInWithGoogleUseCase() }
                 .onSuccess { AppLogger.i("VM_PROFILE", "Google sign-in success") }
                 .onFailure { AppLogger.e("VM_PROFILE", "Google sign-in failed: ${it.message}", it) }
         }
@@ -82,7 +90,7 @@ class ProfileViewModel @Inject constructor(
     fun signOut() {
         viewModelScope.launch {
             AppLogger.i("VM_PROFILE", "Sign-out requested")
-            runCatching { authRepository.signOut() }
+            runCatching { signOutUseCase() }
                 .onSuccess { AppLogger.i("VM_PROFILE", "Sign-out success") }
                 .onFailure { AppLogger.e("VM_PROFILE", "Sign-out failed: ${it.message}", it) }
         }

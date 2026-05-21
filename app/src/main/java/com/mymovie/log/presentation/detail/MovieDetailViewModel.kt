@@ -7,8 +7,9 @@ import androidx.lifecycle.viewModelScope
 import com.mymovie.log.domain.model.Movie
 import com.mymovie.log.domain.model.MovieRecord
 import com.mymovie.log.domain.model.WatchStatus
-import com.mymovie.log.domain.repository.AuthRepository
-import com.mymovie.log.domain.repository.MovieRepository
+import java.time.LocalDate
+import com.mymovie.log.domain.usecase.GetCurrentUserIdUseCase
+import com.mymovie.log.domain.usecase.GetMovieDetailUseCase
 import com.mymovie.log.domain.usecase.GetRecordByTmdbIdUseCase
 import com.mymovie.log.domain.usecase.GetSignedPhotoUrlsUseCase
 import com.mymovie.log.domain.usecase.UploadPhotosUseCase
@@ -20,11 +21,17 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 import javax.inject.Inject
+
+data class RecordDraft(
+    val status: WatchStatus = WatchStatus.WATCHED,
+    val rating: Float = 0f,
+    val watchedAt: LocalDate? = null,
+    val review: String = "",
+    val memo: String = ""
+)
 
 sealed interface DetailUiState {
     object Loading : DetailUiState
@@ -34,11 +41,11 @@ sealed interface DetailUiState {
 
 @HiltViewModel
 class MovieDetailViewModel @Inject constructor(
-    private val movieRepository: MovieRepository,
+    private val getMovieDetailUseCase: GetMovieDetailUseCase,
     private val upsertRecordUseCase: UpsertRecordUseCase,
     private val uploadPhotosUseCase: UploadPhotosUseCase,
     private val getSignedPhotoUrlsUseCase: GetSignedPhotoUrlsUseCase,
-    private val authRepository: AuthRepository,
+    private val getCurrentUserIdUseCase: GetCurrentUserIdUseCase,
     private val getRecordByTmdbIdUseCase: GetRecordByTmdbIdUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -53,6 +60,9 @@ class MovieDetailViewModel @Inject constructor(
 
     private val _addRecordState = MutableStateFlow<AddRecordState>(AddRecordState.Idle)
     val addRecordState: StateFlow<AddRecordState> = _addRecordState.asStateFlow()
+
+    private val _recordDraft = MutableStateFlow(RecordDraft())
+    val recordDraft: StateFlow<RecordDraft> = _recordDraft.asStateFlow()
 
     private val _recordSavedThisSession = MutableStateFlow(false)
     val recordSavedThisSession: StateFlow<Boolean> = _recordSavedThisSession.asStateFlow()
@@ -78,7 +88,7 @@ class MovieDetailViewModel @Inject constructor(
             _uiState.value = DetailUiState.Loading
             AppLogger.d("VM_DETAIL", "Loading movie detail: movieId=$movieId")
             try {
-                val movie = movieRepository.getMovieDetail(movieId)
+                val movie = getMovieDetailUseCase(movieId)
                 AppLogger.d("VM_DETAIL", "Movie detail loaded: title='${movie.title}'")
                 _uiState.value = DetailUiState.Success(movie)
             } catch (e: Exception) {
@@ -91,6 +101,15 @@ class MovieDetailViewModel @Inject constructor(
     fun onRecordClick() {
         _showBottomSheet.value = true
         val record = existingRecord.value
+        _recordDraft.value = record?.let {
+            RecordDraft(
+                status = it.status,
+                rating = it.rating ?: 0f,
+                watchedAt = it.watchedAt,
+                review = it.review ?: "",
+                memo = it.memo ?: ""
+            )
+        } ?: RecordDraft()
         val paths = record?.photoUrls.orEmpty()
         _keptExistingPhotoPaths.value = paths
         _keptExistingPhotoSourceUris.value = record?.photoSourceUris.orEmpty()
@@ -103,9 +122,30 @@ class MovieDetailViewModel @Inject constructor(
         }
     }
 
+    fun onDraftStatusChange(status: WatchStatus) {
+        _recordDraft.value = _recordDraft.value.copy(status = status)
+    }
+
+    fun onDraftRatingChange(rating: Float) {
+        _recordDraft.value = _recordDraft.value.copy(rating = rating)
+    }
+
+    fun onDraftWatchedAtChange(date: LocalDate?) {
+        _recordDraft.value = _recordDraft.value.copy(watchedAt = date)
+    }
+
+    fun onDraftReviewChange(review: String) {
+        _recordDraft.value = _recordDraft.value.copy(review = review)
+    }
+
+    fun onDraftMemoChange(memo: String) {
+        _recordDraft.value = _recordDraft.value.copy(memo = memo)
+    }
+
     fun onDismissSheet() {
         _showBottomSheet.value = false
         _addRecordState.value = AddRecordState.Idle
+        _recordDraft.value = RecordDraft()
         _attachedUris.value = emptyList()
         _keptExistingPhotoPaths.value = emptyList()
         _keptExistingPhotoSourceUris.value = emptyList()
@@ -147,7 +187,7 @@ class MovieDetailViewModel @Inject constructor(
         viewModelScope.launch {
             _addRecordState.value = AddRecordState.Saving
             try {
-                val userId = authRepository.currentUser.first()?.id ?: ""
+                val userId = getCurrentUserIdUseCase()
                 val newPhotoPaths = if (_attachedUris.value.isNotEmpty()) {
                     AppLogger.i("VM_DETAIL", "Uploading ${_attachedUris.value.size} photos")
                     uploadPhotosUseCase(userId, movie.id, _attachedUris.value)

@@ -2,8 +2,9 @@ package com.mymovie.log.presentation.navigation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.mymovie.log.domain.repository.AuthRepository
-import com.mymovie.log.domain.repository.MovieRecordRepository
+import com.mymovie.log.domain.usecase.ClearLocalCacheUseCase
+import com.mymovie.log.domain.usecase.ObserveCurrentUserUseCase
+import com.mymovie.log.domain.usecase.SyncFromRemoteUseCase
 import com.mymovie.log.util.AppLogger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -16,11 +17,12 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AppViewModel @Inject constructor(
-    private val authRepository: AuthRepository,
-    private val movieRecordRepository: MovieRecordRepository
+    private val observeCurrentUserUseCase: ObserveCurrentUserUseCase,
+    private val syncFromRemoteUseCase: SyncFromRemoteUseCase,
+    private val clearLocalCacheUseCase: ClearLocalCacheUseCase
 ) : ViewModel() {
 
-    val isLoggedIn: StateFlow<Boolean> = authRepository.currentUser
+    val isLoggedIn: StateFlow<Boolean> = observeCurrentUserUseCase()
         .map { it != null }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
@@ -45,7 +47,7 @@ class AppViewModel @Inject constructor(
 
     private fun syncFromRemote() {
         viewModelScope.launch {
-            runCatching { movieRecordRepository.syncFromRemote() }
+            runCatching { syncFromRemoteUseCase() }
                 .onSuccess { AppLogger.i("APP_VM", "syncFromRemote completed") }
                 .onFailure { AppLogger.e("APP_VM", "syncFromRemote failed: ${it.message}", it) }
         }
@@ -53,7 +55,7 @@ class AppViewModel @Inject constructor(
 
     private fun clearLocalCache() {
         viewModelScope.launch {
-            runCatching { movieRecordRepository.clearLocalCache() }
+            runCatching { clearLocalCacheUseCase() }
                 .onSuccess { AppLogger.i("APP_VM", "clearLocalCache completed") }
                 .onFailure { AppLogger.e("APP_VM", "clearLocalCache failed: ${it.message}", it) }
         }

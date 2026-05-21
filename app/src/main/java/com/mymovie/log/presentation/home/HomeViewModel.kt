@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mymovie.log.domain.model.MovieRecord
 import com.mymovie.log.domain.model.WatchStatus
-import com.mymovie.log.domain.repository.AuthRepository
+import com.mymovie.log.domain.usecase.GetCurrentUserIdUseCase
 import com.mymovie.log.domain.usecase.GetRecordsUseCase
 import com.mymovie.log.domain.usecase.GetSignedPhotoUrlsUseCase
 import com.mymovie.log.domain.usecase.UploadPhotosUseCase
@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -38,7 +37,7 @@ class HomeViewModel @Inject constructor(
     private val upsertRecordUseCase: UpsertRecordUseCase,
     private val uploadPhotosUseCase: UploadPhotosUseCase,
     private val getSignedPhotoUrlsUseCase: GetSignedPhotoUrlsUseCase,
-    private val authRepository: AuthRepository
+    private val getCurrentUserIdUseCase: GetCurrentUserIdUseCase
 ) : ViewModel() {
 
     val uiState: StateFlow<HomeUiState> = getRecordsUseCase()
@@ -139,7 +138,7 @@ class HomeViewModel @Inject constructor(
             _editRecordState.value = AddRecordState.Saving
             AppLogger.i("VM_HOME", "Update record: id=${AppLogger.shortId(record.id)}, status=${status.value}")
             runCatching {
-                val userId = authRepository.currentUser.first()?.id ?: ""
+                val userId = getCurrentUserIdUseCase()
                 val newPhotoPaths = if (_attachedUris.value.isNotEmpty()) {
                     AppLogger.i("VM_HOME", "Uploading ${_attachedUris.value.size} photos")
                     uploadPhotosUseCase(userId, record.tmdbId, _attachedUris.value)
