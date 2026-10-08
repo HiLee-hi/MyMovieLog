@@ -24,7 +24,8 @@ android {
         versionCode = major * 10000 + minor * 100 + patch
         versionName = "$major.$minor.$patch"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        // Swaps in HiltTestApplication so instrumented tests can replace repositories with fakes
+        testInstrumentationRunner = "com.mymovie.log.HiltTestRunner"
 
         // Read API keys from local.properties
         val localProperties = Properties().apply {
@@ -61,6 +62,24 @@ android {
         compose = true
         buildConfig = true
     }
+
+    sourceSets {
+        // Fakes shared by JVM (Robolectric) tests and on-device instrumented tests
+        getByName("test").java.srcDir("src/sharedTest/java")
+        getByName("androidTest").java.srcDir("src/sharedTest/java")
+    }
+
+    testOptions {
+        unitTests {
+            // Robolectric renders Compose layouts at different window sizes on the JVM
+            isIncludeAndroidResources = true
+            isReturnDefaultValues = true
+            all {
+                // captureToImage() under Robolectric needs PixelCopy backed by real rendering
+                it.systemProperty("robolectric.pixelCopyRenderMode", "hardware")
+            }
+        }
+    }
 }
 
 dependencies {
@@ -79,6 +98,13 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.material.icons.extended)
+
+    // Adaptive layout (window size class, posture, pane scaffolds, navigation suite)
+    implementation(libs.androidx.material3.adaptive)
+    implementation(libs.androidx.material3.adaptive.layout)
+    implementation(libs.androidx.material3.adaptive.navigation)
+    implementation(libs.androidx.material3.adaptive.navigation.suite)
+    implementation(libs.androidx.window)
 
     // Navigation
     implementation(libs.androidx.navigation.compose)
@@ -129,10 +155,20 @@ dependencies {
 
     // Test
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.junit)
+    testImplementation(platform(libs.androidx.compose.bom))
+    testImplementation(libs.androidx.ui.test.junit4)
+    testImplementation(libs.androidx.window.testing)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.window.testing)
+    androidTestImplementation(libs.hilt.android.testing)
+    kspAndroidTest(libs.hilt.compiler)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 }

@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -50,6 +51,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.mymovie.log.presentation.adaptive.TabletopAwareLayout
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.io.File
 
@@ -125,6 +127,7 @@ fun CameraScreen(
                     onClick = onBack,
                     modifier = Modifier
                         .align(Alignment.TopStart)
+                        .safeDrawingPadding()
                         .padding(16.dp)
                 )
             }
@@ -167,21 +170,12 @@ private fun CameraPreviewContent(
         )
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize())
-
-        CloseButton(
-            onClick = onBack,
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(16.dp)
-        )
-
-        ShutterButton(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 48.dp),
-            onClick = {
+    // Tabletop (Flex mode): preview on the upper half, controls on the lower half
+    TabletopAwareLayout(
+        modifier = Modifier.fillMaxSize(),
+        content = { AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize()) },
+        controls = {
+            CameraControls(onBack = onBack, onShutter = {
                 val tempFile = File(
                     context.externalCacheDir,
                     "camera_temp_${System.currentTimeMillis()}.jpg"
@@ -200,7 +194,26 @@ private fun CameraPreviewContent(
                         }
                     }
                 )
-            }
+            })
+        }
+    )
+}
+
+@Composable
+private fun CameraControls(onBack: () -> Unit, onShutter: () -> Unit) {
+    Box(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
+        CloseButton(
+            onClick = onBack,
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(16.dp)
+        )
+
+        ShutterButton(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 48.dp),
+            onClick = onShutter
         )
     }
 }
@@ -211,34 +224,41 @@ private fun CapturedPhotoContent(
     onRetake: () -> Unit,
     onUsePhoto: () -> Unit
 ) {
-    Box(modifier = Modifier.fillMaxSize()) {
-        AsyncImage(
-            model = tempFile,
-            contentDescription = null,
-            contentScale = ContentScale.Fit,
-            modifier = Modifier.fillMaxSize()
-        )
+    TabletopAwareLayout(
+        modifier = Modifier.fillMaxSize(),
+        content = {
+            AsyncImage(
+                model = tempFile,
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.fillMaxSize()
+            )
+        },
+        controls = {
+            Box(modifier = Modifier.fillMaxSize()) {
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .background(Color.Black.copy(alpha = 0.5f))
+                        .safeDrawingPadding()
+                        .padding(horizontal = 32.dp, vertical = 32.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    OutlinedButton(
+                        onClick = onRetake,
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
+                    ) {
+                        Text("다시찍기")
+                    }
 
-        Row(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .background(Color.Black.copy(alpha = 0.5f))
-                .padding(horizontal = 32.dp, vertical = 32.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            OutlinedButton(
-                onClick = onRetake,
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
-            ) {
-                Text("다시찍기")
-            }
-
-            Button(onClick = onUsePhoto) {
-                Text("사용하기")
+                    Button(onClick = onUsePhoto) {
+                        Text("사용하기")
+                    }
+                }
             }
         }
-    }
+    )
 }
 
 @Composable

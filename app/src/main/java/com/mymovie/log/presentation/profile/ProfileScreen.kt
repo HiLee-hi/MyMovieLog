@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -282,14 +283,14 @@ private fun LoginPromptContent(onEmailLogin: () -> Unit, onGoogleLogin: () -> Un
             Spacer(modifier = Modifier.height(24.dp))
             Button(
                 onClick = onEmailLogin,
-                modifier = Modifier.fillMaxWidth(0.7f)
+                modifier = Modifier.fillMaxWidth(0.7f).widthIn(max = ActionButtonMaxWidth)
             ) {
                 Text("이메일로 로그인")
             }
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedButton(
                 onClick = onGoogleLogin,
-                modifier = Modifier.fillMaxWidth(0.7f)
+                modifier = Modifier.fillMaxWidth(0.7f).widthIn(max = ActionButtonMaxWidth)
             ) {
                 Text("Google로 로그인")
             }
@@ -330,3 +331,6 @@ private fun UserProfileContent(user: UserProfile, onSignOut: () -> Unit) {
         }
     }
 }
+
+/** Buttons keep their phone proportions but do not stretch across wide windows. */
+private val ActionButtonMaxWidth = 360.dp

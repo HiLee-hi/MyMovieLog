@@ -11,6 +11,8 @@ import com.mymovie.log.domain.usecase.GetSignedPhotoUrlsUseCase
 import com.mymovie.log.domain.usecase.UploadPhotosUseCase
 import com.mymovie.log.domain.usecase.UpsertRecordUseCase
 import com.mymovie.log.presentation.ui.AddRecordState
+import com.mymovie.log.presentation.ui.PhotoAttachmentHost
+import com.mymovie.log.presentation.ui.RecordDraft
 import com.mymovie.log.util.AppLogger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,7 +40,7 @@ class HomeViewModel @Inject constructor(
     private val uploadPhotosUseCase: UploadPhotosUseCase,
     private val getSignedPhotoUrlsUseCase: GetSignedPhotoUrlsUseCase,
     private val getCurrentUserIdUseCase: GetCurrentUserIdUseCase
-) : ViewModel() {
+) : ViewModel(), PhotoAttachmentHost {
 
     val uiState: StateFlow<HomeUiState> = getRecordsUseCase()
         .map { allRecords ->
@@ -68,19 +70,24 @@ class HomeViewModel @Inject constructor(
     private val _editRecordState = MutableStateFlow<AddRecordState>(AddRecordState.Idle)
     val editRecordState: StateFlow<AddRecordState> = _editRecordState.asStateFlow()
 
+    // Edit form values live here so they survive rotation, fold/unfold and window resizing
+    private val _editDraft = MutableStateFlow(RecordDraft())
+    val editDraft: StateFlow<RecordDraft> = _editDraft.asStateFlow()
+
     private val _attachedUris = MutableStateFlow<List<Uri>>(emptyList())
-    val attachedUris: StateFlow<List<Uri>> = _attachedUris.asStateFlow()
+    override val attachedUris: StateFlow<List<Uri>> = _attachedUris.asStateFlow()
 
     private val _keptExistingPhotoPaths = MutableStateFlow<List<String>>(emptyList())
     private val _keptExistingPhotoSourceUris = MutableStateFlow<List<String>>(emptyList())
-    val existingPhotoSourceUris: StateFlow<List<String>> = _keptExistingPhotoSourceUris.asStateFlow()
+    override val existingPhotoSourceUris: StateFlow<List<String>> = _keptExistingPhotoSourceUris.asStateFlow()
     private val _existingPhotoSignedUrls = MutableStateFlow<List<String>>(emptyList())
-    val existingPhotoSignedUrls: StateFlow<List<String>> = _existingPhotoSignedUrls.asStateFlow()
+    override val existingPhotoSignedUrls: StateFlow<List<String>> = _existingPhotoSignedUrls.asStateFlow()
 
     fun selectRecord(record: MovieRecord) {
         AppLogger.d("VM_HOME", "Record selected: id=${AppLogger.shortId(record.id)}")
         _selectedRecord.value = record
         _editRecordState.value = AddRecordState.Idle
+        _editDraft.value = RecordDraft.from(record)
         _attachedUris.value = emptyList()
         _keptExistingPhotoPaths.value = record.photoUrls
         _keptExistingPhotoSourceUris.value = record.photoSourceUris
@@ -93,23 +100,28 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    fun onEditDraftChange(draft: RecordDraft) {
+        _editDraft.value = draft
+    }
+
     fun clearSelectedRecord() {
         _selectedRecord.value = null
         _editRecordState.value = AddRecordState.Idle
+        _editDraft.value = RecordDraft()
         _attachedUris.value = emptyList()
         _keptExistingPhotoPaths.value = emptyList()
         _keptExistingPhotoSourceUris.value = emptyList()
         _existingPhotoSignedUrls.value = emptyList()
     }
 
-    fun addPhoto(uri: Uri) {
+    override fun addPhoto(uri: Uri) {
         val current = _attachedUris.value
         if (current.size < 10 && !current.contains(uri)) {
             _attachedUris.value = current + uri
         }
     }
 
-    fun setPhotos(uris: List<Uri>) {
+    override fun setPhotos(uris: List<Uri>) {
         _attachedUris.value = uris.take(10)
     }
 
@@ -117,7 +129,7 @@ class HomeViewModel @Inject constructor(
         _attachedUris.value = _attachedUris.value.filter { it != uri }
     }
 
-    fun removeExistingPhoto(signedUrl: String) {
+    override fun removeExistingPhoto(signedUrl: String) {
         val index = _existingPhotoSignedUrls.value.indexOf(signedUrl)
         if (index >= 0) {
             _keptExistingPhotoPaths.value = _keptExistingPhotoPaths.value.filterIndexed { i, _ -> i != index }

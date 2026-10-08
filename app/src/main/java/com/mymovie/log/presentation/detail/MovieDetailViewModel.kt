@@ -15,6 +15,8 @@ import com.mymovie.log.domain.usecase.GetSignedPhotoUrlsUseCase
 import com.mymovie.log.domain.usecase.UploadPhotosUseCase
 import com.mymovie.log.domain.usecase.UpsertRecordUseCase
 import com.mymovie.log.presentation.ui.AddRecordState
+import com.mymovie.log.presentation.ui.PhotoAttachmentHost
+import com.mymovie.log.presentation.ui.RecordDraft
 import com.mymovie.log.util.AppLogger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,14 +26,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
-data class RecordDraft(
-    val status: WatchStatus = WatchStatus.WATCHED,
-    val rating: Float = 0f,
-    val watchedAt: LocalDate? = null,
-    val review: String = "",
-    val memo: String = ""
-)
 
 sealed interface DetailUiState {
     object Loading : DetailUiState
@@ -47,40 +41,54 @@ class MovieDetailViewModel @Inject constructor(
     private val getSignedPhotoUrlsUseCase: GetSignedPhotoUrlsUseCase,
     private val getCurrentUserIdUseCase: GetCurrentUserIdUseCase,
     private val getRecordByTmdbIdUseCase: GetRecordByTmdbIdUseCase,
-    savedStateHandle: SavedStateHandle
-) : ViewModel() {
+    private val savedStateHandle: SavedStateHandle
+) : ViewModel(), PhotoAttachmentHost {
 
     private val movieId: Int = checkNotNull(savedStateHandle["movieId"])
 
     private val _uiState = MutableStateFlow<DetailUiState>(DetailUiState.Loading)
     val uiState: StateFlow<DetailUiState> = _uiState.asStateFlow()
 
-    private val _showBottomSheet = MutableStateFlow(false)
+    // The record editor state below is mirrored into SavedStateHandle so an in-progress record
+    // survives configuration changes (fold/unfold, rotation, resize) and process recreation.
+
+    /** Whether the record editor is open — rendered as a bottom sheet or as an inline pane. */
+    private val _showBottomSheet = MutableStateFlow(savedStateHandle[KEY_EDITOR_OPEN] ?: false)
     val showBottomSheet: StateFlow<Boolean> = _showBottomSheet.asStateFlow()
 
     private val _addRecordState = MutableStateFlow<AddRecordState>(AddRecordState.Idle)
     val addRecordState: StateFlow<AddRecordState> = _addRecordState.asStateFlow()
 
-    private val _recordDraft = MutableStateFlow(RecordDraft())
+    private val _recordDraft = MutableStateFlow(savedStateHandle[KEY_DRAFT] ?: RecordDraft())
     val recordDraft: StateFlow<RecordDraft> = _recordDraft.asStateFlow()
 
-    private val _recordSavedThisSession = MutableStateFlow(false)
+    private val _recordSavedThisSession = MutableStateFlow(savedStateHandle[KEY_RECORD_SAVED] ?: false)
     val recordSavedThisSession: StateFlow<Boolean> = _recordSavedThisSession.asStateFlow()
 
-    private val _attachedUris = MutableStateFlow<List<Uri>>(emptyList())
-    val attachedUris: StateFlow<List<Uri>> = _attachedUris.asStateFlow()
+    private val _attachedUris = MutableStateFlow(
+        savedStateHandle.get<List<String>>(KEY_ATTACHED_URIS).orEmpty().map(Uri::parse)
+    )
+    override val attachedUris: StateFlow<List<Uri>> = _attachedUris.asStateFlow()
 
-    private val _keptExistingPhotoPaths = MutableStateFlow<List<String>>(emptyList())
-    private val _keptExistingPhotoSourceUris = MutableStateFlow<List<String>>(emptyList())
-    val existingPhotoSourceUris: StateFlow<List<String>> = _keptExistingPhotoSourceUris.asStateFlow()
+    private val _keptExistingPhotoPaths = MutableStateFlow(
+        savedStateHandle.get<List<String>>(KEY_KEPT_PHOTO_PATHS).orEmpty()
+    )
+    private val _keptExistingPhotoSourceUris = MutableStateFlow(
+        savedStateHandle.get<List<String>>(KEY_KEPT_PHOTO_SOURCE_URIS).orEmpty()
+    )
+    override val existingPhotoSourceUris: StateFlow<List<String>> = _keptExistingPhotoSourceUris.asStateFlow()
     private val _existingPhotoSignedUrls = MutableStateFlow<List<String>>(emptyList())
-    val existingPhotoSignedUrls: StateFlow<List<String>> = _existingPhotoSignedUrls.asStateFlow()
+    override val existingPhotoSignedUrls: StateFlow<List<String>> = _existingPhotoSignedUrls.asStateFlow()
 
     val existingRecord: StateFlow<MovieRecord?> = getRecordByTmdbIdUseCase(movieId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     init {
         loadDetail()
+        // Signed URLs expire, so after recreation they are fetched again for the kept photos
+        if (_showBottomSheet.value && _keptExistingPhotoPaths.value.isNotEmpty()) {
+            loadSignedUrls(_keptExistingPhotoPaths.value)
+        }
     }
 
     fun loadDetail() {
@@ -99,81 +107,81 @@ class MovieDetailViewModel @Inject constructor(
     }
 
     fun onRecordClick() {
-        _showBottomSheet.value = true
+        setEditorOpen(true)
         val record = existingRecord.value
-        _recordDraft.value = record?.let {
-            RecordDraft(
-                status = it.status,
-                rating = it.rating ?: 0f,
-                watchedAt = it.watchedAt,
-                review = it.review ?: "",
-                memo = it.memo ?: ""
-            )
-        } ?: RecordDraft()
+        setDraft(RecordDraft.from(record))
         val paths = record?.photoUrls.orEmpty()
-        _keptExistingPhotoPaths.value = paths
-        _keptExistingPhotoSourceUris.value = record?.photoSourceUris.orEmpty()
+        setKeptExistingPhotos(paths, record?.photoSourceUris.orEmpty())
         _existingPhotoSignedUrls.value = emptyList()
-        if (paths.isNotEmpty()) {
-            viewModelScope.launch {
-                runCatching { getSignedPhotoUrlsUseCase(paths) }
-                    .onSuccess { _existingPhotoSignedUrls.value = it }
-            }
-        }
+        if (paths.isNotEmpty()) loadSignedUrls(paths)
     }
 
-    fun onDraftStatusChange(status: WatchStatus) {
-        _recordDraft.value = _recordDraft.value.copy(status = status)
-    }
-
-    fun onDraftRatingChange(rating: Float) {
-        _recordDraft.value = _recordDraft.value.copy(rating = rating)
-    }
-
-    fun onDraftWatchedAtChange(date: LocalDate?) {
-        _recordDraft.value = _recordDraft.value.copy(watchedAt = date)
-    }
-
-    fun onDraftReviewChange(review: String) {
-        _recordDraft.value = _recordDraft.value.copy(review = review)
-    }
-
-    fun onDraftMemoChange(memo: String) {
-        _recordDraft.value = _recordDraft.value.copy(memo = memo)
+    fun onDraftChange(draft: RecordDraft) {
+        setDraft(draft)
     }
 
     fun onDismissSheet() {
-        _showBottomSheet.value = false
+        setEditorOpen(false)
         _addRecordState.value = AddRecordState.Idle
-        _recordDraft.value = RecordDraft()
-        _attachedUris.value = emptyList()
-        _keptExistingPhotoPaths.value = emptyList()
-        _keptExistingPhotoSourceUris.value = emptyList()
+        setDraft(RecordDraft())
+        setAttachedUris(emptyList())
+        setKeptExistingPhotos(emptyList(), emptyList())
         _existingPhotoSignedUrls.value = emptyList()
     }
 
-    fun addPhoto(uri: Uri) {
+    override fun addPhoto(uri: Uri) {
         val current = _attachedUris.value
         if (current.size < 10 && !current.contains(uri)) {
-            _attachedUris.value = current + uri
+            setAttachedUris(current + uri)
         }
     }
 
-    fun setPhotos(uris: List<Uri>) {
-        _attachedUris.value = uris.take(10)
+    override fun setPhotos(uris: List<Uri>) {
+        setAttachedUris(uris.take(10))
     }
 
     fun removePhoto(uri: Uri) {
-        _attachedUris.value = _attachedUris.value.filter { it != uri }
+        setAttachedUris(_attachedUris.value.filter { it != uri })
     }
 
-    fun removeExistingPhoto(signedUrl: String) {
+    override fun removeExistingPhoto(signedUrl: String) {
         val index = _existingPhotoSignedUrls.value.indexOf(signedUrl)
         if (index >= 0) {
-            _keptExistingPhotoPaths.value = _keptExistingPhotoPaths.value.filterIndexed { i, _ -> i != index }
-            _keptExistingPhotoSourceUris.value = _keptExistingPhotoSourceUris.value.filterIndexed { i, _ -> i != index }
+            setKeptExistingPhotos(
+                _keptExistingPhotoPaths.value.filterIndexed { i, _ -> i != index },
+                _keptExistingPhotoSourceUris.value.filterIndexed { i, _ -> i != index }
+            )
             _existingPhotoSignedUrls.value = _existingPhotoSignedUrls.value.filterIndexed { i, _ -> i != index }
         }
+    }
+
+    private fun loadSignedUrls(paths: List<String>) {
+        viewModelScope.launch {
+            runCatching { getSignedPhotoUrlsUseCase(paths) }
+                .onSuccess { _existingPhotoSignedUrls.value = it }
+        }
+    }
+
+    private fun setEditorOpen(open: Boolean) {
+        _showBottomSheet.value = open
+        savedStateHandle[KEY_EDITOR_OPEN] = open
+    }
+
+    private fun setDraft(draft: RecordDraft) {
+        _recordDraft.value = draft
+        savedStateHandle[KEY_DRAFT] = draft
+    }
+
+    private fun setAttachedUris(uris: List<Uri>) {
+        _attachedUris.value = uris
+        savedStateHandle[KEY_ATTACHED_URIS] = ArrayList(uris.map(Uri::toString))
+    }
+
+    private fun setKeptExistingPhotos(paths: List<String>, sourceUris: List<String>) {
+        _keptExistingPhotoPaths.value = paths
+        _keptExistingPhotoSourceUris.value = sourceUris
+        savedStateHandle[KEY_KEPT_PHOTO_PATHS] = ArrayList(paths)
+        savedStateHandle[KEY_KEPT_PHOTO_SOURCE_URIS] = ArrayList(sourceUris)
     }
 
     fun saveRecord(
@@ -214,10 +222,20 @@ class MovieDetailViewModel @Inject constructor(
                 AppLogger.i("VM_DETAIL", "Record saved successfully")
                 _addRecordState.value = AddRecordState.Success
                 _recordSavedThisSession.value = true
+                savedStateHandle[KEY_RECORD_SAVED] = true
             } catch (e: Exception) {
                 AppLogger.e("VM_DETAIL", "Save record failed: ${e.message}", e)
                 _addRecordState.value = AddRecordState.Error(e.message ?: "저장 실패")
             }
         }
+    }
+
+    private companion object {
+        const val KEY_EDITOR_OPEN = "record_editor_open"
+        const val KEY_DRAFT = "record_draft"
+        const val KEY_RECORD_SAVED = "record_saved_this_session"
+        const val KEY_ATTACHED_URIS = "record_attached_uris"
+        const val KEY_KEPT_PHOTO_PATHS = "record_kept_photo_paths"
+        const val KEY_KEPT_PHOTO_SOURCE_URIS = "record_kept_photo_source_uris"
     }
 }

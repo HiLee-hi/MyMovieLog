@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -48,6 +48,7 @@ import com.mymovie.log.domain.model.MovieRecord
 import com.mymovie.log.domain.model.WatchStatus
 import com.mymovie.log.presentation.ui.LoginRequiredContent
 import com.mymovie.log.presentation.ui.RecordDetailBottomSheet
+import com.mymovie.log.presentation.adaptive.AdaptiveDimens
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,6 +64,7 @@ fun LibraryScreen(
     val wishlistRecords by viewModel.wishlistRecords.collectAsStateWithLifecycle()
     val selectedRecord by viewModel.selectedRecord.collectAsStateWithLifecycle()
     val editRecordState by viewModel.editRecordState.collectAsStateWithLifecycle()
+    val editDraft by viewModel.editDraft.collectAsStateWithLifecycle()
     val attachedUris by viewModel.attachedUris.collectAsStateWithLifecycle()
     val selectedRecordSignedPhotoUrls by viewModel.existingPhotoSignedUrls.collectAsStateWithLifecycle()
 
@@ -111,6 +113,8 @@ fun LibraryScreen(
     selectedRecord?.let { record ->
         RecordDetailBottomSheet(
             record = record,
+            draft = editDraft,
+            onDraftChange = viewModel::onEditDraftChange,
             editState = editRecordState,
             attachedUris = attachedUris,
             existingPhotoSignedUrls = selectedRecordSignedPhotoUrls,
@@ -130,8 +134,9 @@ private fun MovieGrid(
     onRecordClick: (MovieRecord) -> Unit,
     onDelete: (String) -> Unit
 ) {
+    // Column count follows the available width: 3 on phones, more on unfolded / tablet windows
     LazyVerticalGrid(
-        columns = GridCells.Fixed(3),
+        columns = GridCells.Adaptive(minSize = AdaptiveDimens.PosterGridMinCellWidth),
         contentPadding = PaddingValues(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -209,7 +214,7 @@ private fun MovieGridItem(record: MovieRecord, onClick: () -> Unit = {}, onDelet
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .size(width = 110.dp, height = 165.dp)
+                    .aspectRatio(2f / 3f)
                     .clip(RoundedCornerShape(6.dp))
             )
             record.rating?.let { rating ->

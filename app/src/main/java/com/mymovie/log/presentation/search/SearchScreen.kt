@@ -24,6 +24,22 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.layout.AnimatedPane
+import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
+import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
+import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
+import androidx.compose.runtime.key
+import androidx.compose.ui.platform.testTag
+import androidx.paging.compose.LazyPagingItems
+import com.mymovie.log.presentation.adaptive.AdaptiveDimens
+import com.mymovie.log.presentation.adaptive.LocalAdaptiveLayoutInfo
+import com.mymovie.log.presentation.adaptive.paneScaffoldDirective
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -40,40 +56,133 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
 import com.mymovie.log.domain.model.Movie
 
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * Search results with a list-detail layout.
+ *
+ * One pane (compact / narrow windows): tapping a result navigates to the MovieDetail destination
+ * exactly as before. Two panes (the window fits both panes next to the navigation rail, or a
+ * separating hinge splits it): the result opens in the detail pane next to the list.
+ * If the window shrinks while a movie is open in the detail pane (fold, split screen), the same
+ * pane stays on screen — with its record draft — and back returns to the list.
+ *
+ * @param detailPane hosts the movie detail for [movieId]; `isSinglePane` tells it to show its own
+ *   back arrow, `onClose` returns to the results.
+ */
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun SearchScreen(
     onMovieClick: (Int) -> Unit = {},
+    detailPane: @Composable (movieId: Int, isSinglePane: Boolean, onClose: () -> Unit) -> Unit =
+        { _, _, _ -> },
     viewModel: SearchViewModel = hiltViewModel()
 ) {
     val query by viewModel.query.collectAsStateWithLifecycle()
     val isSearchActive by viewModel.isSearchActive.collectAsStateWithLifecycle()
     val lazyPagingItems = viewModel.searchResults.collectAsLazyPagingItems()
+    // Hoisted so the result position survives the list pane being hidden and shown again
+    val listState = rememberLazyListState()
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        SearchBar(
-            query = query,
-            onQueryChange = viewModel::onQueryChange,
-            onSearch = { viewModel.onActiveChange(false) },
-            active = isSearchActive,
-            onActiveChange = viewModel::onActiveChange,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = if (isSearchActive) 0.dp else 16.dp, vertical = 8.dp),
-            placeholder = { Text("영화 제목으로 검색") },
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-            trailingIcon = {
-                if (query.isNotEmpty()) {
-                    IconButton(onClick = { viewModel.onQueryChange("") }) {
-                        Icon(Icons.Default.Clear, contentDescription = "지우기")
+    val adaptiveInfo = LocalAdaptiveLayoutInfo.current
+    val paneCount = adaptiveInfo.paneCount(
+        listPaneWidth = AdaptiveDimens.ListPaneWidth,
+        detailPaneMinWidth = AdaptiveDimens.DetailPaneMinWidth
+    )
+    // Saves the selected movie id with rememberSaveable, so it survives configuration changes
+    val navigator = rememberListDetailPaneScaffoldNavigator<Int>(
+        scaffoldDirective = adaptiveInfo.paneScaffoldDirective(paneCount, AdaptiveDimens.ListPaneWidth)
+    )
+    val selectedMovieId = navigator.currentDestination
+        ?.takeIf { it.pane == ListDetailPaneScaffoldRole.Detail }
+        ?.content
+
+    BackHandler(enabled = navigator.canNavigateBack()) { navigator.navigateBack() }
+
+    ListDetailPaneScaffold(
+        directive = navigator.scaffoldDirective,
+        value = navigator.scaffoldValue,
+        listPane = {
+            AnimatedPane(modifier = Modifier.preferredWidth(AdaptiveDimens.ListPaneWidth)) {
+                SearchListPane(
+                    query = query,
+                    isSearchActive = isSearchActive,
+                    lazyPagingItems = lazyPagingItems,
+                    listState = listState,
+                    selectedMovieId = if (paneCount > 1) selectedMovieId else null,
+                    onQueryChange = viewModel::onQueryChange,
+                    onActiveChange = viewModel::onActiveChange,
+                    onMovieClick = { movie ->
+                        if (paneCount > 1) {
+                            navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, movie.id)
+                        } else {
+                            onMovieClick(movie.id)
+                        }
+                    }
+                )
+            }
+        },
+        detailPane = {
+            AnimatedPane(modifier = Modifier.testTag(SearchTestTags.DetailPane)) {
+                if (selectedMovieId != null) {
+                    key(selectedMovieId) {
+                        detailPane(selectedMovieId, paneCount == 1) { navigator.navigateBack() }
+                    }
+                } else {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = "영화를 선택하면 상세 정보가 여기에 표시돼요",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             }
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SearchListPane(
+    query: String,
+    isSearchActive: Boolean,
+    lazyPagingItems: LazyPagingItems<Movie>,
+    listState: LazyListState,
+    selectedMovieId: Int?,
+    onQueryChange: (String) -> Unit,
+    onActiveChange: (Boolean) -> Unit,
+    onMovieClick: (Movie) -> Unit,
+) {
+    Column(modifier = Modifier.fillMaxSize().testTag(SearchTestTags.ListPane)) {
+        SearchBar(
+            inputField = {
+                SearchBarDefaults.InputField(
+                    query = query,
+                    onQueryChange = onQueryChange,
+                    onSearch = { onActiveChange(false) },
+                    expanded = isSearchActive,
+                    onExpandedChange = onActiveChange,
+                    placeholder = { Text("영화 제목으로 검색") },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                    trailingIcon = {
+                        if (query.isNotEmpty()) {
+                            IconButton(onClick = { onQueryChange("") }) {
+                                Icon(Icons.Default.Clear, contentDescription = "지우기")
+                            }
+                        }
+                    }
+                )
+            },
+            expanded = isSearchActive,
+            onExpandedChange = onActiveChange,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = if (isSearchActive) 0.dp else 16.dp, vertical = 8.dp)
         ) {
             SearchResultContent(
                 query = query,
                 lazyPagingItems = lazyPagingItems,
-                onMovieClick = { onMovieClick(it.id) }
+                listState = listState,
+                selectedMovieId = selectedMovieId,
+                onMovieClick = onMovieClick
             )
         }
 
@@ -81,7 +190,9 @@ fun SearchScreen(
             SearchResultContent(
                 query = query,
                 lazyPagingItems = lazyPagingItems,
-                onMovieClick = { onMovieClick(it.id) }
+                listState = listState,
+                selectedMovieId = selectedMovieId,
+                onMovieClick = onMovieClick
             )
         }
     }
@@ -90,7 +201,9 @@ fun SearchScreen(
 @Composable
 private fun SearchResultContent(
     query: String,
-    lazyPagingItems: androidx.paging.compose.LazyPagingItems<Movie>,
+    lazyPagingItems: LazyPagingItems<Movie>,
+    listState: LazyListState,
+    selectedMovieId: Int?,
     onMovieClick: (Movie) -> Unit
 ) {
     val refreshState = lazyPagingItems.loadState.refresh
@@ -121,13 +234,18 @@ private fun SearchResultContent(
         }
         else -> {
             LazyColumn(
+                state = listState,
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(lazyPagingItems.itemCount) { index ->
                     val movie = lazyPagingItems[index]
                     if (movie != null) {
-                        MovieSearchItem(movie = movie, onClick = { onMovieClick(movie) })
+                        MovieSearchItem(
+                            movie = movie,
+                            isSelected = movie.id == selectedMovieId,
+                            onClick = { onMovieClick(movie) }
+                        )
                     }
                 }
 
@@ -149,10 +267,16 @@ private fun SearchResultContent(
 }
 
 @Composable
-private fun MovieSearchItem(movie: Movie, onClick: () -> Unit) {
+private fun MovieSearchItem(movie: Movie, onClick: () -> Unit, isSelected: Boolean = false) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .then(
+                // Marks the movie shown in the detail pane
+                if (isSelected) Modifier.background(MaterialTheme.colorScheme.secondaryContainer)
+                else Modifier
+            )
             .clickable(onClick = onClick),
         verticalAlignment = Alignment.Top
     ) {
@@ -178,4 +302,9 @@ private fun MovieSearchItem(movie: Movie, onClick: () -> Unit) {
             Text(text = movie.overview, style = MaterialTheme.typography.bodySmall, maxLines = 3, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
+}
+
+internal object SearchTestTags {
+    const val ListPane = "search_list_pane"
+    const val DetailPane = "search_detail_pane"
 }

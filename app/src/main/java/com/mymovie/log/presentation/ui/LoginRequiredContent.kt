@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.Button
@@ -54,7 +55,7 @@ fun LoginRequiredContent(
         Spacer(modifier = Modifier.height(32.dp))
         Button(
             onClick = onNavigateToLogin,
-            modifier = Modifier.fillMaxWidth(0.6f)
+            modifier = Modifier.fillMaxWidth(0.6f).widthIn(max = 360.dp)
         ) {
             Text("로그인하기")
         }

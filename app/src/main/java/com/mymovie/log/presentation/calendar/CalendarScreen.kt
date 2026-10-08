@@ -53,6 +53,24 @@ import com.kizitonwose.calendar.core.DayPosition
 import com.kizitonwose.calendar.core.firstDayOfWeekFromLocale
 import com.mymovie.log.domain.model.MovieRecord
 import com.mymovie.log.presentation.ui.RecordDetailBottomSheet
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.layout.AnimatedPane
+import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
+import androidx.compose.material3.adaptive.layout.PaneAdaptedValue
+import androidx.compose.material3.adaptive.layout.ThreePaneScaffoldValue
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.Dp
+import com.kizitonwose.calendar.compose.CalendarState
+import com.mymovie.log.domain.model.WatchStatus
+import com.mymovie.log.presentation.adaptive.LocalAdaptiveLayoutInfo
+import com.mymovie.log.presentation.adaptive.constrainedWidth
+import com.mymovie.log.presentation.adaptive.paneScaffoldDirective
+import com.mymovie.log.presentation.ui.AddRecordState
+import com.mymovie.log.presentation.ui.RecordDetailContent
+import com.mymovie.log.presentation.ui.RecordDraft
 import kotlinx.coroutines.launch
 import com.mymovie.log.presentation.ui.LoginRequiredContent
 import java.time.DayOfWeek
@@ -62,7 +80,7 @@ import java.util.Locale
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun CalendarScreen(
     onBack: () -> Unit,
@@ -76,18 +94,44 @@ fun CalendarScreen(
     val selectedDateRecords by viewModel.selectedDateRecords.collectAsStateWithLifecycle()
     val selectedRecord by viewModel.selectedRecord.collectAsStateWithLifecycle()
     val editRecordState by viewModel.editRecordState.collectAsStateWithLifecycle()
+    val editDraft by viewModel.editDraft.collectAsStateWithLifecycle()
     val holidayDates by viewModel.holidayDates.collectAsStateWithLifecycle()
 
     val firstDayOfWeek = firstDayOfWeekFromLocale()
     val maxMonth = YearMonth.now().plusMonths(3)
+    // Hoisted above the adaptive branches so the visible month survives pane changes
     val calendarState = rememberCalendarState(
         startMonth = YearMonth.now().minusMonths(12),
         endMonth = maxMonth,
         firstVisibleMonth = currentMonth,
         firstDayOfWeek = firstDayOfWeek
     )
-    val scope = rememberCoroutineScope()
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    // Calendar is shown without the navigation rail, so the whole window width is available.
+    // 3 panes only when the window is Large and every pane still gets its minimum width.
+    val paneCount = LocalAdaptiveLayoutInfo.current.paneCount(
+        listPaneWidth = CalendarPaneWidth,
+        detailPaneMinWidth = RecordsPaneMinWidth,
+        extraPaneMinWidth = RecordDetailPaneWidth,
+        hasNavigationRail = false
+    )
+    val adaptiveInfo = LocalAdaptiveLayoutInfo.current
+
+    val calendarPane: @Composable (Modifier) -> Unit = { modifier ->
+        CalendarPane(
+            calendarState = calendarState,
+            currentMonth = currentMonth,
+            maxMonth = maxMonth,
+            firstDayOfWeek = firstDayOfWeek,
+            watchedDates = watchedDates,
+            holidayDates = holidayDates,
+            selectedDate = selectedDate,
+            onMonthChange = viewModel::onMonthChange,
+            onDateSelected = viewModel::onDateSelected,
+            modifier = modifier
+        )
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(
@@ -107,61 +151,49 @@ fun CalendarScreen(
             return@Column
         }
 
-        // Month navigation header
-        MonthNavigationHeader(
-            currentMonth = currentMonth,
-            maxMonth = maxMonth,
-            onPreviousMonth = {
-                val prev = currentMonth.minusMonths(1)
-                viewModel.onMonthChange(prev)
-                scope.launch { calendarState.animateScrollToMonth(prev) }
-            },
-            onNextMonth = {
-                val next = currentMonth.plusMonths(1)
-                if (next <= maxMonth) {
-                    viewModel.onMonthChange(next)
-                    scope.launch { calendarState.animateScrollToMonth(next) }
-                }
-            }
-        )
-
-        // Day-of-week header aligned with firstDayOfWeek
-        DayOfWeekHeader(firstDayOfWeek = firstDayOfWeek)
-
-        // Update current month when the calendar is scrolled
-        LaunchedEffect(calendarState.firstVisibleMonth) {
-            viewModel.onMonthChange(calendarState.firstVisibleMonth.yearMonth)
-        }
-
-        // Calendar
-        HorizontalCalendar(
-            state = calendarState,
-            dayContent = { day ->
-                CalendarDayCell(
-                    day = day,
-                    isWatched = day.date in watchedDates,
-                    isSelected = day.date == selectedDate,
-                    isHoliday = day.date in holidayDates,
-                    onClick = {
-                        if (day.position == DayPosition.MonthDate) {
-                            viewModel.onDateSelected(day.date)
-                        }
+        if (paneCount == 1) {
+            calendarPane(Modifier.constrainedWidth(CalendarSinglePaneMaxWidth))
+        } else {
+            ListDetailPaneScaffold(
+                directive = adaptiveInfo.paneScaffoldDirective(paneCount, CalendarPaneWidth),
+                value = ThreePaneScaffoldValue(
+                    primary = PaneAdaptedValue.Expanded,
+                    secondary = PaneAdaptedValue.Expanded,
+                    tertiary = if (paneCount >= 3) PaneAdaptedValue.Expanded else PaneAdaptedValue.Hidden
+                ),
+                listPane = {
+                    AnimatedPane(modifier = Modifier.preferredWidth(CalendarPaneWidth)) {
+                        calendarPane(Modifier.testTag(CalendarTestTags.CalendarPane))
                     }
-                )
-            }
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = "● 영화를 본 날",
-            style = MaterialTheme.typography.labelSmall,
-            modifier = Modifier.padding(horizontal = 16.dp),
-            color = MaterialTheme.colorScheme.primary
-        )
+                },
+                detailPane = {
+                    AnimatedPane {
+                        DateRecordsPane(
+                            date = selectedDate,
+                            records = selectedDateRecords,
+                            selectedRecordId = selectedRecord?.id,
+                            onRecordClick = viewModel::selectRecord
+                        )
+                    }
+                },
+                extraPane = {
+                    AnimatedPane(modifier = Modifier.preferredWidth(RecordDetailPaneWidth)) {
+                        RecordDetailPane(
+                            record = selectedRecord,
+                            draft = editDraft,
+                            onDraftChange = viewModel::onEditDraftChange,
+                            editState = editRecordState,
+                            onSaved = viewModel::clearSelectedRecord,
+                            onSave = viewModel::updateRecord
+                        )
+                    }
+                }
+            )
+        }
     }
 
-    // Show BottomSheet when a date is selected
-    if (selectedDate != null) {
+    // Compact: date records in a BottomSheet (original behavior)
+    if (paneCount == 1 && selectedDate != null) {
         ModalBottomSheet(
             onDismissRequest = { viewModel.onBottomSheetDismissed() },
             sheetState = bottomSheetState,
@@ -175,12 +207,157 @@ fun CalendarScreen(
         }
     }
 
-    selectedRecord?.let { record ->
-        RecordDetailBottomSheet(
-            record = record,
-            editState = editRecordState,
-            onDismiss = viewModel::clearSelectedRecord,
-            onSave = viewModel::updateRecord
+    // Record editor: sheet unless the third pane is showing it
+    if (paneCount < 3) {
+        selectedRecord?.let { record ->
+            RecordDetailBottomSheet(
+                record = record,
+                draft = editDraft,
+                onDraftChange = viewModel::onEditDraftChange,
+                editState = editRecordState,
+                onDismiss = viewModel::clearSelectedRecord,
+                onSave = viewModel::updateRecord
+            )
+        }
+    }
+}
+
+@Composable
+private fun CalendarPane(
+    calendarState: CalendarState,
+    currentMonth: YearMonth,
+    maxMonth: YearMonth,
+    firstDayOfWeek: DayOfWeek,
+    watchedDates: Set<LocalDate>,
+    holidayDates: Set<LocalDate>,
+    selectedDate: LocalDate?,
+    onMonthChange: (YearMonth) -> Unit,
+    onDateSelected: (LocalDate) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val scope = rememberCoroutineScope()
+
+    // Scrollable so short windows (landscape, split screen, tabletop) never clip the month
+    Column(modifier = modifier.verticalScroll(rememberScrollState())) {
+        // Month navigation header
+        MonthNavigationHeader(
+            currentMonth = currentMonth,
+            maxMonth = maxMonth,
+            onPreviousMonth = {
+                val prev = currentMonth.minusMonths(1)
+                onMonthChange(prev)
+                scope.launch { calendarState.animateScrollToMonth(prev) }
+            },
+            onNextMonth = {
+                val next = currentMonth.plusMonths(1)
+                if (next <= maxMonth) {
+                    onMonthChange(next)
+                    scope.launch { calendarState.animateScrollToMonth(next) }
+                }
+            }
+        )
+
+        // Day-of-week header aligned with firstDayOfWeek
+        DayOfWeekHeader(firstDayOfWeek = firstDayOfWeek)
+
+        // Update current month when the calendar is scrolled
+        LaunchedEffect(calendarState.firstVisibleMonth) {
+            onMonthChange(calendarState.firstVisibleMonth.yearMonth)
+        }
+
+        // Calendar
+        HorizontalCalendar(
+            state = calendarState,
+            dayContent = { day ->
+                CalendarDayCell(
+                    day = day,
+                    isWatched = day.date in watchedDates,
+                    isSelected = day.date == selectedDate,
+                    isHoliday = day.date in holidayDates,
+                    onClick = {
+                        if (day.position == DayPosition.MonthDate) {
+                            onDateSelected(day.date)
+                        }
+                    }
+                )
+            }
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "● 영화를 본 날",
+            style = MaterialTheme.typography.labelSmall,
+            modifier = Modifier.padding(horizontal = 16.dp),
+            color = MaterialTheme.colorScheme.primary
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+
+/** Second pane on wide windows: records of the selected date. */
+@Composable
+private fun DateRecordsPane(
+    date: LocalDate?,
+    records: List<MovieRecord>,
+    selectedRecordId: String?,
+    onRecordClick: (MovieRecord) -> Unit,
+) {
+    Box(modifier = Modifier.fillMaxSize().testTag(CalendarTestTags.RecordsPane)) {
+        if (date == null) {
+            PanePlaceholder("날짜를 선택하면\n그날의 기록이 보여요")
+        } else {
+            DateRecordsBottomSheet(
+                date = date,
+                records = records,
+                selectedRecordId = selectedRecordId,
+                onRecordClick = onRecordClick,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        }
+    }
+}
+
+/** Third pane on large windows: the record editor that is a BottomSheet elsewhere. */
+@Composable
+private fun RecordDetailPane(
+    record: MovieRecord?,
+    draft: RecordDraft,
+    onDraftChange: (RecordDraft) -> Unit,
+    editState: AddRecordState,
+    onSaved: () -> Unit,
+    onSave: (WatchStatus, Float?, LocalDate?, String?, String?) -> Unit,
+) {
+    LaunchedEffect(editState) {
+        if (editState is AddRecordState.Success) onSaved()
+    }
+    Box(modifier = Modifier.fillMaxSize().testTag(CalendarTestTags.RecordDetailPane)) {
+        if (record == null) {
+            PanePlaceholder("기록을 선택하면\n여기에서 바로 수정할 수 있어요")
+        } else {
+            RecordDetailContent(
+                record = record,
+                draft = draft,
+                onDraftChange = onDraftChange,
+                editState = editState,
+                onSave = onSave,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .imePadding()
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun PanePlaceholder(message: String) {
+    Box(modifier = Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
         )
     }
 }
@@ -295,11 +472,13 @@ private fun CalendarDayCell(
 private fun DateRecordsBottomSheet(
     date: LocalDate,
     records: List<MovieRecord>,
-    onRecordClick: (MovieRecord) -> Unit
+    onRecordClick: (MovieRecord) -> Unit,
+    modifier: Modifier = Modifier,
+    selectedRecordId: String? = null,
 ) {
     val formatter = DateTimeFormatter.ofPattern("M월 d일 (E)")
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .padding(bottom = 32.dp)
@@ -328,7 +507,11 @@ private fun DateRecordsBottomSheet(
                 contentPadding = PaddingValues(bottom = 16.dp)
             ) {
                 items(records) { record ->
-                    DateRecordItem(record = record, onClick = { onRecordClick(record) })
+                    DateRecordItem(
+                        record = record,
+                        isSelected = record.id == selectedRecordId,
+                        onClick = { onRecordClick(record) }
+                    )
                 }
             }
         }
@@ -336,10 +519,15 @@ private fun DateRecordsBottomSheet(
 }
 
 @Composable
-private fun DateRecordItem(record: MovieRecord, onClick: () -> Unit) {
+private fun DateRecordItem(record: MovieRecord, onClick: () -> Unit, isSelected: Boolean = false) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .then(
+                if (isSelected) Modifier.background(MaterialTheme.colorScheme.secondaryContainer)
+                else Modifier
+            )
             .clickable(onClick = onClick),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -365,4 +553,18 @@ private fun DateRecordItem(record: MovieRecord, onClick: () -> Unit) {
             }
         }
     }
+}
+
+/** Calendar pane: 48dp day cells. */
+private val CalendarPaneWidth: Dp = 336.dp
+private val RecordsPaneMinWidth: Dp = 300.dp
+private val RecordDetailPaneWidth: Dp = 400.dp
+
+/** Single-pane calendar on a medium window stays compact instead of growing huge cells. */
+private val CalendarSinglePaneMaxWidth: Dp = 560.dp
+
+internal object CalendarTestTags {
+    const val CalendarPane = "calendar_pane"
+    const val RecordsPane = "calendar_records_pane"
+    const val RecordDetailPane = "calendar_record_detail_pane"
 }

@@ -26,6 +26,13 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mymovie.log.presentation.ui.LoginRequiredContent
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.ui.platform.testTag
+import com.mymovie.log.presentation.adaptive.AdaptiveDimens
+import com.mymovie.log.presentation.adaptive.AdaptivePreviewSurface
+import com.mymovie.log.presentation.adaptive.AdaptiveTwoColumn
+import com.mymovie.log.presentation.adaptive.AdaptiveWindowPreviews
+import com.mymovie.log.presentation.adaptive.constrainedWidth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,42 +54,80 @@ fun StatsScreen(
             return@Column
         }
 
+        StatsContent(uiState = uiState)
+    }
+}
+
+/**
+ * Compact: the original single scrolling column.
+ * Wide: summary cards | monthly chart side by side, capped at a readable content width.
+ */
+@Composable
+internal fun StatsContent(uiState: StatsUiState, modifier: Modifier = Modifier) {
+    val scrollState = rememberScrollState()
+    BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+        val isWide = AdaptiveDimens.fitsTwoColumns(maxWidth - 32.dp)
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp)
+                .verticalScroll(scrollState)
         ) {
-            // Overall stats cards
-            Row(modifier = Modifier.fillMaxWidth()) {
-                StatCard(modifier = Modifier.weight(1f), label = "총 감상", value = "${uiState.totalWatched}편")
-                Spacer(modifier = Modifier.padding(4.dp))
-                StatCard(modifier = Modifier.weight(1f), label = "평균 평점", value = "★ ${uiState.averageRating}")
-                Spacer(modifier = Modifier.padding(4.dp))
-                StatCard(modifier = Modifier.weight(1f), label = "위시리스트", value = "${uiState.wishlistCount}편")
+            Column(
+                modifier = Modifier
+                    .constrainedWidth()
+                    .padding(16.dp)
+            ) {
+                if (isWide) {
+                    AdaptiveTwoColumn(
+                        modifier = Modifier.testTag(StatsTestTags.TwoColumn),
+                        first = { SummarySection(uiState) },
+                        second = { MonthlySection(uiState) }
+                    )
+                } else {
+                    SummarySection(uiState)
+                    Spacer(modifier = Modifier.height(24.dp))
+                    MonthlySection(uiState)
+                }
             }
+        }
+    }
+}
 
-            Spacer(modifier = Modifier.height(24.dp))
+@Composable
+private fun SummarySection(uiState: StatsUiState) {
+    Column {
+        // Overall stats cards
+        Row(modifier = Modifier.fillMaxWidth()) {
+            StatCard(modifier = Modifier.weight(1f), label = "총 감상", value = "${uiState.totalWatched}편")
+            Spacer(modifier = Modifier.padding(4.dp))
+            StatCard(modifier = Modifier.weight(1f), label = "평균 평점", value = "★ ${uiState.averageRating}")
+            Spacer(modifier = Modifier.padding(4.dp))
+            StatCard(modifier = Modifier.weight(1f), label = "위시리스트", value = "${uiState.wishlistCount}편")
+        }
 
-            Text("이번 달", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(8.dp))
-            StatCard(
-                modifier = Modifier.fillMaxWidth(),
-                label = "감상한 영화",
-                value = "${uiState.thisMonthCount}편"
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text("이번 달", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(8.dp))
+        StatCard(
+            modifier = Modifier.fillMaxWidth(),
+            label = "감상한 영화",
+            value = "${uiState.thisMonthCount}편"
+        )
+    }
+}
+
+@Composable
+private fun MonthlySection(uiState: StatsUiState) {
+    Column {
+        Text("최근 6개월", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(8.dp))
+        uiState.monthlyStats.forEach { (label, count) ->
+            MonthStatRow(
+                month = label,
+                count = count,
+                maxCount = uiState.monthlyStats.values.maxOrNull()?.takeIf { it > 0 } ?: 1
             )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Text("최근 6개월", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(8.dp))
-            uiState.monthlyStats.forEach { (label, count) ->
-                MonthStatRow(
-                    month = label,
-                    count = count,
-                    maxCount = uiState.monthlyStats.values.maxOrNull()?.takeIf { it > 0 } ?: 1
-                )
-            }
         }
     }
 }
@@ -134,6 +179,26 @@ private fun MonthStatRow(month: String, count: Int, maxCount: Int) {
             modifier = Modifier
                 .padding(start = 8.dp)
                 .weight(0.1f)
+        )
+    }
+}
+
+internal object StatsTestTags {
+    const val TwoColumn = "stats_two_column"
+}
+
+@AdaptiveWindowPreviews
+@Composable
+private fun StatsContentPreview() {
+    AdaptivePreviewSurface {
+        StatsContent(
+            uiState = StatsUiState(
+                totalWatched = 42,
+                wishlistCount = 7,
+                averageRating = "4.1",
+                thisMonthCount = 3,
+                monthlyStats = linkedMapOf("4월" to 2, "5월" to 5, "6월" to 1, "7월" to 4, "8월" to 6, "9월" to 3)
+            )
         )
     }
 }

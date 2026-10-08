@@ -1,5 +1,6 @@
 package com.mymovie.log.presentation.search
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
@@ -9,9 +10,7 @@ import com.mymovie.log.domain.usecase.SearchMoviesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -20,33 +19,38 @@ import javax.inject.Inject
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class SearchViewModel @Inject constructor(
-    private val searchMoviesUseCase: SearchMoviesUseCase
+    private val searchMoviesUseCase: SearchMoviesUseCase,
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val _query = MutableStateFlow("")
-    val query: StateFlow<String> = _query.asStateFlow()
+    // Kept in SavedStateHandle so the query survives fold/unfold, rotation and process recreation
+    val query: StateFlow<String> = savedStateHandle.getStateFlow(KEY_QUERY, "")
 
-    private val _isSearchActive = MutableStateFlow(false)
-    val isSearchActive: StateFlow<Boolean> = _isSearchActive.asStateFlow()
+    val isSearchActive: StateFlow<Boolean> = savedStateHandle.getStateFlow(KEY_ACTIVE, false)
 
-    val searchResults = _query
+    val searchResults = query
         .debounce(400)
         .flatMapLatest { query ->
-            if (query.isBlank()) flowOf(PagingData.empty())
+            if (query.isBlank()) flowOf(PagingData.empty<Movie>())
             else searchMoviesUseCase(query)
         }
         .cachedIn(viewModelScope)
 
     fun onQueryChange(newQuery: String) {
-        _query.value = newQuery
+        savedStateHandle[KEY_QUERY] = newQuery
     }
 
     fun onActiveChange(active: Boolean) {
-        _isSearchActive.value = active
+        savedStateHandle[KEY_ACTIVE] = active
     }
 
     fun clearSearch() {
-        _query.value = ""
-        _isSearchActive.value = false
+        savedStateHandle[KEY_QUERY] = ""
+        savedStateHandle[KEY_ACTIVE] = false
+    }
+
+    private companion object {
+        const val KEY_QUERY = "search_query"
+        const val KEY_ACTIVE = "search_active"
     }
 }

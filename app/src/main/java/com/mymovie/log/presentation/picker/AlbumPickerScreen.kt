@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.mymovie.log.presentation.adaptive.AdaptiveDimens
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -96,8 +97,9 @@ fun AlbumPickerScreen(
             }
 
             is AlbumPickerUiState.Ready -> {
+                // 3 columns on phones, more cells (not bigger ones) on wide windows
                 LazyVerticalGrid(
-                    columns = GridCells.Fixed(3),
+                    columns = GridCells.Adaptive(minSize = AdaptiveDimens.PhotoGridMinCellWidth),
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(paddingValues),

@@ -43,6 +43,14 @@ import android.net.Uri
 import com.mymovie.log.domain.model.MovieRecord
 import com.mymovie.log.domain.model.WatchStatus
 import com.mymovie.log.presentation.ui.RecordDetailBottomSheet
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.ui.platform.testTag
+import com.mymovie.log.presentation.adaptive.AdaptiveDimens
+import com.mymovie.log.presentation.adaptive.AdaptivePreviewSurface
+import com.mymovie.log.presentation.adaptive.AdaptiveTwoColumn
+import com.mymovie.log.presentation.adaptive.AdaptiveWindowPreviews
+import com.mymovie.log.presentation.adaptive.constrainedWidth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,6 +64,7 @@ fun HomeScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val selectedRecord by viewModel.selectedRecord.collectAsStateWithLifecycle()
     val editRecordState by viewModel.editRecordState.collectAsStateWithLifecycle()
+    val editDraft by viewModel.editDraft.collectAsStateWithLifecycle()
     val attachedUris by viewModel.attachedUris.collectAsStateWithLifecycle()
     val selectedRecordSignedPhotoUrls by viewModel.existingPhotoSignedUrls.collectAsStateWithLifecycle()
 
@@ -69,56 +78,19 @@ fun HomeScreen(
             }
         )
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp)
-        ) {
-            StatsSummaryRow(
-                totalWatched = uiState.totalWatched,
-                thisMonthCount = uiState.thisMonthCount
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            SectionHeader(
-                title = "최근에 본 영화",
-                onMoreClick = { onNavigateToLibraryTab(WatchStatus.WATCHED) }
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            if (uiState.recentWatched.isEmpty()) {
-                EmptyMessage("아직 감상 기록이 없어요. 영화를 검색해 기록해보세요!")
-            } else {
-                MoviePosterRow(
-                    records = uiState.recentWatched,
-                    onRecordClick = viewModel::selectRecord
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            SectionHeader(
-                title = "보고 싶은 영화",
-                onMoreClick = { onNavigateToLibraryTab(WatchStatus.WISHLIST) }
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            if (uiState.wishlistPreview.isEmpty()) {
-                EmptyMessage("위시리스트가 비어있어요. 보고 싶은 영화를 추가해보세요!")
-            } else {
-                MoviePosterRow(
-                    records = uiState.wishlistPreview,
-                    onRecordClick = viewModel::selectRecord
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-        }
+        HomeContent(
+            uiState = uiState,
+            onRecordClick = viewModel::selectRecord,
+            onNavigateToLibraryTab = onNavigateToLibraryTab,
+            onNavigateToCalendar = onNavigateToCalendar
+        )
     }
 
     selectedRecord?.let { record ->
         RecordDetailBottomSheet(
             record = record,
+            draft = editDraft,
+            onDraftChange = viewModel::onEditDraftChange,
             editState = editRecordState,
             attachedUris = attachedUris,
             existingPhotoSignedUrls = selectedRecordSignedPhotoUrls,
@@ -129,6 +101,124 @@ fun HomeScreen(
             onDismiss = viewModel::clearSelectedRecord,
             onSave = viewModel::updateRecord
         )
+    }
+}
+
+/**
+ * Compact: summary cards above the poster rows (original layout).
+ * Wide: poster rows | summary side by side, capped at [AdaptiveDimens.ContentMaxWidth] so the
+ * cards do not stretch across a 4:3 inner display or a tablet.
+ */
+@Composable
+internal fun HomeContent(
+    uiState: HomeUiState,
+    onRecordClick: (MovieRecord) -> Unit,
+    onNavigateToLibraryTab: (WatchStatus) -> Unit,
+    onNavigateToCalendar: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val scrollState = rememberScrollState()
+    BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+        val isWide = AdaptiveDimens.fitsTwoColumns(maxWidth - HorizontalPadding * 2)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState)
+        ) {
+            Column(
+                modifier = Modifier
+                    .constrainedWidth()
+                    .padding(horizontal = HorizontalPadding)
+            ) {
+                if (isWide) {
+                    AdaptiveTwoColumn(
+                        modifier = Modifier.padding(top = 8.dp).testTag(HomeTestTags.TwoColumn),
+                        firstFraction = 0.62f,
+                        first = {
+                            RecordSections(uiState, onRecordClick, onNavigateToLibraryTab)
+                        },
+                        second = {
+                            StatsSummaryPanel(
+                                totalWatched = uiState.totalWatched,
+                                thisMonthCount = uiState.thisMonthCount,
+                                onNavigateToCalendar = onNavigateToCalendar
+                            )
+                        }
+                    )
+                } else {
+                    StatsSummaryRow(
+                        totalWatched = uiState.totalWatched,
+                        thisMonthCount = uiState.thisMonthCount
+                    )
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    RecordSections(uiState, onRecordClick, onNavigateToLibraryTab)
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun RecordSections(
+    uiState: HomeUiState,
+    onRecordClick: (MovieRecord) -> Unit,
+    onNavigateToLibraryTab: (WatchStatus) -> Unit,
+) {
+    Column {
+        SectionHeader(
+            title = "최근에 본 영화",
+            onMoreClick = { onNavigateToLibraryTab(WatchStatus.WATCHED) }
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        if (uiState.recentWatched.isEmpty()) {
+            EmptyMessage("아직 감상 기록이 없어요. 영화를 검색해 기록해보세요!")
+        } else {
+            MoviePosterRow(
+                records = uiState.recentWatched,
+                onRecordClick = onRecordClick
+            )
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        SectionHeader(
+            title = "보고 싶은 영화",
+            onMoreClick = { onNavigateToLibraryTab(WatchStatus.WISHLIST) }
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        if (uiState.wishlistPreview.isEmpty()) {
+            EmptyMessage("위시리스트가 비어있어요. 보고 싶은 영화를 추가해보세요!")
+        } else {
+            MoviePosterRow(
+                records = uiState.wishlistPreview,
+                onRecordClick = onRecordClick
+            )
+        }
+    }
+}
+
+@Composable
+private fun StatsSummaryPanel(totalWatched: Int, thisMonthCount: Int, onNavigateToCalendar: () -> Unit) {
+    Column(
+        modifier = Modifier.testTag(HomeTestTags.StatsPanel),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text(
+            text = "나의 감상 요약",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
+        StatCard(modifier = Modifier.fillMaxWidth(), label = "총 감상", value = "${totalWatched}편")
+        StatCard(modifier = Modifier.fillMaxWidth(), label = "이번 달", value = "${thisMonthCount}편")
+        OutlinedButton(onClick = onNavigateToCalendar, modifier = Modifier.fillMaxWidth()) {
+            Icon(Icons.Default.CalendarMonth, contentDescription = null)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("관람 캘린더 보기")
+        }
     }
 }
 
@@ -240,6 +330,34 @@ private fun MoviePosterItem(record: MovieRecord, onClick: () -> Unit = {}) {
             text = record.title,
             style = MaterialTheme.typography.bodySmall,
             maxLines = 2
+        )
+    }
+}
+
+private val HorizontalPadding = 16.dp
+
+internal object HomeTestTags {
+    const val TwoColumn = "home_two_column"
+    const val StatsPanel = "home_stats"
+}
+
+@AdaptiveWindowPreviews
+@Composable
+private fun HomeContentPreview() {
+    val records = (1..5).map {
+        MovieRecord(id = "$it", tmdbId = it, title = "영화 $it", status = WatchStatus.WATCHED, rating = 4f)
+    }
+    AdaptivePreviewSurface {
+        HomeContent(
+            uiState = HomeUiState(
+                recentWatched = records,
+                wishlistPreview = records.take(2),
+                totalWatched = 42,
+                thisMonthCount = 3
+            ),
+            onRecordClick = {},
+            onNavigateToLibraryTab = {},
+            onNavigateToCalendar = {}
         )
     }
 }

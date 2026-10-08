@@ -15,11 +15,14 @@ TMDB에서 영화를 검색하고, 감상 기록·별점·리뷰를 저장하며
 | DI            | Hilt                                        |
 | 네트워크      | Retrofit2 + OkHttp                          |
 | 이미지        | Coil                                        |
+| 카메라        | Jetpack CameraX                             |
 | 로컬 DB       | Room                                        |
 | 서버          | Supabase (PostgreSQL + Auth + Storage)      |
 | 영화 데이터   | TMDB API                                    |
 | 공휴일 데이터 | 공공데이터포털 한국천문연구원 특일 정보 API |
-| 캘린더        | kizitonwose/calendar-compose                |
+| 캘린더        | kizitonwose/calendar-compose 2.6.1 (Compose 1.7 대응 버전) |
+| 대화면/폴더블 | Material3 Adaptive 1.0 + Jetpack WindowManager 1.5 |
+| 테스트        | JUnit, Robolectric, Compose UI Test, Hilt Testing, window-testing |
 
 ---
 
@@ -32,11 +35,19 @@ TMDB에서 영화를 검색하고, 감상 기록·별점·리뷰를 저장하며
   홈·라이브러리·캘린더 어디서든 포스터 탭 시 기록 조회 및 수정 가능
 - **라이브러리**: 감상 완료 / 위시리스트 포스터 그리드  
   왼쪽 스와이프 → 삭제 (AlertDialog로 실수 방지), 홈 섹션 헤더 탭 시 해당 탭으로 바로 이동
-- **캘린더**: 월별 감상 날짜 dot 마커, 날짜 탭 시 기록 목록 BottomSheet, 기록 클릭 시 수정 가능  
+- **캘린더**: 월별 감상 날짜 dot 마커, 날짜 탭 시 기록 목록 표시, 기록 클릭 시 수정 가능  
+  좁은 화면에서는 BottomSheet, 넓은 화면에서는 캘린더 옆 패널(큰 화면은 기록 편집까지 3단)로 표시  
   공휴일·일요일 빨간색 / 토요일 파란색 표시, 현재 기준 과거 12개월 ~ 미래 3개월 탐색 가능
 - **통계**: 총 감상 편수, 평균 평점, 월별 감상 편수 바 차트
 - **인증**: 이메일 로그인/회원가입, Google OAuth (Supabase Auth)
 - **오프라인 지원**: Room 로컬 캐시로 네트워크 없이도 기록 열람 가능
+- **폴더블·대화면 대응**: 기기 모델이 아니라 현재 창의 크기·비율·접힘 상태를 기준으로 화면을 재배치  
+  - 좁은 창: 하단 탭 바 / 넓은 창: 왼쪽 내비게이션 레일  
+  - 검색: 넓은 창에서 목록 | 영화 상세 2단  
+  - 영화 상세: 넓은 창에서 영화 정보 | 나의 기록(시트 대신 화면 안에서 바로 작성)  
+  - 홈·통계: 넓은 창에서 2단 배치, 라이브러리·사진 선택: 창 폭에 따라 열 수 증가  
+  - 카메라: 반쯤 접어 세운 자세(tabletop)에서 미리보기는 위, 버튼은 아래  
+  - 접기/펼치기·회전·창 크기 변경에도 작성 중인 기록, 선택한 영화·날짜, 검색어 유지
 
 ---
 
@@ -56,7 +67,7 @@ data/                  ← 데이터 소스 (Room, Supabase, TMDB API, 공휴일
 
 | 계층 | 패키지 | 설명 |
 |------|--------|------|
-| **Presentation** | `presentation/` | Compose Screen · ViewModel · UI 상태 관리. ViewModel은 UseCase만 호출하고 Android 프레임워크 의존성을 최소화 |
+| **Presentation** | `presentation/` | Compose Screen · ViewModel · UI 상태 관리. ViewModel은 UseCase만 호출하고 Android 프레임워크 의존성을 최소화. 창 크기·접힘 정보는 `presentation/adaptive/`에서 한 곳에서만 계산해 화면에 제공 |
 | **Domain** | `domain/` | UseCase, Repository 인터페이스, 도메인 모델(`Movie`, `MovieRecord`, `UserProfile`). 순수 Kotlin — 외부 프레임워크 의존성 없음 |
 | **Data** | `data/` | Repository 구현체, Room Entity/DAO, Retrofit DTO, Supabase DTO, Mapper |
 
@@ -158,11 +169,21 @@ sdk.dir=/Users/your_username/Library/Android/sdk
 # Android Studio에서 프로젝트 열기 → Gradle Sync → Run
 ```
 
-또는 CLI:
+또는 CLI (Gradle Wrapper, Gradle 8.7 / JDK 17):
 
 ```bash
 ./gradlew assembleDebug
 ```
+
+### 테스트
+
+```bash
+./gradlew testDebugUnitTest          # 단위 테스트 + Robolectric 화면 레이아웃·창 전환 테스트
+./gradlew connectedDebugAndroidTest  # 에뮬레이터/기기 테스트 (폴더블 창 전환·접힘 자세)
+```
+
+- 기기 테스트는 Repository를 가짜 구현으로 바꿔 실행하므로 Supabase 로그인이나 네트워크 없이 동작합니다.
+- 폴더블 검증에는 Android Studio의 7.6" Foldable / 6.7" Foldable 에뮬레이터(API 34)를 사용했습니다.
 
 ---
 
@@ -173,6 +194,7 @@ sdk.dir=/Users/your_username/Library/Android/sdk
 - Google OAuth 사용 시 Supabase 대시보드 > Authentication > Providers에서 Google 설정이 필요합니다.
 - 공공데이터포털 API는 HTTP 전용이므로 `network_security_config.xml`에서 `apis.data.go.kr`에 한해 cleartext 통신을 허용하고 있습니다.
 - 공휴일 데이터는 월별로 Room에 캐시되며, 한국천문연구원 데이터는 연 1회 업데이트(차차년도 포함)됩니다.
+- 프로젝트를 iCloud Drive 등 동기화 폴더 안에서 빌드하면 `app/build`에 `파일명 2.xml` 같은 중복 파일이 생겨 빌드가 실패할 수 있습니다. 동기화 폴더 밖에서 빌드하거나, 발생 시 `app/build`를 삭제 후 다시 빌드하세요.
 
 ---
 

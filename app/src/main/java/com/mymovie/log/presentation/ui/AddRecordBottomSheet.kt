@@ -77,19 +77,11 @@ private val THUMBNAIL_SIZE = 72.dp
 @Composable
 fun AddRecordBottomSheet(
     movie: Movie,
-    existingPhotoSignedUrls: List<String> = emptyList(),
+    draft: RecordDraft,
+    onDraftChange: (RecordDraft) -> Unit,
     addRecordState: AddRecordState,
+    existingPhotoSignedUrls: List<String> = emptyList(),
     attachedUris: List<Uri> = emptyList(),
-    status: WatchStatus = WatchStatus.WATCHED,
-    rating: Float = 0f,
-    watchedAt: LocalDate? = null,
-    review: String = "",
-    memo: String = "",
-    onStatusChange: (WatchStatus) -> Unit = {},
-    onRatingChange: (Float) -> Unit = {},
-    onWatchedAtChange: (LocalDate?) -> Unit = {},
-    onReviewChange: (String) -> Unit = {},
-    onMemoChange: (String) -> Unit = {},
     onOpenCamera: () -> Unit = {},
     onOpenAlbumPicker: () -> Unit = {},
     onRemovePhoto: (Uri) -> Unit = {},
@@ -105,12 +97,6 @@ fun AddRecordBottomSheet(
             onDismiss()
         }
     }
-
-    var showDatePicker by remember { mutableStateOf(false) }
-
-    val context = LocalContext.current
-    val isSaving = addRecordState is AddRecordState.Saving
-    val errorMessage = (addRecordState as? AddRecordState.Error)?.message
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -140,144 +126,19 @@ fun AddRecordBottomSheet(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                SegmentedButton(
-                    selected = status == WatchStatus.WATCHED,
-                    onClick = { onStatusChange(WatchStatus.WATCHED) },
-                    shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)
-                ) { Text("봤어요") }
-                SegmentedButton(
-                    selected = status == WatchStatus.WISHLIST,
-                    onClick = { onStatusChange(WatchStatus.WISHLIST) },
-                    shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
-                ) { Text("보고싶어요") }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            if (status == WatchStatus.WATCHED) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("별점", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.width(48.dp))
-                    StarRatingRow(
-                        rating = rating,
-                        onRatingChange = onRatingChange,
-                        modifier = Modifier.weight(1f)
-                    )
-                    if (rating > 0f) {
-                        TextButton(onClick = { onRatingChange(0f) }) {
-                            Text("없음", style = MaterialTheme.typography.bodySmall)
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                val dateFormatter = remember { DateTimeFormatter.ofPattern("yyyy년 M월 d일") }
-                Box(modifier = Modifier.fillMaxWidth()) {
-                    OutlinedTextField(
-                        value = watchedAt?.format(dateFormatter) ?: "",
-                        onValueChange = {},
-                        label = { Text("감상한 날짜") },
-                        modifier = Modifier.fillMaxWidth(),
-                        readOnly = true,
-                        trailingIcon = { Icon(Icons.Default.CalendarToday, contentDescription = null) }
-                    )
-                    Box(modifier = Modifier.matchParentSize().clickable { showDatePicker = true })
-                }
-
-                if (showDatePicker) {
-                    val today = LocalDate.now()
-                    val initial = watchedAt ?: today
-                    val dialog = remember(initial) {
-                        DatePickerDialog(
-                            context,
-                            { _, year, month, day ->
-                                onWatchedAtChange(LocalDate.of(year, month + 1, day))
-                            },
-                            initial.year, initial.monthValue - 1, initial.dayOfMonth
-                        ).apply {
-                            setOnDismissListener { showDatePicker = false }
-                        }
-                    }
-                    DisposableEffect(dialog) {
-                        dialog.show()
-                        onDispose { if (dialog.isShowing) dialog.dismiss() }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                OutlinedTextField(
-                    value = review,
-                    onValueChange = onReviewChange,
-                    label = { Text("리뷰 (선택)") },
-                    modifier = Modifier.fillMaxWidth(),
-                    minLines = 3,
-                    maxLines = 5,
-                    enabled = !isSaving
-                )
-            } else {
-                OutlinedTextField(
-                    value = memo,
-                    onValueChange = onMemoChange,
-                    label = { Text("메모 (선택)") },
-                    modifier = Modifier.fillMaxWidth(),
-                    minLines = 3,
-                    maxLines = 5,
-                    enabled = !isSaving
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            PhotoAttachSection(
+            RecordEditorForm(
+                draft = draft,
+                onDraftChange = onDraftChange,
+                saveState = addRecordState,
+                saveLabel = "기록 저장",
+                onSave = onSave,
                 attachedUris = attachedUris,
                 existingPhotoUrls = existingPhotoSignedUrls,
                 onOpenCamera = onOpenCamera,
                 onOpenAlbumPicker = onOpenAlbumPicker,
                 onRemovePhoto = onRemovePhoto,
-                onRemoveExistingPhoto = onRemoveExistingPhoto,
-                enabled = !isSaving
+                onRemoveExistingPhoto = onRemoveExistingPhoto
             )
-
-            if (errorMessage != null) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = errorMessage,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Button(
-                onClick = {
-                    onSave(
-                        status,
-                        if (status == WatchStatus.WATCHED && rating > 0f) rating else null,
-                        if (status == WatchStatus.WATCHED) watchedAt else null,
-                        if (status == WatchStatus.WATCHED) review else null,
-                        if (status == WatchStatus.WISHLIST) memo else null
-                    )
-                },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = !isSaving
-            ) {
-                if (isSaving) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(18.dp),
-                        strokeWidth = 2.dp,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                } else {
-                    Text("기록 저장")
-                }
-            }
         }
     }
 }
