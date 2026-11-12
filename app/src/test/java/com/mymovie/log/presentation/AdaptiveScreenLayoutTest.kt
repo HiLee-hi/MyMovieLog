@@ -176,8 +176,8 @@ class AdaptiveScreenLayoutTest(private val spec: WindowSpec) {
         val repo = TestViewModels.recordRepository()
         val viewModel = LibraryViewModel(
             GetRecordsUseCase(repo),
-            DeleteRecordUseCase(repo),
-            UpsertRecordUseCase(repo),
+            DeleteRecordUseCase(repo, FakePhotoRepository()),
+            UpsertRecordUseCase(repo, FakePhotoRepository()),
             UploadPhotosUseCase(FakePhotoRepository()),
             GetSignedPhotoUrlsUseCase(FakePhotoRepository()),
             GetCurrentUserIdUseCase(FakeAuthRepository()),

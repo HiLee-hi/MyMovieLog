@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="app_name">MyMovieLog</string>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="app_name">팝콘한알</string>
     <string name="nav_home">홈</string>
     <string name="nav_search">검색</string>
     <string name="nav_library">라이브러리</string>

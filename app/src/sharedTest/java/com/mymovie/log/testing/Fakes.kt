@@ -68,10 +68,14 @@ class FakeMovieRecordRepository(initial: List<MovieRecord> = emptyList()) : Movi
     override suspend fun clearLocalCache() = Unit
 }
 
-class FakePhotoRepository : PhotoRepository {
+class FakePhotoRepository(private val failDelete: Boolean = false) : PhotoRepository {
+    val deletedPaths = mutableListOf<String>()
     override suspend fun uploadPhotos(userId: String, tmdbId: Int, uris: List<Uri>): List<String> = emptyList()
     override suspend fun getSignedUrls(paths: List<String>): List<String> = paths.map { "https://signed/$it" }
-    override suspend fun deletePhotos(paths: List<String>) = Unit
+    override suspend fun deletePhotos(paths: List<String>) {
+        if (failDelete) throw IllegalStateException("storage unavailable")
+        deletedPaths += paths
+    }
 }
 
 class FakeAuthRepository(loggedIn: Boolean = false) : AuthRepository {

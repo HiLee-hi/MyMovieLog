@@ -1,5 +1,9 @@
 # MyMovieLog
 
+<img src="docs/brand/app-icon-popcorn-1024.png" width="96" alt="팝콘한알 앱 아이콘">
+
+앱 이름: **팝콘한알** (영어 기기: Popcorn Log). 저장소와 패키지 이름은 MyMovieLog를 유지합니다.
+
 나만의 영화 감상 기록 Android 앱.  
 TMDB에서 영화를 검색하고, 감상 기록·별점·리뷰를 저장하며, 캘린더와 통계로 한눈에 확인할 수 있습니다.
 
@@ -93,8 +97,8 @@ ViewModel  ──── UseCase ──── RepositoryImpl
 
 | UseCase | 설명 |
 |---------|------|
-| `UpsertRecordUseCase` | 영화 기록 추가/수정 (Supabase + Room 동시 저장) |
-| `DeleteRecordUseCase` | 기록 삭제 + 연결 사진 Supabase Storage에서 제거 |
+| `UpsertRecordUseCase` | 영화 기록 추가/수정 (Supabase 저장 후 Room 반영). 수정 중 뺀 사진은 저장 후 Storage에서 삭제 |
+| `DeleteRecordUseCase` | 기록 삭제 후 연결 사진을 Supabase Storage에서 삭제 (사진 삭제 실패는 기록 삭제를 되돌리지 않음) |
 | `SearchMoviesUseCase` | TMDB Paging3 기반 무한 스크롤 검색 |
 | `GetWatchedDatesByMonthUseCase` | 캘린더 dot 마커용 월별 감상 날짜 조회 |
 | `GetHolidaysByMonthUseCase` | 공휴일 API → Room 캐시 후 반환 |
@@ -130,10 +134,11 @@ create table movie_records (
   poster_path text,
   genre_ids integer[],
   status text not null check (status in ('watched', 'wishlist')),
-  rating real,
+  rating numeric,
   review text,
   memo text,
   watched_at date,
+  photo_urls text[] default '{}',   -- movie-photos 버킷 안의 사진 경로
   created_at timestamptz default now(),
   unique (user_id, tmdb_id)
 );
@@ -143,6 +148,15 @@ alter table movie_records enable row level security;
 create policy "Users can manage their own records"
   on movie_records for all
   using (auth.uid() = user_id);
+```
+
+사진 첨부용으로 Storage에 **비공개** 버킷 `movie-photos`를 만듭니다. 사진은 `{user_id}/{tmdb_id}/{uuid}.jpg` 경로에 저장되므로, 첫 폴더가 본인 id인 파일만 다루도록 정책을 겁니다. 기록을 삭제하거나 수정 중 사진을 빼면 앱이 Storage에서도 파일을 지우므로 delete 정책도 필요합니다.
+
+```sql
+create policy "Users can manage their own photos"
+  on storage.objects for all
+  using (bucket_id = 'movie-photos' and (storage.foldername(name))[1] = auth.uid()::text)
+  with check (bucket_id = 'movie-photos' and (storage.foldername(name))[1] = auth.uid()::text);
 ```
 
 ### 환경 설정

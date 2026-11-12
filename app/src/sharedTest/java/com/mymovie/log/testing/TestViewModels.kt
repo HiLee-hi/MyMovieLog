@@ -42,7 +42,7 @@ object TestViewModels {
 
     fun home(repo: FakeMovieRecordRepository = recordRepository()) = HomeViewModel(
         GetRecordsUseCase(repo),
-        UpsertRecordUseCase(repo),
+        UpsertRecordUseCase(repo, FakePhotoRepository()),
         UploadPhotosUseCase(FakePhotoRepository()),
         GetSignedPhotoUrlsUseCase(FakePhotoRepository()),
         GetCurrentUserIdUseCase(FakeAuthRepository())
@@ -57,7 +57,7 @@ object TestViewModels {
         GetWatchedDatesByMonthUseCase(repo),
         GetRecordsByDateUseCase(repo),
         GetHolidaysByMonthUseCase(FakeHolidayRepository()),
-        UpsertRecordUseCase(repo),
+        UpsertRecordUseCase(repo, FakePhotoRepository()),
         handle
     )
 
@@ -67,7 +67,7 @@ object TestViewModels {
         handle: SavedStateHandle = SavedStateHandle(mapOf("movieId" to movieId))
     ) = MovieDetailViewModel(
         GetMovieDetailUseCase(FakeMovieRepository()),
-        UpsertRecordUseCase(repo),
+        UpsertRecordUseCase(repo, FakePhotoRepository()),
         UploadPhotosUseCase(FakePhotoRepository()),
         GetSignedPhotoUrlsUseCase(FakePhotoRepository()),
         GetCurrentUserIdUseCase(FakeAuthRepository()),

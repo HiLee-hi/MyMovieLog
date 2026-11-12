@@ -62,7 +62,7 @@ class StatePreservationTest {
 
     private fun movieDetailViewModel(handle: SavedStateHandle) = MovieDetailViewModel(
         getMovieDetailUseCase = GetMovieDetailUseCase(FakeMovieRepository()),
-        upsertRecordUseCase = UpsertRecordUseCase(recordRepository),
+        upsertRecordUseCase = UpsertRecordUseCase(recordRepository, FakePhotoRepository()),
         uploadPhotosUseCase = UploadPhotosUseCase(FakePhotoRepository()),
         getSignedPhotoUrlsUseCase = GetSignedPhotoUrlsUseCase(FakePhotoRepository()),
         getCurrentUserIdUseCase = GetCurrentUserIdUseCase(FakeAuthRepository()),
@@ -133,7 +133,7 @@ class StatePreservationTest {
             getWatchedDatesByMonthUseCase = GetWatchedDatesByMonthUseCase(recordRepository),
             getRecordsByDateUseCase = GetRecordsByDateUseCase(recordRepository),
             getHolidaysByMonthUseCase = GetHolidaysByMonthUseCase(FakeHolidayRepository()),
-            upsertRecordUseCase = UpsertRecordUseCase(recordRepository),
+            upsertRecordUseCase = UpsertRecordUseCase(recordRepository, FakePhotoRepository()),
             savedStateHandle = handle
         )
         val handle = SavedStateHandle()
@@ -154,7 +154,7 @@ class StatePreservationTest {
             GetWatchedDatesByMonthUseCase(recordRepository),
             GetRecordsByDateUseCase(recordRepository),
             GetHolidaysByMonthUseCase(FakeHolidayRepository()),
-            UpsertRecordUseCase(recordRepository),
+            UpsertRecordUseCase(recordRepository, FakePhotoRepository()),
             handle
         )
         val record = MovieRecord(id = "r1", tmdbId = 1, title = "영화", status = WatchStatus.WATCHED, rating = 3f, review = "원래 리뷰")
