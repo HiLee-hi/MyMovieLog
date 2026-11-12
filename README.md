@@ -4,115 +4,41 @@
 
 앱 이름: **팝콘한알** (영어 기기: Popcorn Log). 저장소와 패키지 이름은 MyMovieLog를 유지합니다.
 
-나만의 영화 감상 기록 Android 앱 (iOS 버전은 [`ios/`](ios/README.md)).  
+나만의 영화 감상 기록 앱.  
 TMDB에서 영화를 검색하고, 감상 기록·별점·리뷰를 저장하며, 캘린더와 통계로 한눈에 확인할 수 있습니다.
 
----
+같은 Supabase 백엔드를 쓰는 Android 앱과 iOS 앱으로 구성됩니다. 같은 계정으로 로그인하면 두 앱에서 같은 기록이 보입니다.
 
-## 기술 스택
+| 앱 | 언어 / UI | 폴더 | 문서 |
+| --- | --- | --- | --- |
+| Android | Kotlin + Jetpack Compose | [`android/`](android/) | [android/README.md](android/README.md) |
+| iOS | Swift + SwiftUI | [`ios/`](ios/) | [ios/README.md](ios/README.md) |
 
-| 분류          | 사용 기술                                   |
-| ------------- | ------------------------------------------- |
-| 언어          | Kotlin                                      |
-| UI            | Jetpack Compose + Material3                 |
-| 아키텍처      | MVVM + Clean Architecture                   |
-| DI            | Hilt                                        |
-| 네트워크      | Retrofit2 + OkHttp                          |
-| 이미지        | Coil                                        |
-| 카메라        | Jetpack CameraX                             |
-| 로컬 DB       | Room                                        |
-| 서버          | Supabase (PostgreSQL + Auth + Storage)      |
-| 영화 데이터   | TMDB API                                    |
-| 공휴일 데이터 | 공공데이터포털 한국천문연구원 특일 정보 API |
-| 캘린더        | kizitonwose/calendar-compose 2.6.1 (Compose 1.7 대응 버전) |
-| 대화면/폴더블 | Material3 Adaptive 1.0 + Jetpack WindowManager 1.5 |
-| 테스트        | JUnit, Robolectric, Compose UI Test, Hilt Testing, window-testing |
+```
+MyMovieLog/
+├── android/   ← Android 앱 (Gradle 프로젝트, Android Studio에서 이 폴더를 연다)
+├── ios/       ← iOS 앱 (Xcode에서 ios/MyMovieLog.xcodeproj 를 연다)
+├── docs/      ← 앱 아이콘 등 공용 자료
+└── licenses/  ← 글꼴 라이선스
+```
+
+두 앱은 같은 "버터 크림" 디자인(크림 바탕, 버터 노랑, 캐러멜 글자, 제목 글꼴 Jua, 라이트 테마)을 씁니다.
 
 ---
 
-## 주요 기능
+## 공통 준비
 
-- **영화 검색**: TMDB API 기반 실시간 검색 (한국어), 무한 스크롤로 다음 페이지 자동 로드
-- **영화 상세**: 백드롭·포스터·제목·평점·장르·줄거리 표시, 기록하기 / 기록 수정 버튼 제공  
-  이미 기록된 영화는 기존 데이터가 자동으로 채워진 수정 시트로 열림
-- **기록 추가/수정**: 봤어요 / 보고싶어요, 별점 (0.5점 단위), 감상 날짜, 리뷰·메모 작성  
-  홈·라이브러리·캘린더 어디서든 포스터 탭 시 기록 조회 및 수정 가능
-- **라이브러리**: 감상 완료 / 위시리스트 포스터 그리드  
-  왼쪽 스와이프 → 삭제 (AlertDialog로 실수 방지), 홈 섹션 헤더 탭 시 해당 탭으로 바로 이동
-- **캘린더**: 월별 감상 날짜 dot 마커, 날짜 탭 시 기록 목록 표시, 기록 클릭 시 수정 가능  
-  좁은 화면에서는 BottomSheet, 넓은 화면에서는 캘린더 옆 패널(큰 화면은 기록 편집까지 3단)로 표시  
-  공휴일·일요일 빨간색 / 토요일 파란색 표시, 현재 기준 과거 12개월 ~ 미래 3개월 탐색 가능
-- **통계**: 총 감상 편수, 평균 평점, 월별 감상 편수 바 차트
-- **인증**: 이메일 로그인/회원가입, Google OAuth (Supabase Auth)
-- **오프라인 지원**: Room 로컬 캐시로 네트워크 없이도 기록 열람 가능
-- **폴더블·대화면 대응**: 기기 모델이 아니라 현재 창의 크기·비율·접힘 상태를 기준으로 화면을 재배치  
-  - 좁은 창: 하단 탭 바 / 넓은 창: 왼쪽 내비게이션 레일  
-  - 검색: 넓은 창에서 목록 | 영화 상세 2단  
-  - 영화 상세: 넓은 창에서 영화 정보 | 나의 기록(시트 대신 화면 안에서 바로 작성)  
-  - 홈·통계: 넓은 창에서 2단 배치, 라이브러리·사진 선택: 창 폭에 따라 열 수 증가  
-  - 카메라: 반쯤 접어 세운 자세(tabletop)에서 미리보기는 위, 버튼은 아래  
-  - 접기/펼치기·회전·창 크기 변경에도 작성 중인 기록, 선택한 영화·날짜, 검색어 유지
+두 앱 모두 아래 준비가 끝나야 실행할 수 있습니다. 플랫폼별 빌드 방법은 각 폴더의 README를 참고하세요.
 
----
-
-## 아키텍처
-
-MVVM + Clean Architecture 3계층 구조로 의존성은 항상 안쪽(도메인)을 향합니다.
-
-```
-presentation/          ← UI (Compose Screen + ViewModel)
-    ↓ UseCase 호출
-domain/                ← 비즈니스 로직 (UseCase, Repository 인터페이스, 도메인 모델)
-    ↓ Repository 구현체 주입 (Hilt)
-data/                  ← 데이터 소스 (Room, Supabase, TMDB API, 공휴일 API)
-```
-
-### 계층별 역할
-
-| 계층 | 패키지 | 설명 |
-|------|--------|------|
-| **Presentation** | `presentation/` | Compose Screen · ViewModel · UI 상태 관리. ViewModel은 UseCase만 호출하고 Android 프레임워크 의존성을 최소화. 창 크기·접힘 정보는 `presentation/adaptive/`에서 한 곳에서만 계산해 화면에 제공 |
-| **Domain** | `domain/` | UseCase, Repository 인터페이스, 도메인 모델(`Movie`, `MovieRecord`, `UserProfile`). 순수 Kotlin — 외부 프레임워크 의존성 없음 |
-| **Data** | `data/` | Repository 구현체, Room Entity/DAO, Retrofit DTO, Supabase DTO, Mapper |
-
-### 데이터 흐름
-
-```
-Screen
-  │  UI 이벤트
-  ▼
-ViewModel  ──── UseCase ──── RepositoryImpl
-                                  │
-                    ┌─────────────┼──────────────┐
-                    ▼             ▼              ▼
-                Room (로컬)   Supabase       TMDB / 공휴일 API
-                              (원격 DB)       (Retrofit)
-```
-
-- **오프라인 우선**: `MovieRecordRepositoryImpl`은 Supabase 동기화 후 Room에도 저장하여 네트워크 없이 기록 조회 가능
-- **단방향 데이터 흐름**: ViewModel이 `StateFlow`로 UI 상태를 노출, Screen은 collect만 수행
-- **DI**: Hilt로 Repository 구현체를 Domain 인터페이스에 바인딩 (`RepositoryModule`)
-
-### 주요 UseCase
-
-| UseCase | 설명 |
-|---------|------|
-| `UpsertRecordUseCase` | 영화 기록 추가/수정 (Supabase 저장 후 Room 반영). 수정 중 뺀 사진은 저장 후 Storage에서 삭제 |
-| `DeleteRecordUseCase` | 기록 삭제 후 연결 사진을 Supabase Storage에서 삭제 (사진 삭제 실패는 기록 삭제를 되돌리지 않음) |
-| `SearchMoviesUseCase` | TMDB Paging3 기반 무한 스크롤 검색 |
-| `GetWatchedDatesByMonthUseCase` | 캘린더 dot 마커용 월별 감상 날짜 조회 |
-| `GetHolidaysByMonthUseCase` | 공휴일 API → Room 캐시 후 반환 |
-| `UploadPhotosUseCase` / `GetSignedPhotoUrlsUseCase` | Supabase Storage 사진 업로드·조회 |
-
----
-
-## 실행 방법
-
-### 사전 준비
+### API 키 발급
 
 1. [TMDB](https://developer.themoviedb.org) 에서 API 키 발급
-2. [공공데이터포털](https://data.go.kr) 에서 **한국천문연구원\_특일 정보 서비스** 활용 신청 후 인증키 발급
-3. [Supabase](https://supabase.com) 에서 프로젝트 생성 후 아래 테이블 생성:
+2. [공공데이터포털](https://data.go.kr) 에서 **한국천문연구원\_특일 정보 서비스** 활용 신청 후 인증키 발급 (Android 공휴일 표시용)
+3. [Supabase](https://supabase.com) 에서 프로젝트 생성
+
+### Supabase 설정
+
+아래 테이블을 만듭니다.
 
 ```sql
 -- profiles 테이블
@@ -159,77 +85,25 @@ create policy "Users can manage their own photos"
   with check (bucket_id = 'movie-photos' and (storage.foldername(name))[1] = auth.uid()::text);
 ```
 
-### 환경 설정
+- RLS 정책이 적용되어 있어야 다른 사용자의 데이터에 접근할 수 없습니다.
+- Google 로그인을 쓰려면 Supabase 대시보드 > Authentication > Providers에서 Google을 설정하고, URL Configuration의 Redirect URLs에 `mymovie://login-callback`을 등록합니다. 두 앱이 같은 주소를 씁니다.
 
-프로젝트 루트에 `local.properties` 파일을 생성하고 아래 값을 채워넣습니다.  
-(`local.properties.template` 참고)
+### API 키 설정
+
+`android/local.properties` 파일을 만들고 아래 값을 채워넣습니다(`android/local.properties.template` 참고).
+iOS 앱도 이 파일에서 키를 읽어 갑니다(`ios/scripts/generate_secrets.sh`).
 
 ```properties
 TMDB_API_KEY=발급받은_TMDB_API_KEY
 SUPABASE_URL=https://your-project-id.supabase.co
 SUPABASE_ANON_KEY=your_supabase_anon_key
 PUBLIC_DATA_API_KEY=공공데이터포털_디코딩_인증키
-sdk.dir=/Users/your_username/Library/Android/sdk
 ```
 
 > `PUBLIC_DATA_API_KEY`는 공공데이터포털 마이페이지 → 인증키 발급현황 → **[디코딩]** 탭의 키를 사용합니다.  
 > 키가 없으면 캘린더 공휴일 색상 표시만 비활성화되고 나머지 기능은 정상 동작합니다.
 
 > `local.properties`는 `.gitignore`에 포함되어 있어 Git에 커밋되지 않습니다.
-
-### 빌드
-
-```bash
-# Android Studio에서 프로젝트 열기 → Gradle Sync → Run
-```
-
-또는 CLI (Gradle Wrapper, Gradle 8.7 / JDK 17):
-
-```bash
-./gradlew assembleDebug
-```
-
-### 테스트
-
-```bash
-./gradlew testDebugUnitTest          # 단위 테스트 + Robolectric 화면 레이아웃·창 전환 테스트
-./gradlew connectedDebugAndroidTest  # 에뮬레이터/기기 테스트 (폴더블 창 전환·접힘 자세)
-```
-
-- 기기 테스트는 Repository를 가짜 구현으로 바꿔 실행하므로 Supabase 로그인이나 네트워크 없이 동작합니다.
-- 폴더블 검증에는 Android Studio의 7.6" Foldable / 6.7" Foldable 에뮬레이터(API 34)를 사용했습니다.
-
----
-
-## 주의사항
-
-- `local.properties`는 반드시 직접 생성해야 합니다. 이 파일이 없으면 빌드가 실패합니다.
-- Supabase RLS 정책이 적용되어 있어야 다른 사용자의 데이터에 접근할 수 없습니다.
-- Google OAuth 사용 시 Supabase 대시보드 > Authentication > Providers에서 Google 설정이 필요합니다.
-- 공공데이터포털 API는 HTTP 전용이므로 `network_security_config.xml`에서 `apis.data.go.kr`에 한해 cleartext 통신을 허용하고 있습니다.
-- 공휴일 데이터는 월별로 Room에 캐시되며, 한국천문연구원 데이터는 연 1회 업데이트(차차년도 포함)됩니다.
-- 프로젝트를 iCloud Drive 등 동기화 폴더 안에서 빌드하면 `app/build`에 `파일명 2.xml` 같은 중복 파일이 생겨 빌드가 실패할 수 있습니다. 동기화 폴더 밖에서 빌드하거나, 발생 시 `app/build`를 삭제 후 다시 빌드하세요.
-
----
-
-## 버전 정책
-
-[Semantic Versioning](https://semver.org) 을 따릅니다.
-
-| 변경 유형                  | 버전 증가 | 예시          |
-| -------------------------- | --------- | ------------- |
-| 큰 구조 변경 / 호환성 깨짐 | major     | 1.0.0 → 2.0.0 |
-| 새 기능 추가               | minor     | 1.0.0 → 1.1.0 |
-| 버그 수정                  | patch     | 1.0.0 → 1.0.1 |
-
-버전은 `gradle.properties`의 `VERSION_MAJOR / VERSION_MINOR / VERSION_PATCH`에서 관리합니다.
-
----
-
-## iOS 앱
-
-`ios/` 폴더에 SwiftUI로 만든 iOS 버전이 있습니다. 같은 Supabase 백엔드를 쓰므로 한 계정의 기록이 두 앱에서 함께 보입니다.
-구현 범위와 실행 방법은 [ios/README.md](ios/README.md)를 참고하세요.
 
 ---
 

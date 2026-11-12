@@ -4,7 +4,7 @@
 set -eu
 
 script_dir=$(cd "$(dirname "$0")" && pwd)
-properties="${1:-$script_dir/../../local.properties}"
+properties="${1:-$script_dir/../../android/local.properties}"
 output="$script_dir/../Config/Secrets.xcconfig"
 
 if [ ! -f "$properties" ]; then

@@ -3,12 +3,12 @@
 # ============================================================
 *.iml
 .gradle/
-/local.properties
-/build
-/captures
+/android/local.properties
+/android/build
+/android/captures
 .externalNativeBuild
 .cxx
-app/build/
+/android/app/build/
 
 # ============================================================
 # 민감정보 / 서명 관련
@@ -29,14 +29,16 @@ signing.properties
 # ============================================================
 # IDE — Android Studio / IntelliJ
 # ============================================================
-/.idea/workspace.xml
-/.idea/tasks.xml
-/.idea/gradle.xml
-/.idea/assetWizardSettings.xml
-/.idea/dictionaries
-/.idea/caches
-/.idea/libraries
-/.idea/deploymentTargetSelector.xml
+/android/.idea/workspace.xml
+/android/.idea/tasks.xml
+/android/.idea/gradle.xml
+/android/.idea/assetWizardSettings.xml
+/android/.idea/dictionaries
+/android/.idea/caches
+/android/.idea/libraries
+/android/.idea/deploymentTargetSelector.xml
+# Android Studio로 저장소 루트를 열면 생기는 설정 (프로젝트는 android/ 를 연다)
+/.idea/
 # 공유 가능한 .idea 파일은 유지 (misc.xml, compiler.xml 등)
 
 # ============================================================
@@ -54,7 +56,7 @@ signing.properties
 # 로그 / 임시 파일
 # ============================================================
 *.log
-app.log
+android/app.log
 
 # ============================================================
 # 로컬 검증 스크린샷 (Adaptive UI / 폴더블 테스트)

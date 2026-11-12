@@ -49,7 +49,7 @@ ios/
 ├── Config/
 │   ├── App.xcconfig            ← Secrets.xcconfig 를 include
 │   └── Secrets.xcconfig        ← API 키 (git 제외, 스크립트로 생성)
-├── scripts/generate_secrets.sh ← Android local.properties → Secrets.xcconfig
+├── scripts/generate_secrets.sh ← android/local.properties → Secrets.xcconfig
 ├── MyMovieLog/                 ← 앱 타깃: @main, 의존성 조립(AppContainer), Info.plist
 └── MyMovieLogKit/              ← Swift Package
     ├── Sources/Domain          ← Model, Repository 프로토콜, UseCase
@@ -72,9 +72,8 @@ Android 앱과 같은 규칙을 따릅니다.
 ### 사전 준비
 
 1. App Store에서 **Xcode 16 이상**을 설치합니다.
-2. 루트의 `local.properties`에 `TMDB_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`가 채워져 있어야 합니다. Android 앱과 같은 값을 씁니다.
-3. Google 로그인을 쓰려면 Supabase 대시보드 > Authentication > URL Configuration의 Redirect URLs에
-   `mymovie://login-callback`이 등록되어 있어야 합니다. Android 앱과 같은 주소입니다.
+2. [저장소 README의 공통 준비](../README.md#공통-준비)를 마칩니다. Supabase 설정과 Google 로그인 Redirect URL은 Android 앱과 같습니다.
+3. `android/local.properties`에 `TMDB_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`가 채워져 있어야 합니다. 아래 스크립트가 이 값을 읽어 갑니다.
 
 ### 빌드
 

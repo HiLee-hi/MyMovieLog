@@ -1,5 +1,5 @@
 // Shared build settings. API keys come from Secrets.xcconfig, which is not committed;
-// create it with scripts/generate_secrets.sh (reads the Android local.properties).
+// create it with scripts/generate_secrets.sh (reads android/local.properties).
 #include? "Secrets.xcconfig"
 
 // Signing for running on a physical device. Signing.xcconfig is not committed;
