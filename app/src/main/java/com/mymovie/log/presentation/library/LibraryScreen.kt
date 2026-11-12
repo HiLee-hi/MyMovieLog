@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
@@ -189,7 +188,7 @@ private fun MovieGridItem(record: MovieRecord, onClick: () -> Unit = {}, onDelet
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .clip(RoundedCornerShape(6.dp))
+                    .clip(MaterialTheme.shapes.small)
                     .background(MaterialTheme.colorScheme.errorContainer),
                 contentAlignment = Alignment.CenterEnd
             ) {
@@ -202,9 +201,11 @@ private fun MovieGridItem(record: MovieRecord, onClick: () -> Unit = {}, onDelet
             }
         }
     ) {
+        // Opaque, so the delete background only shows while swiping
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.background)
                 .clickable { onClick() },
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -215,7 +216,8 @@ private fun MovieGridItem(record: MovieRecord, onClick: () -> Unit = {}, onDelet
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(2f / 3f)
-                    .clip(RoundedCornerShape(6.dp))
+                    .clip(MaterialTheme.shapes.small)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
             )
             record.rating?.let { rating ->
                 Text(

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Popcorn kernel brand mark: four puffs around a butter center -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="32dp"
+    android:height="32dp"
+    android:viewportWidth="32"
+    android:viewportHeight="32">
+    <path
+        android:fillColor="#FFF6E0"
+        android:strokeColor="#9A5214"
+        android:strokeWidth="1.6"
+        android:pathData="M5,13a6,6 0,1 0,12 0a6,6 0,1 0,-12 0z" />
+    <path
+        android:fillColor="#FFF6E0"
+        android:strokeColor="#9A5214"
+        android:strokeWidth="1.6"
+        android:pathData="M13.5,11a6.5,6.5 0,1 0,13 0a6.5,6.5 0,1 0,-13 0z" />
+    <path
+        android:fillColor="#FFF6E0"
+        android:strokeColor="#9A5214"
+        android:strokeWidth="1.6"
+        android:pathData="M15,20.5a6,6 0,1 0,12 0a6,6 0,1 0,-12 0z" />
+    <path
+        android:fillColor="#FFF6E0"
+        android:strokeColor="#9A5214"
+        android:strokeWidth="1.6"
+        android:pathData="M5.5,21a6,6 0,1 0,12 0a6,6 0,1 0,-12 0z" />
+    <path
+        android:fillColor="#FAD27A"
+        android:pathData="M12.8,16.5a3.2,3.2 0,1 0,6.4 0a3.2,3.2 0,1 0,-6.4 0z" />
+</vector>

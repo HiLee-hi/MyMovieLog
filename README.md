@@ -229,3 +229,5 @@ sdk.dir=/Users/your_username/Library/Android/sdk
 ## 라이선스
 
 MIT
+
+제목 글꼴 [Jua](https://fonts.google.com/specimen/Jua)는 SIL Open Font License 1.1을 따릅니다 ([licenses/OFL-Jua.txt](licenses/OFL-Jua.txt)).

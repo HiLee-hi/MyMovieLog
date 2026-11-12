@@ -13,19 +13,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -54,7 +50,6 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import com.mymovie.log.domain.model.MovieRecord
@@ -69,6 +64,21 @@ import com.mymovie.log.presentation.adaptive.constrainedWidth
 import com.mymovie.log.presentation.ui.AddRecordState
 import com.mymovie.log.presentation.ui.RecordDraft
 import com.mymovie.log.presentation.ui.RecordEditorForm
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.automirrored.filled.StarHalf
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.Dp
+import com.mymovie.log.presentation.ui.theme.PopcornColors
+import com.mymovie.log.presentation.ui.theme.popcornButtonColors
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -103,7 +113,16 @@ fun MovieDetailScreen(
                 TopAppBar(
                     title = {},
                     navigationIcon = {
-                        IconButton(onClick = { onBack(recordSaved) }) {
+                        FilledIconButton(
+                            onClick = { onBack(recordSaved) },
+                            colors = IconButtonDefaults.filledIconButtonColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                                contentColor = MaterialTheme.colorScheme.onSurface
+                            ),
+                            modifier = Modifier
+                                .padding(start = 4.dp)
+                                .shadow(6.dp, CircleShape, ambientColor = PopcornColors.Shadow, spotColor = PopcornColors.Shadow)
+                        ) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "뒤로가기")
                         }
                     },
@@ -152,8 +171,12 @@ fun MovieDetailScreen(
 
                 // Decided from the width this screen actually gets (full window or a pane),
                 // not from the device, so a narrow pane keeps the phone layout.
-                BoxWithConstraints(modifier = Modifier.padding(innerPadding)) {
+                BoxWithConstraints(modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())) {
                     val isWide = AdaptiveDimens.fitsTwoColumns(maxWidth)
+                    val isShortWindow = adaptiveInfo.heightClass == WindowHeightClass.Compact
+                    // The backdrop runs under the transparent top bar; without one the content
+                    // starts below the bar
+                    val showsBackdrop = !isWide || !isShortWindow
 
                     // Inline editor has no sheet to close it after saving
                     LaunchedEffect(addRecordState, isWide) {
@@ -162,9 +185,11 @@ fun MovieDetailScreen(
 
                     MovieDetailContent(
                         movie = state.movie,
-                        isRecorded = existingRecord != null,
+                        record = existingRecord,
+                        isEditing = showBottomSheet,
                         isWide = isWide,
-                        isShortWindow = adaptiveInfo.heightClass == WindowHeightClass.Compact,
+                        isShortWindow = isShortWindow,
+                        modifier = Modifier.padding(top = if (showsBackdrop) 0.dp else innerPadding.calculateTopPadding()),
                         onRecordClick = onRecordClick,
                         myLogPane = {
                             MyMovieLogPane(
@@ -213,7 +238,8 @@ fun MovieDetailScreen(
 internal fun MovieDetailContent(
     movie: Movie,
     modifier: Modifier = Modifier,
-    isRecorded: Boolean = false,
+    record: MovieRecord? = null,
+    isEditing: Boolean = false,
     isWide: Boolean = false,
     isShortWindow: Boolean = false,
     onRecordClick: () -> Unit,
@@ -237,120 +263,63 @@ internal fun MovieDetailContent(
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
         ) {
-            // Backdrop image with gradient overlay
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(220.dp)
-            ) {
-                AsyncImage(
-                    model = movie.backdropUrl ?: movie.posterUrl,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-                // Bottom gradient fade
-                Box(
+            // Backdrop with the poster overlapping its bottom edge
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Backdrop(movie = movie, height = BackdropHeight)
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(80.dp)
-                        .align(Alignment.BottomCenter)
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.5f))
-                            )
-                        )
-                )
-            }
-
-            // Poster + title row
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.Top
-            ) {
-                AsyncImage(
-                    model = movie.posterUrl,
-                    contentDescription = movie.title,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(100.dp, 150.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                Column(modifier = Modifier.weight(1f).padding(top = 4.dp)) {
-                    Text(
-                        text = movie.title,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
+                        .padding(start = 20.dp, end = 20.dp, top = BackdropHeight - PosterOverlap),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    AsyncImage(
+                        model = movie.posterUrl,
+                        contentDescription = movie.title,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(112.dp, 168.dp)
+                            .shadow(8.dp, MaterialTheme.shapes.medium, ambientColor = PopcornColors.Shadow, spotColor = PopcornColors.Shadow)
+                            .clip(MaterialTheme.shapes.medium)
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .border(3.dp, MaterialTheme.colorScheme.background, MaterialTheme.shapes.medium)
                     )
-                    if (movie.originalTitle != movie.title) {
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = movie.originalTitle,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        if (movie.releaseDate.length >= 4) {
-                            Text(
-                                text = movie.releaseDate.take(4),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        if (movie.voteAverage > 0.0) {
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text(
-                                text = "★ ${"%.1f".format(movie.voteAverage)}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
-                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    // Starts below the backdrop so the title never sits on the image
+                    MovieHeaderInfo(
+                        movie = movie,
+                        showGenres = false,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(top = PosterOverlap + 8.dp)
+                    )
                 }
             }
 
-            // Genre chips
             if (movie.genres.isNotEmpty()) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
                         .horizontalScroll(rememberScrollState())
+                        .padding(start = 20.dp, end = 20.dp, top = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    movie.genres.forEach { genre ->
-                        SuggestionChip(
-                            onClick = {},
-                            label = { Text(genre, style = MaterialTheme.typography.labelSmall) },
-                            modifier = Modifier.padding(end = 8.dp)
-                        )
-                    }
+                    movie.genres.forEach { GenreChip(it) }
                 }
-                Spacer(modifier = Modifier.height(8.dp))
             }
 
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-
-            // Overview
             if (movie.overview.isNotBlank()) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "줄거리",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = movie.overview,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                OverviewCard(
+                    overview = movie.overview,
+                    modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 16.dp)
+                )
+            }
+
+            // While editing, the sheet shows the same record
+            if (record != null && !isEditing) {
+                RecordCard(
+                    record = record,
+                    modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 12.dp)
+                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -358,12 +327,100 @@ internal fun MovieDetailContent(
 
         // Bottom record button
         Button(
+            colors = popcornButtonColors(),
             onClick = onRecordClick,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .padding(horizontal = 20.dp, vertical = 12.dp)
+                .height(52.dp)
         ) {
-            Text(if (isRecorded) "기록 수정" else "기록하기", style = MaterialTheme.typography.labelLarge)
+            Text(
+                if (record != null) "기록 수정" else "기록하기",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+        }
+    }
+}
+
+/** Backdrop image fading into the cream background. */
+@Composable
+private fun Backdrop(movie: Movie, height: Dp) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(height)
+            .background(MaterialTheme.colorScheme.primaryContainer)
+    ) {
+        AsyncImage(
+            model = movie.backdropUrl ?: movie.posterUrl,
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+        val background = MaterialTheme.colorScheme.background
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(72.dp)
+                .align(Alignment.BottomCenter)
+                .background(Brush.verticalGradient(listOf(Color.Transparent, background)))
+        )
+    }
+}
+
+@Composable
+private fun GenreChip(genre: String) {
+    Text(
+        text = genre,
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier
+            .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
+            .padding(horizontal = 12.dp, vertical = 6.dp)
+    )
+}
+
+@Composable
+private fun OverviewCard(overview: String, modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainerLowest,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "줄거리",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = overview,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+/** Compact summary of the saved record, on a butter card. */
+@Composable
+private fun RecordCard(record: MovieRecord, modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier.fillMaxWidth().testTag(MovieDetailTestTags.RecordCard),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceVariant
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = MyLogTitle,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            RecordSummary(record)
         }
     }
 }
@@ -392,29 +449,7 @@ private fun WideMovieDetailContent(
     ) {
         // Short windows (landscape phones, tabletop, split screen) skip the backdrop entirely
         if (!isShortWindow) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(160.dp)
-            ) {
-                AsyncImage(
-                    model = movie.backdropUrl ?: movie.posterUrl,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(80.dp)
-                        .align(Alignment.BottomCenter)
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.5f))
-                            )
-                        )
-                )
-            }
+            Backdrop(movie = movie, height = 160.dp)
         }
 
         AdaptiveTwoColumn(
@@ -432,29 +467,20 @@ private fun WideMovieDetailContent(
                             modifier = Modifier
                                 .width(if (isShortWindow) 96.dp else 120.dp)
                                 .aspectRatio(POSTER_ASPECT_RATIO)
-                                .clip(RoundedCornerShape(8.dp))
+                                .shadow(8.dp, MaterialTheme.shapes.medium, ambientColor = PopcornColors.Shadow, spotColor = PopcornColors.Shadow)
+                                .clip(MaterialTheme.shapes.medium)
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
                         )
                         Spacer(modifier = Modifier.width(16.dp))
                         MovieHeaderInfo(movie = movie, modifier = Modifier.weight(1f))
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
-                    HorizontalDivider()
-                    Spacer(modifier = Modifier.height(16.dp))
 
-                    Column(modifier = Modifier.widthIn(max = AdaptiveDimens.ReadableMaxWidth)) {
-                        Text(
-                            text = "줄거리",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = movie.overview.ifBlank { "줄거리 정보가 없어요" },
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                    OverviewCard(
+                        overview = movie.overview.ifBlank { "줄거리 정보가 없어요" },
+                        modifier = Modifier.widthIn(max = AdaptiveDimens.ReadableMaxWidth)
+                    )
                 }
             },
             second = myLogPane
@@ -464,50 +490,50 @@ private fun WideMovieDetailContent(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun MovieHeaderInfo(movie: Movie, modifier: Modifier = Modifier) {
-    Column(modifier = modifier) {
-        Text(
-            text = movie.title,
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
-        )
-        if (movie.originalTitle != movie.title) {
-            Spacer(modifier = Modifier.height(2.dp))
+private fun MovieHeaderInfo(movie: Movie, modifier: Modifier = Modifier, showGenres: Boolean = true) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(text = movie.title, style = MaterialTheme.typography.headlineSmall)
+        val meta = listOfNotNull(
+            movie.originalTitle.takeIf { it != movie.title && it.isNotBlank() },
+            movie.releaseDate.take(4).takeIf { movie.releaseDate.length >= 4 }
+        ).joinToString(" · ")
+        if (meta.isNotEmpty()) {
             Text(
-                text = movie.originalTitle,
+                text = meta,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        Spacer(modifier = Modifier.height(8.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            if (movie.releaseDate.length >= 4) {
+        if (movie.voteAverage > 0.0) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.Star,
+                    contentDescription = null,
+                    tint = PopcornColors.Star,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = movie.releaseDate.take(4),
+                    text = "%.1f".format(movie.voteAverage),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "TMDB",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            if (movie.voteAverage > 0.0) {
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = "★ ${"%.1f".format(movie.voteAverage)}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Medium
-                )
-            }
         }
-        if (movie.genres.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(8.dp))
+        if (showGenres && movie.genres.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(4.dp))
             // Wraps instead of scrolling: there is room for several rows next to the poster
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                movie.genres.forEach { genre ->
-                    SuggestionChip(
-                        onClick = {},
-                        label = { Text(genre, style = MaterialTheme.typography.labelSmall) }
-                    )
-                }
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                movie.genres.forEach { GenreChip(it) }
             }
         }
     }
@@ -531,11 +557,16 @@ private fun MyMovieLogPane(
     onCancel: () -> Unit,
     onSave: (WatchStatus, Float?, LocalDate?, String?, String?) -> Unit,
 ) {
-    OutlinedCard(modifier = Modifier.fillMaxWidth()) {
+    Surface(
+        modifier = Modifier.fillMaxWidth().testTag(MovieDetailTestTags.MyLogPane),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainerLowest,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "나의 기록",
+                    text = MyLogTitle,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.weight(1f)
@@ -566,7 +597,7 @@ private fun MyMovieLogPane(
                 record != null -> {
                     RecordSummary(record)
                     Spacer(modifier = Modifier.height(16.dp))
-                    Button(onClick = onStartEditing, modifier = Modifier.fillMaxWidth()) {
+                    Button(colors = popcornButtonColors(), onClick = onStartEditing, modifier = Modifier.fillMaxWidth()) {
                         Text("기록 수정")
                     }
                 }
@@ -578,7 +609,7 @@ private fun MyMovieLogPane(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.height(16.dp))
-                    Button(onClick = onStartEditing, modifier = Modifier.fillMaxWidth()) {
+                    Button(colors = popcornButtonColors(), onClick = onStartEditing, modifier = Modifier.fillMaxWidth()) {
                         Text("기록하기")
                     }
                 }
@@ -596,9 +627,7 @@ private fun RecordSummary(record: MovieRecord) {
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.primary
         )
-        record.rating?.let {
-            Text(text = "★ $it", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
-        }
+        record.rating?.let { RatingStars(it) }
         record.watchedAt?.let {
             Text(
                 text = it.format(dateFormatter),
@@ -619,7 +648,33 @@ private fun RecordSummary(record: MovieRecord) {
     }
 }
 
+/** Read-only stars; [StarRatingRow] is the editable version. */
+@Composable
+private fun RatingStars(rating: Float) {
+    Row(
+        modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = "별점 5점 중 ${rating}점" },
+        horizontalArrangement = Arrangement.spacedBy(2.dp)
+    ) {
+        for (star in 1..5) {
+            Icon(
+                imageVector = if (rating >= star - 0.5f && rating < star) Icons.AutoMirrored.Filled.StarHalf else Icons.Default.Star,
+                contentDescription = null,
+                tint = if (rating >= star - 0.5f) PopcornColors.Star else PopcornColors.StarEmpty,
+                modifier = Modifier.size(22.dp)
+            )
+        }
+    }
+}
+
 private const val POSTER_ASPECT_RATIO = 2f / 3f
+private const val MyLogTitle = "내 기록"
+private val BackdropHeight = 240.dp
+private val PosterOverlap = 72.dp
+
+internal object MovieDetailTestTags {
+    const val MyLogPane = "detail_my_log_pane"
+    const val RecordCard = "detail_record_card"
+}
 
 internal val PreviewMovie = Movie(
     id = 1,

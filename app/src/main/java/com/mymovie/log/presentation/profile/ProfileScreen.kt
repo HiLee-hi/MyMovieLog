@@ -1,6 +1,7 @@
 package com.mymovie.log.presentation.profile
 
 import androidx.compose.foundation.layout.Box
+import com.mymovie.log.presentation.ui.theme.popcornButtonColors
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -207,6 +208,7 @@ private fun EmailLoginBottomSheet(
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(
+                colors = popcornButtonColors(),
                 onClick = {
                     if (isSignUpMode) onSignUp(email, password)
                     else onSignIn(email, password)
@@ -267,6 +269,7 @@ private fun EmailVerificationContent(onConfirmed: () -> Unit) {
         )
         Spacer(modifier = Modifier.height(32.dp))
         Button(
+            colors = popcornButtonColors(),
             onClick = onConfirmed,
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -282,6 +285,7 @@ private fun LoginPromptContent(onEmailLogin: () -> Unit, onGoogleLogin: () -> Un
             Text("로그인하여 기록을 저장하세요", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(24.dp))
             Button(
+                colors = popcornButtonColors(),
                 onClick = onEmailLogin,
                 modifier = Modifier.fillMaxWidth(0.7f).widthIn(max = ActionButtonMaxWidth)
             ) {

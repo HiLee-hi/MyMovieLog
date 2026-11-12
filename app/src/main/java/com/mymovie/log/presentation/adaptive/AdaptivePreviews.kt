@@ -36,7 +36,7 @@ fun AdaptivePreviewSurface(content: @Composable () -> Unit) {
         windowWidth = configuration.screenWidthDp.dp,
         windowHeight = configuration.screenHeightDp.dp
     )
-    MyMovieLogTheme(dynamicColor = false) {
+    MyMovieLogTheme {
         ProvideAdaptiveLayoutInfo(info) {
             Surface(content = content)
         }

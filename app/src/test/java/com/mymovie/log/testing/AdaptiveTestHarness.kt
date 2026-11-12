@@ -61,7 +61,7 @@ const val WINDOW_TAG = "test_window"
 @Composable
 fun TestWindow(spec: WindowSpec, withNavigationSuite: Boolean = false, content: @Composable () -> Unit) {
     val info = spec.info
-    MyMovieLogTheme(dynamicColor = false) {
+    MyMovieLogTheme {
         ProvideAdaptiveLayoutInfo(info) {
             Box(modifier = Modifier.size(spec.width.dp, spec.height.dp).testTag(WINDOW_TAG)) {
                 Surface(modifier = Modifier.fillMaxSize()) {

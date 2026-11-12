@@ -32,6 +32,7 @@ import com.mymovie.log.presentation.adaptive.NavigationLayout
 import com.mymovie.log.presentation.calendar.CalendarScreen
 import com.mymovie.log.presentation.calendar.CalendarTestTags
 import com.mymovie.log.presentation.detail.MovieDetailScreen
+import com.mymovie.log.presentation.detail.MovieDetailTestTags
 import com.mymovie.log.presentation.search.SearchScreen
 import com.mymovie.log.presentation.search.SearchTestTags
 import com.mymovie.log.testing.TestViewModels
@@ -83,17 +84,17 @@ class WindowTransitionTest {
         }
         composeRule.onNodeWithText("기록 수정").performClick()
         composeRule.onNode(hasSetTextAction() and hasText("리뷰 1")).performTextReplacement("접었다 펴도 남는 리뷰")
-        composeRule.onNodeWithText("나의 기록").assertExists()
+        composeRule.onNodeWithTag(MovieDetailTestTags.MyLogPane).assertExists()
 
         // Unfolded -> folded (cover screen): the same draft is now in the bottom sheet
         resizeTo(WindowSpecs.Cover10x16)
-        composeRule.onNodeWithText("나의 기록").assertDoesNotExist()
+        composeRule.onNodeWithTag(MovieDetailTestTags.MyLogPane).assertDoesNotExist()
         composeRule.onNodeWithText("기록 저장").assertExists()
         composeRule.onNode(hasSetTextAction() and hasText("접었다 펴도 남는 리뷰")).assertExists()
 
         // Rotate / unfold again: back inline, still the same text
         resizeTo(WindowSpecs.PhoneLandscape)
-        composeRule.onNodeWithText("나의 기록").assertExists()
+        composeRule.onNodeWithTag(MovieDetailTestTags.MyLogPane).assertExists()
         composeRule.onNode(hasSetTextAction() and hasText("접었다 펴도 남는 리뷰")).assertExists()
         assertEquals("접었다 펴도 남는 리뷰", viewModel.recordDraft.value.review)
     }

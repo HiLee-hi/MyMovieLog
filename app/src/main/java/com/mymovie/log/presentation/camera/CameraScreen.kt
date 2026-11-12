@@ -1,6 +1,7 @@
 package com.mymovie.log.presentation.camera
 
 import android.Manifest
+import com.mymovie.log.presentation.ui.theme.popcornButtonColors
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -252,7 +253,7 @@ private fun CapturedPhotoContent(
                         Text("다시찍기")
                     }
 
-                    Button(onClick = onUsePhoto) {
+                    Button(colors = popcornButtonColors(), onClick = onUsePhoto) {
                         Text("사용하기")
                     }
                 }

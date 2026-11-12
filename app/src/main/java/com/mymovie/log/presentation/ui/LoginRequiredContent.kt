@@ -1,6 +1,7 @@
 package com.mymovie.log.presentation.ui
 
 import androidx.compose.foundation.layout.Arrangement
+import com.mymovie.log.presentation.ui.theme.popcornButtonColors
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -54,6 +55,7 @@ fun LoginRequiredContent(
         )
         Spacer(modifier = Modifier.height(32.dp))
         Button(
+            colors = popcornButtonColors(),
             onClick = onNavigateToLogin,
             modifier = Modifier.fillMaxWidth(0.6f).widthIn(max = 360.dp)
         ) {

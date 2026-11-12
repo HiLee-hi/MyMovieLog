@@ -1,7 +1,11 @@
 package com.mymovie.log.presentation.home
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -15,31 +19,37 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material3.Card
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import com.mymovie.log.presentation.ui.theme.PopcornColors
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import android.net.Uri
+import com.mymovie.log.R
 import com.mymovie.log.domain.model.MovieRecord
 import com.mymovie.log.domain.model.WatchStatus
 import com.mymovie.log.presentation.ui.RecordDetailBottomSheet
@@ -69,14 +79,7 @@ fun HomeScreen(
     val selectedRecordSignedPhotoUrls by viewModel.existingPhotoSignedUrls.collectAsStateWithLifecycle()
 
     Column(modifier = Modifier.fillMaxSize()) {
-        TopAppBar(
-            title = { Text("MyMovieLog", fontWeight = FontWeight.Bold) },
-            actions = {
-                IconButton(onClick = onNavigateToCalendar) {
-                    Icon(Icons.Default.CalendarMonth, contentDescription = "캘린더")
-                }
-            }
-        )
+        HomeHeader(onNavigateToCalendar = onNavigateToCalendar)
 
         HomeContent(
             uiState = uiState,
@@ -130,6 +133,12 @@ internal fun HomeContent(
                     .constrainedWidth()
                     .padding(horizontal = HorizontalPadding)
             ) {
+                Text(
+                    text = "오늘은 어떤 영화를 봤나요?",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
                 if (isWide) {
                     AdaptiveTwoColumn(
                         modifier = Modifier.padding(top = 8.dp).testTag(HomeTestTags.TwoColumn),
@@ -212,8 +221,8 @@ private fun StatsSummaryPanel(totalWatched: Int, thisMonthCount: Int, onNavigate
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold
         )
+        StatCard(modifier = Modifier.fillMaxWidth(), label = "이번 달", value = "${thisMonthCount}편", highlighted = true)
         StatCard(modifier = Modifier.fillMaxWidth(), label = "총 감상", value = "${totalWatched}편")
-        StatCard(modifier = Modifier.fillMaxWidth(), label = "이번 달", value = "${thisMonthCount}편")
         OutlinedButton(onClick = onNavigateToCalendar, modifier = Modifier.fillMaxWidth()) {
             Icon(Icons.Default.CalendarMonth, contentDescription = null)
             Spacer(modifier = Modifier.width(8.dp))
@@ -225,33 +234,74 @@ private fun StatsSummaryPanel(totalWatched: Int, thisMonthCount: Int, onNavigate
 @Composable
 private fun StatsSummaryRow(totalWatched: Int, thisMonthCount: Int) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp),
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        StatCard(
+            modifier = Modifier.weight(1f),
+            label = "이번 달",
+            value = "${thisMonthCount}편",
+            highlighted = true
+        )
         StatCard(
             modifier = Modifier.weight(1f),
             label = "총 감상",
             value = "${totalWatched}편"
         )
-        StatCard(
-            modifier = Modifier.weight(1f),
-            label = "이번 달",
-            value = "${thisMonthCount}편"
-        )
     }
 }
 
+/** Brand mark, app name and the calendar shortcut. */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun StatCard(modifier: Modifier = Modifier, label: String, value: String) {
-    Card(modifier = modifier) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+private fun HomeHeader(onNavigateToCalendar: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .windowInsetsPadding(TopAppBarDefaults.windowInsets)
+            .padding(start = HorizontalPadding, end = HorizontalPadding, top = 12.dp, bottom = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Image(
+            painter = painterResource(R.drawable.ic_popcorn_mark),
+            contentDescription = null,
+            modifier = Modifier.size(34.dp)
+        )
+        Spacer(modifier = Modifier.width(10.dp))
+        Text(
+            text = stringResource(R.string.app_name),
+            style = MaterialTheme.typography.headlineSmall,
+            modifier = Modifier.weight(1f)
+        )
+        OutlinedIconButton(
+            onClick = onNavigateToCalendar,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+            colors = IconButtonDefaults.outlinedIconButtonColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
+            ),
+            modifier = Modifier.size(44.dp)
         ) {
-            Text(text = value, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-            Text(text = label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Icon(Icons.Default.CalendarMonth, contentDescription = "캘린더")
+        }
+    }
+}
+
+/** The highlighted card is filled with butter; the other one is a white outlined card. */
+@Composable
+private fun StatCard(modifier: Modifier = Modifier, label: String, value: String, highlighted: Boolean = false) {
+    Surface(
+        modifier = modifier,
+        shape = MaterialTheme.shapes.large,
+        color = if (highlighted) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerLowest,
+        border = if (highlighted) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 18.dp, vertical = 16.dp)) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelLarge,
+                color = if (highlighted) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(text = value, style = MaterialTheme.typography.headlineMedium)
         }
     }
 }
@@ -269,14 +319,9 @@ private fun SectionHeader(title: String, onMoreClick: (() -> Unit)? = null) {
             modifier = Modifier.weight(1f)
         )
         if (onMoreClick != null) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
-                contentDescription = "더 보기",
-                modifier = Modifier
-                    .size(16.dp)
-                    .clickable { onMoreClick() },
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            TextButton(onClick = onMoreClick) {
+                Text("전체 보기", style = MaterialTheme.typography.labelLarge)
+            }
         }
     }
 }
@@ -286,7 +331,7 @@ private fun EmptyMessage(message: String) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         color = MaterialTheme.colorScheme.surfaceVariant,
-        shape = RoundedCornerShape(12.dp)
+        shape = MaterialTheme.shapes.large
     ) {
         Text(
             text = message,
@@ -300,8 +345,9 @@ private fun EmptyMessage(message: String) {
 @Composable
 private fun MoviePosterRow(records: List<MovieRecord>, onRecordClick: (MovieRecord) -> Unit = {}) {
     LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = PaddingValues(end = 8.dp)
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        // Room for the poster shadow, which LazyRow would otherwise clip
+        contentPadding = PaddingValues(end = 8.dp, bottom = 8.dp)
     ) {
         items(records) { record ->
             MoviePosterItem(record = record, onClick = { onRecordClick(record) })
@@ -313,26 +359,46 @@ private fun MoviePosterRow(records: List<MovieRecord>, onRecordClick: (MovieReco
 private fun MoviePosterItem(record: MovieRecord, onClick: () -> Unit = {}) {
     Column(
         modifier = Modifier
-            .width(100.dp)
-            .clickable(onClick = onClick),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .width(PosterWidth)
+            .clickable(onClick = onClick)
     ) {
         AsyncImage(
             model = record.posterUrl,
             contentDescription = record.title,
             contentScale = ContentScale.Crop,
             modifier = Modifier
-                .size(100.dp, 150.dp)
-                .clip(RoundedCornerShape(8.dp))
+                .size(PosterWidth, PosterWidth * 1.5f)
+                .shadow(6.dp, MaterialTheme.shapes.medium, ambientColor = PopcornColors.Shadow, spotColor = PopcornColors.Shadow)
+                .clip(MaterialTheme.shapes.medium)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
         )
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(6.dp))
         Text(
             text = record.title,
-            style = MaterialTheme.typography.bodySmall,
-            maxLines = 2
+            style = MaterialTheme.typography.labelLarge,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
+        record.rating?.let { rating ->
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.Star,
+                    contentDescription = null,
+                    tint = PopcornColors.Star,
+                    modifier = Modifier.size(14.dp)
+                )
+                Spacer(modifier = Modifier.width(3.dp))
+                Text(
+                    text = rating.toString(),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
     }
 }
+
+private val PosterWidth = 112.dp
 
 private val HorizontalPadding = 16.dp
 

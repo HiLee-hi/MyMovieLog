@@ -1,7 +1,13 @@
 package com.mymovie.log.presentation.search
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Surface
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -152,6 +158,16 @@ private fun SearchListPane(
     onMovieClick: (Movie) -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxSize().testTag(SearchTestTags.ListPane)) {
+        // The expanded bar covers the whole pane, so the title only shows while collapsed
+        if (!isSearchActive) {
+            Text(
+                text = "검색",
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier
+                    .windowInsetsPadding(SearchBarDefaults.windowInsets)
+                    .padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 4.dp)
+            )
+        }
         SearchBar(
             inputField = {
                 SearchBarDefaults.InputField(
@@ -173,9 +189,23 @@ private fun SearchListPane(
             },
             expanded = isSearchActive,
             onExpandedChange = onActiveChange,
+            colors = SearchBarDefaults.colors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                dividerColor = MaterialTheme.colorScheme.outlineVariant
+            ),
+            // Collapsed, the title above already keeps clear of the status bar
+            windowInsets = if (isSearchActive) SearchBarDefaults.windowInsets else WindowInsets(0),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = if (isSearchActive) 0.dp else 16.dp, vertical = 8.dp)
+                .then(
+                    if (isSearchActive) Modifier
+                    else Modifier.border(
+                        1.5.dp,
+                        MaterialTheme.colorScheme.primaryContainer,
+                        SearchBarDefaults.inputFieldShape
+                    )
+                )
         ) {
             SearchResultContent(
                 query = query,
@@ -235,8 +265,8 @@ private fun SearchResultContent(
         else -> {
             LazyColumn(
                 state = listState,
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 items(lazyPagingItems.itemCount) { index ->
                     val movie = lazyPagingItems[index]
@@ -268,40 +298,68 @@ private fun SearchResultContent(
 
 @Composable
 private fun MovieSearchItem(movie: Movie, onClick: () -> Unit, isSelected: Boolean = false) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
-            .then(
-                // Marks the movie shown in the detail pane
-                if (isSelected) Modifier.background(MaterialTheme.colorScheme.secondaryContainer)
-                else Modifier
-            )
-            .clickable(onClick = onClick),
-        verticalAlignment = Alignment.Top
-    ) {
-        AsyncImage(
-            model = movie.posterUrl,
-            contentDescription = movie.title,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .size(60.dp, 90.dp)
-                .clip(RoundedCornerShape(6.dp))
+    // A selected card (the movie shown in the detail pane) turns butter
+    Surface(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        color = if (isSelected) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surfaceContainerLowest,
+        border = BorderStroke(
+            1.dp,
+            if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.outlineVariant
         )
-        Spacer(modifier = Modifier.width(12.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(text = movie.title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyLarge)
-            if (movie.originalTitle != movie.title) {
-                Text(text = movie.originalTitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    ) {
+        Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.Top) {
+            AsyncImage(
+                model = movie.posterUrl,
+                contentDescription = movie.title,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(64.dp, 96.dp)
+                    .clip(MaterialTheme.shapes.small)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+            )
+            Spacer(modifier = Modifier.width(14.dp))
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(text = movie.title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyLarge)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (movie.originalTitle != movie.title) {
+                        Text(
+                            text = movie.originalTitle,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f, fill = false)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                    }
+                    if (movie.releaseDate.length >= 4) {
+                        YearChip(movie.releaseDate.take(4))
+                    }
+                }
+                Text(
+                    text = movie.overview,
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
-            Spacer(modifier = Modifier.height(4.dp))
-            if (movie.releaseDate.length >= 4) {
-                Text(text = movie.releaseDate.take(4), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(text = movie.overview, style = MaterialTheme.typography.bodySmall, maxLines = 3, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
+}
+
+@Composable
+private fun YearChip(year: String) {
+    Text(
+        text = year,
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier
+            .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
+            .padding(horizontal = 8.dp, vertical = 2.dp)
+    )
 }
 
 internal object SearchTestTags {

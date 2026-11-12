@@ -1,6 +1,7 @@
 package com.mymovie.log.presentation.ui
 
 import android.app.DatePickerDialog
+import com.mymovie.log.presentation.ui.theme.popcornButtonColors
 import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -212,6 +213,7 @@ fun RecordEditorForm(
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
+            colors = popcornButtonColors(),
             onClick = {
                 val watched = draft.status == WatchStatus.WATCHED
                 onSave(

@@ -15,6 +15,7 @@ import com.mymovie.log.domain.usecase.UpsertRecordUseCase
 import com.mymovie.log.presentation.calendar.CalendarScreen
 import com.mymovie.log.presentation.calendar.CalendarTestTags
 import com.mymovie.log.presentation.detail.MovieDetailScreen
+import com.mymovie.log.presentation.detail.MovieDetailTestTags
 import com.mymovie.log.presentation.home.HomeScreen
 import com.mymovie.log.presentation.home.HomeTestTags
 import com.mymovie.log.presentation.library.LibraryScreen
@@ -113,7 +114,9 @@ class AdaptiveScreenLayoutTest(private val spec: WindowSpec) {
         }
         composeRule.waitForIdle()
         composeRule.saveWindowScreenshot("movie_detail_$spec")
-        composeRule.onNodeWithText("나의 기록").assertExistsIf(expected.detailWide)
+        composeRule.onNodeWithTag(MovieDetailTestTags.MyLogPane).assertExistsIf(expected.detailWide)
+        // Narrow windows show the saved record as a card instead of the pane
+        composeRule.onNodeWithTag(MovieDetailTestTags.RecordCard).assertExistsIf(!expected.detailWide)
     }
 
     @Test

@@ -1,6 +1,7 @@
 package com.mymovie.log.presentation.ui
 
 import androidx.compose.foundation.clickable
+import com.mymovie.log.presentation.ui.theme.PopcornColors
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
@@ -31,7 +32,7 @@ internal fun StarRatingRow(
                     else -> Icons.Outlined.StarBorder
                 },
                 contentDescription = "$star 점",
-                tint = if (filled || halfFilled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+                tint = if (filled || halfFilled) PopcornColors.Star else PopcornColors.StarEmpty,
                 modifier = Modifier
                     .size(32.dp)
                     .clickable {
