@@ -1,0 +1,4 @@
+// Copy to Signing.xcconfig and set your Apple Developer team ID
+// (Xcode → Settings → Accounts → select the team). A free Personal Team works for
+// installing on your own device.
+DEVELOPMENT_TEAM = YOUR_TEAM_ID

@@ -4,7 +4,7 @@
 
 앱 이름: **팝콘한알** (영어 기기: Popcorn Log). 저장소와 패키지 이름은 MyMovieLog를 유지합니다.
 
-나만의 영화 감상 기록 Android 앱.  
+나만의 영화 감상 기록 Android 앱 (iOS 버전은 [`ios/`](ios/README.md)).  
 TMDB에서 영화를 검색하고, 감상 기록·별점·리뷰를 저장하며, 캘린더와 통계로 한눈에 확인할 수 있습니다.
 
 ---
@@ -223,6 +223,13 @@ sdk.dir=/Users/your_username/Library/Android/sdk
 | 버그 수정                  | patch     | 1.0.0 → 1.0.1 |
 
 버전은 `gradle.properties`의 `VERSION_MAJOR / VERSION_MINOR / VERSION_PATCH`에서 관리합니다.
+
+---
+
+## iOS 앱
+
+`ios/` 폴더에 SwiftUI로 만든 iOS 버전이 있습니다. 같은 Supabase 백엔드를 쓰므로 한 계정의 기록이 두 앱에서 함께 보입니다.
+구현 범위와 실행 방법은 [ios/README.md](ios/README.md)를 참고하세요.
 
 ---
 
