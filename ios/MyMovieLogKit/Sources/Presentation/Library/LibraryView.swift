@@ -36,16 +36,16 @@ struct LibraryView: View {
                     LoginRequiredView(onNavigateToLogin: onNavigateToLogin)
                 }
             }
-            .navigationTitle("라이브러리")
+            .navigationTitle(L10n.tabLibrary)
         }
         .task { await viewModel.observeRecords() }
     }
 
     private var content: some View {
         VStack(spacing: 0) {
-            Picker("목록", selection: $status) {
-                Text("감상 완료 (\(viewModel.watchedRecords.count))").tag(WatchStatus.watched)
-                Text("위시리스트 (\(viewModel.wishlistRecords.count))").tag(WatchStatus.wishlist)
+            Picker(L10n.libraryList, selection: $status) {
+                Text(L10n.libraryWatchedTab(viewModel.watchedRecords.count)).tag(WatchStatus.watched)
+                Text(L10n.libraryWishlistTab(viewModel.wishlistRecords.count)).tag(WatchStatus.wishlist)
             }
             .pickerStyle(.segmented)
             .labelsHidden()
@@ -57,9 +57,9 @@ struct LibraryView: View {
             let records = viewModel.records(for: status)
             if records.isEmpty {
                 ContentUnavailableView {
-                    Label(status == .watched ? "아직 본 영화가 없어요" : "위시리스트가 비어 있어요", systemImage: "film")
+                    Label(status == .watched ? L10n.libraryWatchedEmpty : L10n.libraryWishlistEmpty, systemImage: "film")
                 } description: {
-                    Text("검색 탭에서 영화를 찾아 기록해보세요")
+                    Text(L10n.libraryEmptyHint)
                 }
             } else {
                 ScrollView {
@@ -72,7 +72,7 @@ struct LibraryView: View {
                             }
                             .buttonStyle(.plain)
                             .contextMenu {
-                                Button("삭제", systemImage: "trash", role: .destructive) {
+                                Button(L10n.commonDelete, systemImage: "trash", role: .destructive) {
                                     pendingDelete = record
                                 }
                             }
@@ -91,21 +91,21 @@ struct LibraryView: View {
             })
         }
         .confirmationDialog(
-            "\"\(pendingDelete?.title ?? "")\" 기록을 삭제할까요?",
+            L10n.recordDeleteConfirm(pendingDelete?.title ?? ""),
             isPresented: Binding(get: { pendingDelete != nil }, set: { if !$0 { pendingDelete = nil } }),
             titleVisibility: .visible,
             presenting: pendingDelete
         ) { record in
-            Button("삭제", role: .destructive) {
+            Button(L10n.commonDelete, role: .destructive) {
                 Task { await viewModel.deleteRecord(record) }
             }
-            Button("취소", role: .cancel) {}
+            Button(L10n.commonCancel, role: .cancel) {}
         }
         .alert(
-            "삭제하지 못했어요",
+            L10n.libraryDeleteFailed,
             isPresented: Binding(get: { viewModel.deleteError != nil }, set: { if !$0 { viewModel.clearDeleteError() } })
         ) {
-            Button("확인", role: .cancel) {}
+            Button(L10n.commonConfirm, role: .cancel) {}
         } message: {
             Text(viewModel.deleteError ?? "")
         }

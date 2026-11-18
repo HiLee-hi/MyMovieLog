@@ -34,7 +34,7 @@ public struct RootView: View {
                 onNavigateToLogin: navigateToLogin,
                 onRefresh: appViewModel.refresh
             )
-            .tabItem { Label("홈", systemImage: "house") }
+            .tabItem { Label(L10n.tabHome, systemImage: "house") }
             .tag(AppTab.home)
 
             SearchView(
@@ -42,7 +42,7 @@ public struct RootView: View {
                 isLoggedIn: appViewModel.isLoggedIn,
                 onNavigateToLogin: navigateToLogin
             )
-            .tabItem { Label("검색", systemImage: "magnifyingglass") }
+            .tabItem { Label(L10n.tabSearch, systemImage: "magnifyingglass") }
             .tag(AppTab.search)
 
             LibraryView(
@@ -52,11 +52,11 @@ public struct RootView: View {
                 onNavigateToLogin: navigateToLogin,
                 onRefresh: appViewModel.refresh
             )
-            .tabItem { Label("라이브러리", systemImage: "film.stack") }
+            .tabItem { Label(L10n.tabLibrary, systemImage: "film.stack") }
             .tag(AppTab.library)
 
             ProfileView(useCases: useCases, onLoginSuccess: { selectedTab = .home })
-                .tabItem { Label("프로필", systemImage: "person") }
+                .tabItem { Label(L10n.tabProfile, systemImage: "person") }
                 .tag(AppTab.profile)
         }
         // The design has a single light theme, the same as the Android app

@@ -30,7 +30,7 @@ struct ProfileView: View {
                     loginForm
                 }
             }
-            .navigationTitle("프로필")
+            .navigationTitle(L10n.tabProfile)
         }
         .task { await viewModel.observeUser() }
         .onChange(of: viewModel.emailAuthState) { _, state in
@@ -48,7 +48,7 @@ struct ProfileView: View {
                 HStack(spacing: 16) {
                     avatar(user)
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(user.displayName ?? "팝콘한알 사용자")
+                        Text(user.displayName ?? L10n.profileDefaultName)
                             .font(.headline)
                         Text(user.email)
                             .font(.subheadline)
@@ -58,7 +58,7 @@ struct ProfileView: View {
                 .padding(.vertical, 6)
             }
             Section {
-                Button("로그아웃", role: .destructive) {
+                Button(L10n.profileSignOut, role: .destructive) {
                     Task { await viewModel.signOut() }
                 }
             }
@@ -84,11 +84,11 @@ struct ProfileView: View {
 
     private var verificationPending: some View {
         ContentUnavailableView {
-            Label("이메일을 확인해주세요", systemImage: "envelope.badge")
+            Label(L10n.profileVerifyEmailTitle, systemImage: "envelope.badge")
         } description: {
-            Text("가입하신 이메일로 인증 링크를 발송했습니다.\n링크를 클릭한 후 로그인해주세요.")
+            Text(L10n.profileVerifyEmailMessage)
         } actions: {
-            Button("인증 완료 — 로그인하기") {
+            Button(L10n.profileVerifiedSignIn) {
                 isSignUpMode = false
                 password = ""
                 viewModel.resetEmailAuthState()
@@ -102,18 +102,18 @@ struct ProfileView: View {
         return Form {
             Section {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("로그인하여 기록을 저장하세요")
+                    Text(L10n.profileSignInPrompt)
                         .font(.headline)
-                    Text("Android 앱과 같은 계정으로 로그인하면 기록이 함께 보여요")
+                    Text(L10n.profileSharedAccountHint)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
             }
 
-            Section(isSignUpMode ? "회원가입" : "이메일로 로그인") {
-                TextField("이메일", text: $email)
+            Section(isSignUpMode ? L10n.profileSignUp : L10n.profileSignInEmail) {
+                TextField(L10n.profileEmail, text: $email)
                     .emailInput()
-                SecureField("비밀번호 (6자 이상)", text: $password)
+                SecureField(L10n.profilePassword, text: $password)
                     .passwordInput(isNew: isSignUpMode)
                 if case .error(let message) = viewModel.emailAuthState {
                     Text(message)
@@ -138,7 +138,7 @@ struct ProfileView: View {
                         if isLoading {
                             ProgressView()
                         } else {
-                            Text(isSignUpMode ? "회원가입" : "로그인").fontWeight(.semibold)
+                            Text(isSignUpMode ? L10n.profileSignUp : L10n.commonSignIn).fontWeight(.semibold)
                         }
                     }
                 }
@@ -146,7 +146,7 @@ struct ProfileView: View {
                 .disabled(isLoading || !email.contains("@") || password.count < 6)
                 .buttonRow()
 
-                Button(isSignUpMode ? "이미 계정이 있어요 — 로그인" : "계정이 없으신가요? 회원가입") {
+                Button(isSignUpMode ? L10n.profileHaveAccount : L10n.profileNoAccount) {
                     isSignUpMode.toggle()
                     viewModel.resetEmailAuthState()
                 }
@@ -162,7 +162,7 @@ struct ProfileView: View {
                         if await viewModel.signInWithGoogle() { onLoginSuccess() }
                     }
                 } label: {
-                    Label("Google로 로그인", systemImage: "g.circle")
+                    Label(L10n.profileSignInGoogle, systemImage: "g.circle")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)

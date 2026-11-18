@@ -1,0 +1,23 @@
+{
+  "sourceLanguage": "ko",
+  "strings": {
+    "error.tmdb_request_failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TMDB 요청에 실패했어요 (%lld)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TMDB request failed (%lld)"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

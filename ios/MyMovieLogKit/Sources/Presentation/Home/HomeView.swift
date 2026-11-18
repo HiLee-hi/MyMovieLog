@@ -38,7 +38,7 @@ struct HomeView: View {
                 VStack(alignment: .leading, spacing: 24) {
                     VStack(alignment: .leading, spacing: 8) {
                         header
-                        Text("오늘은 어떤 영화를 봤나요?")
+                        Text(L10n.homeGreeting)
                             .font(.subheadline)
                             .foregroundStyle(Color.popcornInkMuted)
                     }
@@ -65,7 +65,7 @@ struct HomeView: View {
             .popcornScreenBackground()
             .refreshable { await onRefresh() }
             .hidesNavigationBar(true)
-            .navigationTitle("팝콘한알")
+            .navigationTitle(L10n.appName)
             .navigationDestination(for: HomeRoute.self) { _ in
                 CalendarView(useCases: useCases, isLoggedIn: isLoggedIn, onNavigateToLogin: onNavigateToLogin)
                     .hidesNavigationBar(false)
@@ -81,7 +81,7 @@ struct HomeView: View {
     private var header: some View {
         HStack(spacing: 10) {
             PopcornMark()
-            Text("팝콘한알")
+            Text(L10n.appName)
                 .font(.jua(26, relativeTo: .largeTitle))
                 .foregroundStyle(Color.popcornInk)
                 .accessibilityAddTraits(.isHeader)
@@ -95,7 +95,7 @@ struct HomeView: View {
                     .overlay { Circle().strokeBorder(Color.popcornOutline) }
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("관람 캘린더")
+            .accessibilityLabel(L10n.calendarTitle)
         }
     }
 
@@ -104,10 +104,10 @@ struct HomeView: View {
             Image(systemName: "person.crop.circle.badge.plus")
                 .font(.title2)
                 .foregroundStyle(Color.popcornCaramel)
-            Text("로그인하고 감상 기록을 시작해보세요")
+            Text(L10n.homeLoginPrompt)
                 .font(.subheadline)
             Spacer()
-            Button("로그인", action: onNavigateToLogin)
+            Button(L10n.commonSignIn, action: onNavigateToLogin)
                 .buttonStyle(.bordered)
         }
         .padding()
@@ -121,29 +121,29 @@ struct HomeView: View {
     @ViewBuilder
     private var recordSections: some View {
         recordSection(
-            title: "최근에 본 영화",
+            title: L10n.homeRecent,
             records: viewModel.uiState.recentWatched,
             status: .watched,
-            emptyMessage: "아직 본 영화 기록이 없어요"
+            emptyMessage: L10n.homeRecentEmpty
         )
         recordSection(
-            title: "보고 싶은 영화",
+            title: L10n.homeWishlist,
             records: viewModel.uiState.wishlistPreview,
             status: .wishlist,
-            emptyMessage: "보고 싶은 영화를 추가해보세요"
+            emptyMessage: L10n.homeWishlistEmpty
         )
     }
 
     /// Side column on wide windows: the stat cards stacked, with the calendar shortcut below
     private var summaryPanel: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("나의 감상 요약")
+            Text(L10n.homeSummary)
                 .font(.headline)
                 .foregroundStyle(Color.popcornInk)
-            statCard(value: viewModel.uiState.thisMonthCount, label: "이번 달", highlighted: true)
-            statCard(value: viewModel.uiState.totalWatched, label: "총 감상", highlighted: false)
+            statCard(value: viewModel.uiState.thisMonthCount, label: L10n.commonThisMonth, highlighted: true)
+            statCard(value: viewModel.uiState.totalWatched, label: L10n.commonTotalWatched, highlighted: false)
             NavigationLink(value: HomeRoute.calendar) {
-                Label("관람 캘린더 보기", systemImage: "calendar")
+                Label(L10n.homeOpenCalendar, systemImage: "calendar")
                     .font(.subheadline.weight(.bold))
                     .foregroundStyle(Color.popcornInk)
                     .frame(maxWidth: .infinity, minHeight: 48)
@@ -156,8 +156,8 @@ struct HomeView: View {
 
     private var statCards: some View {
         HStack(spacing: 12) {
-            statCard(value: viewModel.uiState.thisMonthCount, label: "이번 달", highlighted: true)
-            statCard(value: viewModel.uiState.totalWatched, label: "총 감상", highlighted: false)
+            statCard(value: viewModel.uiState.thisMonthCount, label: L10n.commonThisMonth, highlighted: true)
+            statCard(value: viewModel.uiState.totalWatched, label: L10n.commonTotalWatched, highlighted: false)
         }
     }
 
@@ -167,7 +167,7 @@ struct HomeView: View {
             Text(label)
                 .font(.subheadline.weight(.medium))
                 .foregroundStyle(highlighted ? Color.popcornInk : Color.popcornInkMuted)
-            Text("\(value)편")
+            Text(L10n.commonMovieCount(value))
                 .font(.jua(30))
                 .foregroundStyle(Color.popcornInk)
                 .contentTransition(.numericText())
@@ -192,7 +192,7 @@ struct HomeView: View {
                     .foregroundStyle(Color.popcornInk)
                 Spacer()
                 if !records.isEmpty {
-                    Button("전체 보기") { onShowLibrary(status) }
+                    Button(L10n.homeShowAll) { onShowLibrary(status) }
                         .buttonStyle(.plain)
                         .font(.subheadline.weight(.medium))
                         .foregroundStyle(Color.popcornCaramel)

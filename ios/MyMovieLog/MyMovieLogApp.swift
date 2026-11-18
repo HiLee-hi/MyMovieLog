@@ -45,9 +45,9 @@ struct AppContainer {
 private struct MissingConfigurationView: View {
     var body: some View {
         ContentUnavailableView {
-            Label("API 키가 설정되지 않았어요", systemImage: "key")
+            Label(ConfigurationStrings.missingKeyTitle, systemImage: "key")
         } description: {
-            Text("ios/scripts/generate_secrets.sh 를 실행해 Config/Secrets.xcconfig 를 만든 뒤 다시 빌드해주세요.")
+            Text(ConfigurationStrings.missingKeyMessage)
         }
     }
 }

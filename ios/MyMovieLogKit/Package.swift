@@ -16,18 +16,22 @@ let package = Package(
         .package(url: "https://github.com/supabase/supabase-swift.git", from: "2.30.0")
     ],
     targets: [
-        .target(name: "Domain"),
+        .target(name: "Domain", resources: [.process("Resources/Localizable.xcstrings")]),
         .target(
             name: "DataLayer",
             dependencies: [
                 "Domain",
                 .product(name: "Supabase", package: "supabase-swift")
-            ]
+            ],
+            resources: [.process("Resources/Localizable.xcstrings")]
         ),
         .target(
             name: "Presentation",
             dependencies: ["Domain"],
-            resources: [.copy("Resources/Jua-Regular.ttf")]
+            resources: [
+                .copy("Resources/Jua-Regular.ttf"),
+                .process("Resources/Localizable.xcstrings")
+            ]
         ),
         .testTarget(name: "DomainTests", dependencies: ["Domain"]),
         .testTarget(name: "DataLayerTests", dependencies: ["DataLayer"]),

@@ -36,11 +36,11 @@ struct MovieDetailView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             case .error(let message):
                 ContentUnavailableView {
-                    Label("영화 정보를 불러오지 못했어요", systemImage: "exclamationmark.triangle")
+                    Label(L10n.detailLoadFailed, systemImage: "exclamationmark.triangle")
                 } description: {
                     Text(message)
                 } actions: {
-                    Button("다시 시도") { Task { await viewModel.loadDetail() } }
+                    Button(L10n.commonRetry) { Task { await viewModel.loadDetail() } }
                 }
             case .loaded(let movie):
                 if AdaptiveDimens.fitsTwoColumns(width - 64) {
@@ -130,13 +130,13 @@ struct MovieDetailView: View {
 
     private var myLogPane: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("내 기록")
+            Text(L10n.detailMyRecord)
                 .font(.headline)
                 .foregroundStyle(Color.popcornInk)
             if let record = viewModel.existingRecord {
                 RecordSummary(record: record)
             } else {
-                Text("아직 기록이 없어요. 본 영화라면 별점과 한 줄 감상을 남겨 보세요.")
+                Text(L10n.detailNoRecord)
                     .font(.subheadline)
                     .foregroundStyle(Color.popcornInkMuted)
             }
@@ -194,7 +194,7 @@ struct MovieDetailView: View {
                     Text(String(format: "%.1f", movie.voteAverage))
                         .fontWeight(.medium)
                         .foregroundStyle(Color.popcornInk)
-                    Text("TMDB")
+                    Text(verbatim: "TMDB")
                         .foregroundStyle(Color.popcornInkMuted)
                 }
                 .font(.subheadline)
@@ -205,7 +205,7 @@ struct MovieDetailView: View {
 
     private func overviewCard(_ overview: String) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("줄거리")
+            Text(L10n.detailOverview)
                 .font(.headline)
                 .foregroundStyle(Color.popcornInk)
             Text(overview)
@@ -219,7 +219,7 @@ struct MovieDetailView: View {
 
     private func recordCard(_ record: MovieRecord) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("내 기록")
+            Text(L10n.detailMyRecord)
                 .font(.headline)
                 .foregroundStyle(Color.popcornInk)
             RecordSummary(record: record)
@@ -269,7 +269,7 @@ struct MovieDetailView: View {
                 onNavigateToLogin()
             }
         } label: {
-            Text(viewModel.existingRecord == nil ? "기록하기" : "기록 수정")
+            Text(viewModel.existingRecord == nil ? L10n.recordAdd : L10n.recordEdit)
         }
         .buttonStyle(.popcornPrimary)
         .disabled(viewModel.movie == nil)
@@ -283,7 +283,7 @@ private struct DetailNavigationBar: ViewModifier {
     func body(content: Content) -> some View {
         if isEnabled {
             content
-                .navigationTitle("")
+                .navigationTitle(Text(verbatim: ""))
                 .inlineNavigationTitle()
                 .transparentNavigationBar()
         } else {
@@ -319,14 +319,14 @@ struct RecordSummary: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(record.status == .watched ? "봤어요" : "보고싶어요")
+            Text(record.status == .watched ? L10n.recordStatusWatched : L10n.recordStatusWishlist)
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(Color.popcornCaramel)
             if let rating = record.rating {
                 RatingStars(rating: rating)
             }
             if let watchedAt = record.watchedAt {
-                Text("\(watchedAt.koreanText) 감상")
+                Text(L10n.detailWatchedOn(watchedAt.displayText))
                     .font(.subheadline)
                     .foregroundStyle(Color.popcornInkMuted)
             }
@@ -336,7 +336,7 @@ struct RecordSummary: View {
                     .foregroundStyle(Color.popcornInk)
             }
             if !record.photoUrls.isEmpty {
-                Label("사진 \(record.photoUrls.count)장", systemImage: "photo")
+                Label(L10n.detailPhotoCount(record.photoUrls.count), systemImage: "photo")
                     .font(.caption)
                     .foregroundStyle(Color.popcornInkMuted)
             }

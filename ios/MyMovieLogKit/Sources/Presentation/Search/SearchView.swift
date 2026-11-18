@@ -42,8 +42,8 @@ struct SearchView: View {
             // Folding keeps the open movie: the side pane becomes a pushed screen and back again
             .onChange(of: isTwoPane) { _, twoPane in selection.adapt(isTwoPane: twoPane) }
             .popcornScreenBackground()
-            .navigationTitle("검색")
-            .searchable(text: $viewModel.query, prompt: "영화 제목으로 검색")
+            .navigationTitle(L10n.tabSearch)
+            .searchable(text: $viewModel.query, prompt: L10n.searchPrompt)
             .task(id: viewModel.query) {
                 // 400 ms debounce, the same as the Android SearchViewModel
                 try? await Task.sleep(for: .milliseconds(400))
@@ -75,9 +75,9 @@ struct SearchView: View {
             .id(route)
         } else {
             ContentUnavailableView(
-                "영화를 골라 보세요",
+                L10n.searchSelectTitle,
                 systemImage: "film",
-                description: Text("검색 결과에서 고른 영화가 여기에 보여요")
+                description: Text(L10n.searchSelectMessage)
             )
         }
     }
@@ -86,19 +86,19 @@ struct SearchView: View {
     private var content: some View {
         switch viewModel.phase {
         case .idle:
-            ContentUnavailableView("영화를 검색해보세요", systemImage: "magnifyingglass")
+            ContentUnavailableView(L10n.searchStart, systemImage: "magnifyingglass")
         case .loading:
             ProgressView()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         case .empty:
-            ContentUnavailableView("검색 결과가 없어요", systemImage: "film")
+            ContentUnavailableView(L10n.searchNoResults, systemImage: "film")
         case .error(let message):
             ContentUnavailableView {
-                Label("검색하지 못했어요", systemImage: "exclamationmark.triangle")
+                Label(L10n.searchFailed, systemImage: "exclamationmark.triangle")
             } description: {
                 Text(message)
             } actions: {
-                Button("다시 시도") { Task { await viewModel.search() } }
+                Button(L10n.commonRetry) { Task { await viewModel.search() } }
             }
         case .loaded:
             ScrollView {

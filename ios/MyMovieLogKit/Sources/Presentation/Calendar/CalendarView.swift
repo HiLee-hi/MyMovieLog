@@ -7,7 +7,7 @@ struct CalendarView: View {
     @State private var viewModel: CalendarViewModel
     @State private var width: CGFloat = 0
 
-    private static let weekdays = ["일", "월", "화", "수", "목", "금", "토"]
+    private static var weekdays: [String] { L10n.weekdays }
 
     init(useCases: UseCaseContainer, isLoggedIn: Bool, onNavigateToLogin: @escaping () -> Void) {
         self.isLoggedIn = isLoggedIn
@@ -27,7 +27,7 @@ struct CalendarView: View {
                 LoginRequiredView(onNavigateToLogin: onNavigateToLogin)
             }
         }
-        .navigationTitle("관람 캘린더")
+        .navigationTitle(L10n.calendarTitle)
         .inlineNavigationTitle()
         .onWidthChange { width = $0 }
     }
@@ -79,7 +79,7 @@ struct CalendarView: View {
             monthGrid
             HStack(spacing: 6) {
                 Circle().fill(Color.accentColor).frame(width: 6, height: 6)
-                Text("영화를 본 날")
+                Text(L10n.calendarLegendWatched)
             }
             .font(.caption)
             .foregroundStyle(.secondary)
@@ -94,9 +94,9 @@ struct CalendarView: View {
             } label: {
                 Image(systemName: "chevron.left")
             }
-            .accessibilityLabel("이전 달")
+            .accessibilityLabel(L10n.calendarPreviousMonth)
             Spacer()
-            Text(viewModel.currentMonth.koreanText)
+            Text(viewModel.currentMonth.displayText)
                 .font(.title3.bold())
                 .contentTransition(.numericText())
             Spacer()
@@ -105,7 +105,7 @@ struct CalendarView: View {
             } label: {
                 Image(systemName: "chevron.right")
             }
-            .accessibilityLabel("다음 달")
+            .accessibilityLabel(L10n.calendarNextMonth)
         }
         .buttonStyle(.borderless)
         .font(.title3)
@@ -173,7 +173,7 @@ private struct MonthControls: ViewModifier {
             )
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    Button("오늘") { withAnimation { viewModel.showToday() } }
+                    Button(L10n.calendarToday) { withAnimation { viewModel.showToday() } }
                 }
             }
             .task(id: viewModel.currentMonth) { await viewModel.observeWatchedDates() }
@@ -191,7 +191,7 @@ private struct DayCell: View {
     var body: some View {
         Button(action: action) {
             VStack(spacing: 3) {
-                Text("\(day)")
+                Text(verbatim: "\(day)")
                     .font(.body.weight(isToday || isSelected ? .bold : .regular))
                     .foregroundStyle(isSelected ? Color.popcornInk : color)
                     .frame(width: 34, height: 34)
@@ -210,7 +210,7 @@ private struct DayCell: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("\(day)일\(isWatched ? ", 영화 본 날" : "")")
+        .accessibilityLabel(isWatched ? L10n.calendarDayWatched(day) : L10n.calendarDay(day))
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
@@ -223,7 +223,7 @@ private struct DateRecordsSheet: View {
         NavigationStack {
             List {
                 if viewModel.selectedDateRecords.isEmpty {
-                    Text("이 날은 아직 기록이 없어요")
+                    Text(L10n.calendarNoRecords)
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(viewModel.selectedDateRecords) { record in
@@ -236,11 +236,11 @@ private struct DateRecordsSheet: View {
                     }
                 }
             }
-            .navigationTitle(viewModel.selectedDate?.koreanText ?? "")
+            .navigationTitle(viewModel.selectedDate?.displayText ?? "")
             .inlineNavigationTitle()
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("닫기") { viewModel.dismissDate() }
+                    Button(L10n.commonClose) { viewModel.dismissDate() }
                 }
             }
             .task(id: viewModel.selectedDate) { await viewModel.observeSelectedDateRecords() }
@@ -261,12 +261,12 @@ private struct DateRecordsPane: View {
             if let date = viewModel.selectedDate {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 10) {
-                        Text(date.koreanText)
+                        Text(date.displayText)
                             .font(.headline)
                             .foregroundStyle(Color.popcornInk)
                             .accessibilityAddTraits(.isHeader)
                         if viewModel.selectedDateRecords.isEmpty {
-                            Text("이 날은 아직 기록이 없어요")
+                            Text(L10n.calendarNoRecords)
                                 .font(.subheadline)
                                 .foregroundStyle(Color.popcornInkMuted)
                                 .frame(maxWidth: .infinity, minHeight: 80)
@@ -283,7 +283,7 @@ private struct DateRecordsPane: View {
                                 }
                                 .buttonStyle(.plain)
                             }
-                            Text("기록을 누르면 바로 수정할 수 있어요")
+                            Text(L10n.calendarEditHint)
                                 .font(.footnote)
                                 .foregroundStyle(Color.popcornInkMuted)
                         }
@@ -292,9 +292,9 @@ private struct DateRecordsPane: View {
                 }
             } else {
                 ContentUnavailableView(
-                    "날짜를 골라 보세요",
+                    L10n.calendarSelectDateTitle,
                     systemImage: "calendar",
-                    description: Text("날짜를 누르면 그날 본 영화가 여기에 보여요")
+                    description: Text(L10n.calendarSelectDateMessage)
                 )
             }
         }

@@ -10,9 +10,9 @@ struct RecordEditorForm: View {
 
     var body: some View {
         Section {
-            Picker("상태", selection: $draft.status) {
-                Text("봤어요").tag(WatchStatus.watched)
-                Text("보고싶어요").tag(WatchStatus.wishlist)
+            Picker(L10n.recordStatus, selection: $draft.status) {
+                Text(L10n.recordStatusWatched).tag(WatchStatus.watched)
+                Text(L10n.recordStatusWishlist).tag(WatchStatus.wishlist)
             }
             .pickerStyle(.segmented)
             .labelsHidden()
@@ -21,12 +21,12 @@ struct RecordEditorForm: View {
         }
 
         if draft.status == .watched {
-            Section("별점") {
+            Section(L10n.recordRating) {
                 HStack {
                     StarRatingInput(rating: $draft.rating)
                     Spacer()
                     if draft.rating > 0 {
-                        Button("없음") { draft.rating = 0 }
+                        Button(L10n.recordRatingNone) { draft.rating = 0 }
                             .font(.footnote)
                             .buttonStyle(.borderless)
                     }
@@ -34,33 +34,33 @@ struct RecordEditorForm: View {
             }
 
             Section {
-                Toggle("감상한 날짜", isOn: hasWatchedDate)
+                Toggle(L10n.recordWatchedDate, isOn: hasWatchedDate)
                 if draft.watchedAt != nil {
                     DatePicker(
-                        "날짜",
+                        L10n.recordDate,
                         selection: watchedDate,
                         in: ...Date(),
                         displayedComponents: .date
                     )
                     .datePickerStyle(.graphical)
-                    .environment(\.locale, Locale(identifier: "ko_KR"))
+                    .environment(\.locale, L10n.locale)
                 }
             }
 
-            Section("리뷰 (선택)") {
-                TextField("어땠나요?", text: $draft.review, axis: .vertical)
+            Section(L10n.recordReviewOptional) {
+                TextField(L10n.recordReviewPlaceholder, text: $draft.review, axis: .vertical)
                     .lineLimit(3...8)
             }
         } else {
-            Section("메모 (선택)") {
-                TextField("보고 싶은 이유를 남겨보세요", text: $draft.memo, axis: .vertical)
+            Section(L10n.recordMemoOptional) {
+                TextField(L10n.recordMemoPlaceholder, text: $draft.memo, axis: .vertical)
                     .lineLimit(3...8)
             }
         }
 
         if photoCount > 0 {
             Section {
-                Label("첨부된 사진 \(photoCount)장은 그대로 유지돼요", systemImage: "photo.on.rectangle")
+                Label(L10n.recordPhotosKept(photoCount), systemImage: "photo.on.rectangle")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -95,7 +95,7 @@ struct RecordEditorSheet: View {
     let title: String
     @Binding var draft: RecordDraft
     let saveState: SaveState
-    var saveLabel = "저장"
+    var saveLabel = L10n.commonSave
     var photoCount = 0
     var onDelete: (() -> Void)?
     let onSave: () async -> Void
@@ -110,7 +110,7 @@ struct RecordEditorSheet: View {
 
                 if onDelete != nil {
                     Section {
-                        Button("기록 삭제", role: .destructive) { isConfirmingDelete = true }
+                        Button(L10n.recordDelete, role: .destructive) { isConfirmingDelete = true }
                     }
                 }
             }
@@ -119,7 +119,7 @@ struct RecordEditorSheet: View {
             .disabled(saveState.isSaving)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("취소", action: onCancel)
+                    Button(L10n.commonCancel, action: onCancel)
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     if saveState.isSaving {
@@ -131,12 +131,12 @@ struct RecordEditorSheet: View {
                 }
             }
             .confirmationDialog(
-                "\"\(title)\" 기록을 삭제할까요?",
+                L10n.recordDeleteConfirm(title),
                 isPresented: $isConfirmingDelete,
                 titleVisibility: .visible
             ) {
-                Button("삭제", role: .destructive) { onDelete?() }
-                Button("취소", role: .cancel) {}
+                Button(L10n.commonDelete, role: .destructive) { onDelete?() }
+                Button(L10n.commonCancel, role: .cancel) {}
             }
         }
         .interactiveDismissDisabled(saveState.isSaving)

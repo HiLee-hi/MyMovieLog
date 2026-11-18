@@ -5,7 +5,10 @@ enum TmdbError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .http(let statusCode): return "TMDB 요청에 실패했어요 (\(statusCode))"
+        case .http(let statusCode): return String(
+                format: Bundle.module.localizedString(forKey: "error.tmdb_request_failed", value: nil, table: nil),
+                statusCode
+            )
         }
     }
 }
@@ -35,7 +38,7 @@ struct TmdbApi: Sendable {
 
     private func get<T: Decodable>(_ path: String, query: [URLQueryItem]) async throws -> T {
         var components = URLComponents(url: Self.baseURL.appending(path: path), resolvingAgainstBaseURL: false)!
-        components.queryItems = query + [URLQueryItem(name: "language", value: "ko-KR")]
+        components.queryItems = query + [URLQueryItem(name: "language", value: TmdbLanguage.current)]
         var request = URLRequest(url: components.url!)
         request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "accept")

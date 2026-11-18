@@ -16,12 +16,12 @@ struct StarRatingInput: View {
                     .onTapGesture {
                         rating = rating == value ? value - 0.5 : value
                     }
-                    .accessibilityLabel("\(star)점")
+                    .accessibilityLabel(L10n.recordStar(star))
                     .accessibilityAddTraits(rating >= value ? .isSelected : [])
             }
         }
         .accessibilityElement(children: .contain)
-        .accessibilityValue(rating > 0 ? "\(rating.ratingText)점" : "없음")
+        .accessibilityValue(rating > 0 ? L10n.recordRatingValue(rating.ratingText) : L10n.recordRatingNone)
     }
 
     private func symbol(for value: Double) -> String {
@@ -45,7 +45,7 @@ struct RatingLabel: View {
             }
             .font(.caption)
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel("별점 \(rating.ratingText)점")
+            .accessibilityLabel(L10n.recordRatingLabel(rating.ratingText))
         }
     }
 }
@@ -64,7 +64,7 @@ struct RatingStars: View {
         }
         .font(.title3)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("별점 5점 중 \(rating.ratingText)점")
+        .accessibilityLabel(L10n.recordRatingSummary(rating.ratingText))
     }
 }
 
