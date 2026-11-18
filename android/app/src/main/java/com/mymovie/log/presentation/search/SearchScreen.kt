@@ -53,6 +53,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -60,6 +61,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
+import com.mymovie.log.R
 import com.mymovie.log.domain.model.Movie
 
 /**
@@ -135,7 +137,7 @@ fun SearchScreen(
                 } else {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(
-                            text = "영화를 선택하면 상세 정보가 여기에 표시돼요",
+                            text = stringResource(R.string.search_detail_placeholder),
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -161,7 +163,7 @@ private fun SearchListPane(
         // The expanded bar covers the whole pane, so the title only shows while collapsed
         if (!isSearchActive) {
             Text(
-                text = "검색",
+                text = stringResource(R.string.nav_search),
                 style = MaterialTheme.typography.headlineSmall,
                 modifier = Modifier
                     .windowInsetsPadding(SearchBarDefaults.windowInsets)
@@ -176,12 +178,12 @@ private fun SearchListPane(
                     onSearch = { onActiveChange(false) },
                     expanded = isSearchActive,
                     onExpandedChange = onActiveChange,
-                    placeholder = { Text("영화 제목으로 검색") },
+                    placeholder = { Text(stringResource(R.string.search_placeholder)) },
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                     trailingIcon = {
                         if (query.isNotEmpty()) {
                             IconButton(onClick = { onQueryChange("") }) {
-                                Icon(Icons.Default.Clear, contentDescription = "지우기")
+                                Icon(Icons.Default.Clear, contentDescription = stringResource(R.string.search_clear))
                             }
                         }
                     }
@@ -241,7 +243,7 @@ private fun SearchResultContent(
     when {
         query.isBlank() -> {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("영화를 검색해보세요", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.search_prompt), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         refreshState is LoadState.Loading -> {
@@ -252,14 +254,14 @@ private fun SearchResultContent(
         refreshState is LoadState.Error -> {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
-                    "오류: ${refreshState.error.message}",
+                    stringResource(R.string.search_error, refreshState.error.message.orEmpty()),
                     color = MaterialTheme.colorScheme.error
                 )
             }
         }
         lazyPagingItems.itemCount == 0 -> {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("검색 결과가 없어요", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.search_no_results), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         else -> {

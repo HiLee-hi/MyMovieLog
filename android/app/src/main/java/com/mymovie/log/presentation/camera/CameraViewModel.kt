@@ -7,6 +7,9 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import com.mymovie.log.R
+import com.mymovie.log.presentation.ui.UiText
+import com.mymovie.log.presentation.ui.toUiText
 import com.mymovie.log.util.AppLogger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -25,7 +28,7 @@ sealed class CameraUiState {
     data class Captured(val tempFile: File) : CameraUiState()
     object Saving : CameraUiState()
     data class SavedToGallery(val uri: Uri) : CameraUiState()
-    data class Error(val message: String) : CameraUiState()
+    data class Error(val message: UiText) : CameraUiState()
 }
 
 @HiltViewModel
@@ -41,9 +44,11 @@ class CameraViewModel @Inject constructor(
         AppLogger.d("CAMERA_VM", "Photo captured: ${tempFile.name}")
     }
 
-    fun onCaptureError(message: String) {
+    fun onCaptureError(message: String?) {
         AppLogger.e("CAMERA_VM", "Capture failed: $message")
-        _uiState.value = CameraUiState.Error(message)
+        _uiState.value = CameraUiState.Error(
+            message?.let(UiText::Dynamic) ?: UiText.Resource(R.string.error_capture_failed)
+        )
     }
 
     fun onRetake() {
@@ -66,7 +71,7 @@ class CameraViewModel @Inject constructor(
                 _uiState.value = CameraUiState.SavedToGallery(uri)
             }.onFailure { e ->
                 AppLogger.e("CAMERA_VM", "Gallery save failed: ${e.message}", e)
-                _uiState.value = CameraUiState.Error(e.message ?: "저장 실패")
+                _uiState.value = CameraUiState.Error(e.toUiText(R.string.error_save_failed))
             }
         }
     }

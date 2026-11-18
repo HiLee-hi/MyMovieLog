@@ -21,10 +21,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.mymovie.log.R
 import com.mymovie.log.presentation.ui.LoginRequiredContent
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.ui.platform.testTag
@@ -33,6 +35,8 @@ import com.mymovie.log.presentation.adaptive.AdaptivePreviewSurface
 import com.mymovie.log.presentation.adaptive.AdaptiveTwoColumn
 import com.mymovie.log.presentation.adaptive.AdaptiveWindowPreviews
 import com.mymovie.log.presentation.adaptive.constrainedWidth
+import com.mymovie.log.presentation.ui.rememberDateTimeFormatter
+import java.time.YearMonth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,11 +48,11 @@ fun StatsScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Column(modifier = Modifier.fillMaxSize()) {
-        TopAppBar(title = { Text("통계", fontWeight = FontWeight.Bold) })
+        TopAppBar(title = { Text(stringResource(R.string.nav_stats), fontWeight = FontWeight.Bold) })
 
         if (!isLoggedIn) {
             LoginRequiredContent(
-                message = "나의 영화 통계를 보려면\n로그인이 필요해요",
+                message = stringResource(R.string.stats_login_required),
                 onNavigateToLogin = onNavigateToLogin
             )
             return@Column
@@ -98,21 +102,21 @@ private fun SummarySection(uiState: StatsUiState) {
     Column {
         // Overall stats cards
         Row(modifier = Modifier.fillMaxWidth()) {
-            StatCard(modifier = Modifier.weight(1f), label = "총 감상", value = "${uiState.totalWatched}편")
+            StatCard(modifier = Modifier.weight(1f), label = stringResource(R.string.common_total_watched), value = stringResource(R.string.common_movie_count, uiState.totalWatched))
             Spacer(modifier = Modifier.padding(4.dp))
-            StatCard(modifier = Modifier.weight(1f), label = "평균 평점", value = "★ ${uiState.averageRating}")
+            StatCard(modifier = Modifier.weight(1f), label = stringResource(R.string.stats_average_rating), value = stringResource(R.string.stats_average_rating_value, uiState.averageRating))
             Spacer(modifier = Modifier.padding(4.dp))
-            StatCard(modifier = Modifier.weight(1f), label = "위시리스트", value = "${uiState.wishlistCount}편")
+            StatCard(modifier = Modifier.weight(1f), label = stringResource(R.string.common_wishlist), value = stringResource(R.string.common_movie_count, uiState.wishlistCount))
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Text("이번 달", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.common_this_month), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(8.dp))
         StatCard(
             modifier = Modifier.fillMaxWidth(),
-            label = "감상한 영화",
-            value = "${uiState.thisMonthCount}편"
+            label = stringResource(R.string.stats_watched_movies),
+            value = stringResource(R.string.common_movie_count, uiState.thisMonthCount)
         )
     }
 }
@@ -120,11 +124,12 @@ private fun SummarySection(uiState: StatsUiState) {
 @Composable
 private fun MonthlySection(uiState: StatsUiState) {
     Column {
-        Text("최근 6개월", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.stats_recent_six_months), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(8.dp))
-        uiState.monthlyStats.forEach { (label, count) ->
+        val monthFormatter = rememberDateTimeFormatter(R.string.format_month)
+        uiState.monthlyStats.forEach { (month, count) ->
             MonthStatRow(
-                month = label,
+                month = month.format(monthFormatter),
                 count = count,
                 maxCount = uiState.monthlyStats.values.maxOrNull()?.takeIf { it > 0 } ?: 1
             )
@@ -174,7 +179,7 @@ private fun MonthStatRow(month: String, count: Int, maxCount: Int) {
             )
         }
         Text(
-            text = "${count}편",
+            text = stringResource(R.string.common_movie_count, count),
             style = MaterialTheme.typography.bodySmall,
             modifier = Modifier
                 .padding(start = 8.dp)
@@ -197,7 +202,7 @@ private fun StatsContentPreview() {
                 wishlistCount = 7,
                 averageRating = "4.1",
                 thisMonthCount = 3,
-                monthlyStats = linkedMapOf("4월" to 2, "5월" to 5, "6월" to 1, "7월" to 4, "8월" to 6, "9월" to 3)
+                monthlyStats = (4..9).zip(listOf(2, 5, 1, 4, 6, 3)).associate { (month, count) -> YearMonth.of(2026, month) to count }
             )
         )
     }

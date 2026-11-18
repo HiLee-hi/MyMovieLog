@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import java.time.YearMonth
-import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 data class StatsUiState(
@@ -18,7 +17,7 @@ data class StatsUiState(
     val wishlistCount: Int = 0,
     val averageRating: String = "-",
     val thisMonthCount: Int = 0,
-    val monthlyStats: Map<String, Int> = emptyMap()
+    val monthlyStats: Map<YearMonth, Int> = emptyMap()
 )
 
 @HiltViewModel
@@ -39,14 +38,12 @@ class StatsViewModel @Inject constructor(
             }
 
             // Stats for the last 6 months
-            val formatter = DateTimeFormatter.ofPattern("M월")
             val monthlyStats = (5 downTo 0).associate { offset ->
                 val month = thisMonth.minusMonths(offset.toLong())
-                val label = month.format(formatter)
                 val count = watched.count { record ->
                     record.watchedAt?.let { YearMonth.from(it) == month } ?: false
                 }
-                label to count
+                month to count
             }
 
             StatsUiState(

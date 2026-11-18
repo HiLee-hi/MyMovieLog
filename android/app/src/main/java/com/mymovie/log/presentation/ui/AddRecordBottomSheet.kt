@@ -46,7 +46,6 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,19 +54,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.mymovie.log.R
 import com.mymovie.log.domain.model.Movie
 import com.mymovie.log.domain.model.WatchStatus
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 sealed class AddRecordState {
     object Idle : AddRecordState()
     object Saving : AddRecordState()
     object Success : AddRecordState()
-    data class Error(val message: String) : AddRecordState()
+    data class Error(val message: UiText) : AddRecordState()
 }
 
 private const val MAX_PHOTOS = 10
@@ -130,7 +130,7 @@ fun AddRecordBottomSheet(
                 draft = draft,
                 onDraftChange = onDraftChange,
                 saveState = addRecordState,
-                saveLabel = "기록 저장",
+                saveLabel = stringResource(R.string.record_save),
                 onSave = onSave,
                 attachedUris = attachedUris,
                 existingPhotoUrls = existingPhotoSignedUrls,
@@ -162,7 +162,7 @@ internal fun PhotoAttachSection(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("사진", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+            Text(stringResource(R.string.record_photos), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
             Text(
                 text = "$totalPhotoCount / $MAX_PHOTOS",
                 style = MaterialTheme.typography.bodySmall,
@@ -181,13 +181,13 @@ internal fun PhotoAttachSection(
             if (canAddMore) {
                 PhotoActionButton(
                     icon = Icons.Default.PhotoCamera,
-                    label = "카메라",
+                    label = stringResource(R.string.record_camera),
                     enabled = enabled,
                     onClick = onOpenCamera
                 )
                 PhotoActionButton(
                     icon = Icons.Default.PhotoLibrary,
-                    label = "앨범",
+                    label = stringResource(R.string.record_album),
                     enabled = enabled,
                     onClick = onOpenAlbumPicker
                 )
@@ -267,7 +267,7 @@ internal fun PhotoThumbnail(
         ) {
             Icon(
                 imageVector = Icons.Default.Close,
-                contentDescription = "사진 제거",
+                contentDescription = stringResource(R.string.record_remove_photo),
                 tint = Color.White,
                 modifier = Modifier.size(12.dp)
             )
@@ -302,7 +302,7 @@ internal fun ExistingPhotoThumbnail(
         ) {
             Icon(
                 imageVector = Icons.Default.Close,
-                contentDescription = "사진 제거",
+                contentDescription = stringResource(R.string.record_remove_photo),
                 tint = Color.White,
                 modifier = Modifier.size(12.dp)
             )

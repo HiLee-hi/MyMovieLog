@@ -3,6 +3,7 @@ package com.mymovie.log.presentation.home
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.mymovie.log.R
 import com.mymovie.log.domain.model.MovieRecord
 import com.mymovie.log.domain.model.WatchStatus
 import com.mymovie.log.domain.usecase.GetCurrentUserIdUseCase
@@ -13,8 +14,10 @@ import com.mymovie.log.domain.usecase.UpsertRecordUseCase
 import com.mymovie.log.presentation.ui.AddRecordState
 import com.mymovie.log.presentation.ui.PhotoAttachmentHost
 import com.mymovie.log.presentation.ui.RecordDraft
+import com.mymovie.log.presentation.ui.toUiText
 import com.mymovie.log.util.AppLogger
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.time.YearMonth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -174,7 +177,7 @@ class HomeViewModel @Inject constructor(
                 }
                 .onFailure {
                     AppLogger.e("VM_HOME", "Update record failed: ${it.message}", it)
-                    _editRecordState.value = AddRecordState.Error(it.message ?: "저장 실패")
+                    _editRecordState.value = AddRecordState.Error(it.toUiText(R.string.error_save_failed))
                 }
         }
     }

@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.mymovie.log.R
 import com.mymovie.log.domain.model.Movie
 import com.mymovie.log.domain.model.MovieRecord
 import com.mymovie.log.domain.model.WatchStatus
@@ -17,6 +18,8 @@ import com.mymovie.log.domain.usecase.UpsertRecordUseCase
 import com.mymovie.log.presentation.ui.AddRecordState
 import com.mymovie.log.presentation.ui.PhotoAttachmentHost
 import com.mymovie.log.presentation.ui.RecordDraft
+import com.mymovie.log.presentation.ui.UiText
+import com.mymovie.log.presentation.ui.toUiText
 import com.mymovie.log.util.AppLogger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,7 +33,7 @@ import javax.inject.Inject
 sealed interface DetailUiState {
     object Loading : DetailUiState
     data class Success(val movie: Movie) : DetailUiState
-    data class Error(val message: String) : DetailUiState
+    data class Error(val message: UiText) : DetailUiState
 }
 
 @HiltViewModel
@@ -101,7 +104,7 @@ class MovieDetailViewModel @Inject constructor(
                 _uiState.value = DetailUiState.Success(movie)
             } catch (e: Exception) {
                 AppLogger.e("VM_DETAIL", "Failed to load movie detail: movieId=$movieId, error=${e.message}", e)
-                _uiState.value = DetailUiState.Error(e.message ?: "불러오기 실패")
+                _uiState.value = DetailUiState.Error(e.toUiText(R.string.error_load_failed))
             }
         }
     }
@@ -225,7 +228,7 @@ class MovieDetailViewModel @Inject constructor(
                 savedStateHandle[KEY_RECORD_SAVED] = true
             } catch (e: Exception) {
                 AppLogger.e("VM_DETAIL", "Save record failed: ${e.message}", e)
-                _addRecordState.value = AddRecordState.Error(e.message ?: "저장 실패")
+                _addRecordState.value = AddRecordState.Error(e.toUiText(R.string.error_save_failed))
             }
         }
     }

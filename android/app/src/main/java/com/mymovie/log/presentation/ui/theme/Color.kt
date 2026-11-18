@@ -15,6 +15,7 @@ object PopcornColors {
     val OutlineStrong = Color(0xFFCDB99A)
     val Star = Color(0xFFF2A516)
     val StarEmpty = Color(0xFFE8DAC2)
+    val Saturday = Color(0xFF1976D2)
     /** Warm tint for elevation shadows on posters and floating buttons */
     val Shadow = Caramel.copy(alpha = 0.3f)
 }

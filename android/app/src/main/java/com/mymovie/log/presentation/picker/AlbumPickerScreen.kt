@@ -35,11 +35,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.mymovie.log.R
 import com.mymovie.log.presentation.adaptive.AdaptiveDimens
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -61,10 +63,10 @@ fun AlbumPickerScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("사진 선택") },
+                title = { Text(stringResource(R.string.picker_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.Close, contentDescription = "닫기")
+                        Icon(Icons.Default.Close, contentDescription = stringResource(R.string.common_close))
                     }
                 },
                 actions = {
@@ -76,7 +78,7 @@ fun AlbumPickerScreen(
                     )
                     TextButton(onClick = { onConfirm(selectedUris) }) {
                         Text(
-                            text = if (selectedUris.isEmpty()) "완료" else "완료 (${selectedUris.size}장)",
+                            text = if (selectedUris.isEmpty()) stringResource(R.string.common_done) else stringResource(R.string.picker_done_count, selectedUris.size),
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -133,7 +135,7 @@ fun AlbumPickerScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = state.message,
+                        text = state.message.asString(),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

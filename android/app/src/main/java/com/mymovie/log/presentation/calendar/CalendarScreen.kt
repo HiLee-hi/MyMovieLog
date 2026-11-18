@@ -38,7 +38,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -62,8 +61,10 @@ import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
 import androidx.compose.material3.adaptive.layout.PaneAdaptedValue
 import androidx.compose.material3.adaptive.layout.ThreePaneScaffoldValue
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import com.kizitonwose.calendar.compose.CalendarState
+import com.mymovie.log.R
 import com.mymovie.log.domain.model.WatchStatus
 import com.mymovie.log.presentation.adaptive.LocalAdaptiveLayoutInfo
 import com.mymovie.log.presentation.adaptive.constrainedWidth
@@ -73,12 +74,13 @@ import com.mymovie.log.presentation.ui.RecordDetailContent
 import com.mymovie.log.presentation.ui.RecordDraft
 import kotlinx.coroutines.launch
 import com.mymovie.log.presentation.ui.LoginRequiredContent
+import com.mymovie.log.presentation.ui.rememberDateTimeFormatter
+import com.mymovie.log.presentation.ui.theme.PopcornColors
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
 import java.time.YearMonth
-import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveApi::class)
 @Composable
@@ -135,17 +137,17 @@ fun CalendarScreen(
 
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(
-            title = { Text("관람 캘린더", fontWeight = FontWeight.Bold) },
+            title = { Text(stringResource(R.string.calendar_title), fontWeight = FontWeight.Bold) },
             navigationIcon = {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "뒤로")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
                 }
             }
         )
 
         if (!isLoggedIn) {
             LoginRequiredContent(
-                message = "관람 캘린더를 보려면\n로그인이 필요해요",
+                message = stringResource(R.string.calendar_login_required),
                 onNavigateToLogin = onNavigateToLogin
             )
             return@Column
@@ -285,7 +287,7 @@ private fun CalendarPane(
 
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "● 영화를 본 날",
+            text = stringResource(R.string.calendar_legend_watched),
             style = MaterialTheme.typography.labelSmall,
             modifier = Modifier.padding(horizontal = 16.dp),
             color = MaterialTheme.colorScheme.primary
@@ -304,7 +306,7 @@ private fun DateRecordsPane(
 ) {
     Box(modifier = Modifier.fillMaxSize().testTag(CalendarTestTags.RecordsPane)) {
         if (date == null) {
-            PanePlaceholder("날짜를 선택하면\n그날의 기록이 보여요")
+            PanePlaceholder(stringResource(R.string.calendar_select_date))
         } else {
             DateRecordsBottomSheet(
                 date = date,
@@ -332,7 +334,7 @@ private fun RecordDetailPane(
     }
     Box(modifier = Modifier.fillMaxSize().testTag(CalendarTestTags.RecordDetailPane)) {
         if (record == null) {
-            PanePlaceholder("기록을 선택하면\n여기에서 바로 수정할 수 있어요")
+            PanePlaceholder(stringResource(R.string.calendar_select_record))
         } else {
             RecordDetailContent(
                 record = record,
@@ -369,7 +371,7 @@ private fun MonthNavigationHeader(
     onPreviousMonth: () -> Unit,
     onNextMonth: () -> Unit
 ) {
-    val formatter = DateTimeFormatter.ofPattern("yyyy년 M월")
+    val formatter = rememberDateTimeFormatter(R.string.format_year_month)
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -378,7 +380,7 @@ private fun MonthNavigationHeader(
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = onPreviousMonth) {
-            Icon(Icons.Default.ChevronLeft, contentDescription = "이전 달")
+            Icon(Icons.Default.ChevronLeft, contentDescription = stringResource(R.string.calendar_previous_month))
         }
         Text(
             text = currentMonth.format(formatter),
@@ -389,7 +391,7 @@ private fun MonthNavigationHeader(
             onClick = onNextMonth,
             enabled = currentMonth < maxMonth
         ) {
-            Icon(Icons.Default.ChevronRight, contentDescription = "다음 달")
+            Icon(Icons.Default.ChevronRight, contentDescription = stringResource(R.string.calendar_next_month))
         }
     }
 }
@@ -411,7 +413,7 @@ private fun DayOfWeekHeader(firstDayOfWeek: DayOfWeek) {
                 style = MaterialTheme.typography.labelMedium,
                 color = when (index) {
                     sundayCol -> MaterialTheme.colorScheme.error
-                    saturdayCol -> Color(0xFF1976D2)
+                    saturdayCol -> PopcornColors.Saturday
                     else -> MaterialTheme.colorScheme.onSurfaceVariant
                 }
             )
@@ -451,7 +453,7 @@ private fun CalendarDayCell(
                 color = when {
                     !isCurrentMonth -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
                     isHoliday || dayOfWeek == DayOfWeek.SUNDAY -> MaterialTheme.colorScheme.error
-                    dayOfWeek == DayOfWeek.SATURDAY -> Color(0xFF1976D2)
+                    dayOfWeek == DayOfWeek.SATURDAY -> PopcornColors.Saturday
                     isToday -> MaterialTheme.colorScheme.primary
                     else -> MaterialTheme.colorScheme.onSurface
                 }
@@ -476,7 +478,7 @@ private fun DateRecordsBottomSheet(
     modifier: Modifier = Modifier,
     selectedRecordId: String? = null,
 ) {
-    val formatter = DateTimeFormatter.ofPattern("M월 d일 (E)")
+    val formatter = rememberDateTimeFormatter(R.string.format_month_day_weekday)
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -497,7 +499,7 @@ private fun DateRecordsBottomSheet(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "이 날은 아직 기록이 없어요",
+                    text = stringResource(R.string.calendar_no_records),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }

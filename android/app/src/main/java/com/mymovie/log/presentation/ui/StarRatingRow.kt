@@ -13,7 +13,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.mymovie.log.R
 
 @Composable
 internal fun StarRatingRow(
@@ -31,7 +33,7 @@ internal fun StarRatingRow(
                     halfFilled -> Icons.Default.StarHalf
                     else -> Icons.Outlined.StarBorder
                 },
-                contentDescription = "$star 점",
+                contentDescription = stringResource(R.string.record_rating_star, star),
                 tint = if (filled || halfFilled) PopcornColors.Star else PopcornColors.StarEmpty,
                 modifier = Modifier
                     .size(32.dp)

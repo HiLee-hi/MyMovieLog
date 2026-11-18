@@ -45,6 +45,8 @@ class PostureDeviceTest {
 
     private val instrumentation get() = InstrumentationRegistry.getInstrumentation()
 
+    private fun string(id: Int) = instrumentation.targetContext.getString(id)
+
     private fun shell(command: String) =
         android.os.ParcelFileDescriptor.AutoCloseInputStream(instrumentation.uiAutomation.executeShellCommand(command))
             .bufferedReader().use { it.readText() }
@@ -102,30 +104,30 @@ class PostureDeviceTest {
         composeRule.waitForIdle()
         publishHalfOpened(FoldingFeature.Orientation.HORIZONTAL)
 
-        composeRule.onNodeWithText("검색").performClick()
+        composeRule.onNodeWithText(string(R.string.nav_search)).performClick()
         composeRule.onNode(hasSetTextAction()).performTextInput("영화")
         closeSoftKeyboard()
         waitForText("영화 1")
         screenshot("40_tabletop_search")
         composeRule.onNodeWithText("영화 1").performClick()
         // Detail opens in the pane next to the list; start the record editor
-        waitForText("기록 수정")
-        composeRule.onNodeWithText("기록 수정").performClick()
+        waitForText(string(R.string.record_edit))
+        composeRule.onNodeWithText(string(R.string.record_edit)).performClick()
         closeSoftKeyboard()
         // Short landscape window: the camera button is further down the sheet. performScrollTo()
         // cannot reach it inside the sheet's dialog window, so scroll with a real swipe.
         val (swipeW, swipeH) = windowSize()
         shell("input swipe ${swipeW / 2} ${swipeH * 5 / 6} ${swipeW / 2} ${swipeH / 6} 400")
         Thread.sleep(1_000)
-        composeRule.onNodeWithContentDescription("카메라").performClick()
+        composeRule.onNodeWithContentDescription(string(R.string.record_camera)).performClick()
         composeRule.waitUntil(10_000) {
-            composeRule.onAllNodes(hasContentDescription("닫기")).fetchSemanticsNodes().isNotEmpty()
+            composeRule.onAllNodes(hasContentDescription(string(R.string.common_close))).fetchSemanticsNodes().isNotEmpty()
         }
         publishHalfOpened(FoldingFeature.Orientation.HORIZONTAL)
         Thread.sleep(2_000)
         screenshot("41_tabletop_camera")
 
-        val closeTop = composeRule.onNodeWithContentDescription("닫기").fetchSemanticsNode().boundsInWindow.top
+        val closeTop = composeRule.onNodeWithContentDescription(string(R.string.common_close)).fetchSemanticsNode().boundsInWindow.top
         val height = windowSize().second
         assertTrue("controls must start below the hinge: top=$closeTop height=$height", closeTop > height / 2f)
     }
@@ -139,17 +141,17 @@ class PostureDeviceTest {
         assumeTrue("needs a Medium or wider window, was ${widthDp}dp", widthDp >= 600)
 
         publishHalfOpened(FoldingFeature.Orientation.VERTICAL)
-        composeRule.onNodeWithText("검색").performClick()
+        composeRule.onNodeWithText(string(R.string.nav_search)).performClick()
         composeRule.onNode(hasSetTextAction()).performTextInput("영화")
         closeSoftKeyboard()
         waitForText("영화 1")
         composeRule.onNodeWithText("영화 1").performClick()
-        waitForText("기록 수정")
+        waitForText(string(R.string.record_edit))
         screenshot("42_book_posture_search")
 
         val hingeX = windowSize().first / 2f
         val listItemRight = composeRule.onNodeWithText("영화 2").fetchSemanticsNode().boundsInWindow.right
-        val detailLeft = composeRule.onNodeWithText("기록 수정").fetchSemanticsNode().boundsInWindow.left
+        val detailLeft = composeRule.onNodeWithText(string(R.string.record_edit)).fetchSemanticsNode().boundsInWindow.left
         assertTrue("list must end before the hinge: $listItemRight < $hingeX", listItemRight <= hingeX)
         assertTrue("detail must start after the hinge: $detailLeft > $hingeX", detailLeft >= hingeX)
     }

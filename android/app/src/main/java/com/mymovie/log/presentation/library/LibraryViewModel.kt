@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.mymovie.log.R
 import com.mymovie.log.domain.model.MovieRecord
 import com.mymovie.log.domain.model.WatchStatus
 import com.mymovie.log.domain.usecase.DeleteRecordUseCase
@@ -15,6 +16,7 @@ import com.mymovie.log.domain.usecase.UpsertRecordUseCase
 import com.mymovie.log.presentation.ui.AddRecordState
 import com.mymovie.log.presentation.ui.PhotoAttachmentHost
 import com.mymovie.log.presentation.ui.RecordDraft
+import com.mymovie.log.presentation.ui.toUiText
 import com.mymovie.log.util.AppLogger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -164,7 +166,7 @@ class LibraryViewModel @Inject constructor(
                 }
                 .onFailure {
                     AppLogger.e("VM_LIBRARY", "Update record failed: ${it.message}", it)
-                    _editRecordState.value = AddRecordState.Error(it.message ?: "저장 실패")
+                    _editRecordState.value = AddRecordState.Error(it.toUiText(R.string.error_save_failed))
                 }
         }
     }

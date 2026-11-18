@@ -11,7 +11,7 @@ interface TmdbApi {
     @GET("search/movie")
     suspend fun searchMovies(
         @Query("query") query: String,
-        @Query("language") language: String = "ko-KR",
+        @Query("language") language: String = tmdbLanguage(),
         @Query("page") page: Int = 1,
         @Query("include_adult") includeAdult: Boolean = false
     ): SearchResponseDto
@@ -19,6 +19,6 @@ interface TmdbApi {
     @GET("movie/{movie_id}")
     suspend fun getMovieDetail(
         @Path("movie_id") movieId: Int,
-        @Query("language") language: String = "ko-KR"
+        @Query("language") language: String = tmdbLanguage()
     ): MovieDetailDto
 }

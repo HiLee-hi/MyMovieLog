@@ -36,12 +36,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.mymovie.log.R
 import com.mymovie.log.domain.model.MovieRecord
 import com.mymovie.log.domain.model.WatchStatus
 import java.io.Serializable
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 /**
  * In-progress record form values. Held by ViewModels (never by the form composable) so a draft
@@ -93,7 +94,7 @@ fun RecordEditorForm(
 
     val context = LocalContext.current
     val isSaving = saveState is AddRecordState.Saving
-    val errorMessage = (saveState as? AddRecordState.Error)?.message
+    val errorMessage = (saveState as? AddRecordState.Error)?.message?.asString()
 
     Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
@@ -101,12 +102,12 @@ fun RecordEditorForm(
                 selected = draft.status == WatchStatus.WATCHED,
                 onClick = { onDraftChange(draft.copy(status = WatchStatus.WATCHED)) },
                 shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)
-            ) { Text("봤어요") }
+            ) { Text(stringResource(R.string.record_status_watched)) }
             SegmentedButton(
                 selected = draft.status == WatchStatus.WISHLIST,
                 onClick = { onDraftChange(draft.copy(status = WatchStatus.WISHLIST)) },
                 shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
-            ) { Text("보고싶어요") }
+            ) { Text(stringResource(R.string.record_status_wishlist)) }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -116,7 +117,7 @@ fun RecordEditorForm(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("별점", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.width(48.dp))
+                Text(stringResource(R.string.record_rating), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.width(48.dp))
                 StarRatingRow(
                     rating = draft.rating,
                     onRatingChange = { onDraftChange(draft.copy(rating = it)) },
@@ -124,19 +125,19 @@ fun RecordEditorForm(
                 )
                 if (draft.rating > 0f) {
                     TextButton(onClick = { onDraftChange(draft.copy(rating = 0f)) }) {
-                        Text("없음", style = MaterialTheme.typography.bodySmall)
+                        Text(stringResource(R.string.record_rating_none), style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            val dateFormatter = remember { DateTimeFormatter.ofPattern("yyyy년 M월 d일") }
+            val dateFormatter = rememberDateTimeFormatter(R.string.format_date_full)
             Box(modifier = Modifier.fillMaxWidth()) {
                 OutlinedTextField(
                     value = draft.watchedAt?.format(dateFormatter) ?: "",
                     onValueChange = {},
-                    label = { Text("감상한 날짜") },
+                    label = { Text(stringResource(R.string.record_watched_date)) },
                     modifier = Modifier.fillMaxWidth(),
                     readOnly = true,
                     trailingIcon = { Icon(Icons.Default.CalendarToday, contentDescription = null) }
@@ -170,7 +171,7 @@ fun RecordEditorForm(
             OutlinedTextField(
                 value = draft.review,
                 onValueChange = { onDraftChange(draft.copy(review = it)) },
-                label = { Text("리뷰 (선택)") },
+                label = { Text(stringResource(R.string.record_review_optional)) },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3,
                 maxLines = 5,
@@ -180,7 +181,7 @@ fun RecordEditorForm(
             OutlinedTextField(
                 value = draft.memo,
                 onValueChange = { onDraftChange(draft.copy(memo = it)) },
-                label = { Text("메모 (선택)") },
+                label = { Text(stringResource(R.string.record_memo_optional)) },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3,
                 maxLines = 5,

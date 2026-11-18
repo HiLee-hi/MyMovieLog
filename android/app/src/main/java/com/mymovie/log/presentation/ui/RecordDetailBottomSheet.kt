@@ -24,9 +24,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.mymovie.log.R
 import com.mymovie.log.domain.model.MovieRecord
 import com.mymovie.log.domain.model.WatchStatus
 import java.time.LocalDate
@@ -135,7 +137,7 @@ fun RecordDetailContent(
             draft = draft,
             onDraftChange = onDraftChange,
             saveState = editState,
-            saveLabel = "저장",
+            saveLabel = stringResource(R.string.common_save),
             onSave = onSave,
             attachedUris = attachedUris,
             existingPhotoUrls = existingPhotoSignedUrls,

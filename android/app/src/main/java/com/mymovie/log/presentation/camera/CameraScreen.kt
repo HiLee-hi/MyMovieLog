@@ -44,6 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
@@ -52,6 +53,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.mymovie.log.R
 import com.mymovie.log.presentation.adaptive.TabletopAwareLayout
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.io.File
@@ -122,7 +124,7 @@ fun CameraScreen(
 
             is CameraUiState.Error -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(state.message, color = Color.White, style = MaterialTheme.typography.bodyMedium)
+                    Text(state.message.asString(), color = Color.White, style = MaterialTheme.typography.bodyMedium)
                 }
                 CloseButton(
                     onClick = onBack,
@@ -139,7 +141,7 @@ fun CameraScreen(
 @Composable
 private fun CameraPreviewContent(
     onPhotoCaptured: (File) -> Unit,
-    onCaptureError: (String) -> Unit,
+    onCaptureError: (String?) -> Unit,
     onBack: () -> Unit
 ) {
     val context = LocalContext.current
@@ -191,7 +193,7 @@ private fun CameraPreviewContent(
                         }
                         override fun onError(e: ImageCaptureException) {
                             tempFile.delete()
-                            onCaptureError(e.message ?: "촬영 실패")
+                            onCaptureError(e.message)
                         }
                     }
                 )
@@ -250,11 +252,11 @@ private fun CapturedPhotoContent(
                         onClick = onRetake,
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
                     ) {
-                        Text("다시찍기")
+                        Text(stringResource(R.string.camera_retake))
                     }
 
                     Button(colors = popcornButtonColors(), onClick = onUsePhoto) {
-                        Text("사용하기")
+                        Text(stringResource(R.string.camera_use_photo))
                     }
                 }
             }
@@ -294,7 +296,7 @@ private fun CloseButton(
     IconButton(onClick = onClick, modifier = modifier) {
         Icon(
             imageVector = Icons.Default.Close,
-            contentDescription = "닫기",
+            contentDescription = stringResource(R.string.common_close),
             tint = Color.White,
             modifier = Modifier.size(28.dp)
         )

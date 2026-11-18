@@ -19,12 +19,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.mymovie.log.R
 
 @Composable
 fun LoginRequiredContent(
-    message: String = "로그인이 필요한 기능이에요",
+    message: String = stringResource(R.string.login_required_title),
     onNavigateToLogin: () -> Unit
 ) {
     Column(
@@ -48,7 +50,7 @@ fun LoginRequiredContent(
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "기록을 저장하고 통계를 확인하려면\n로그인해주세요.",
+            text = stringResource(R.string.login_required_message),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
@@ -59,7 +61,7 @@ fun LoginRequiredContent(
             onClick = onNavigateToLogin,
             modifier = Modifier.fillMaxWidth(0.6f).widthIn(max = 360.dp)
         ) {
-            Text("로그인하기")
+            Text(stringResource(R.string.login_required_action))
         }
     }
 }

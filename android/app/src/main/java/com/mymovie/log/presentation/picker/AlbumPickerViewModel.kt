@@ -7,6 +7,8 @@ import android.os.Build
 import android.provider.MediaStore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.mymovie.log.R
+import com.mymovie.log.presentation.ui.UiText
 import com.mymovie.log.util.AppLogger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -22,7 +24,7 @@ data class GalleryPhoto(val uri: Uri, val dateAdded: Long)
 sealed class AlbumPickerUiState {
     object Loading : AlbumPickerUiState()
     data class Ready(val photos: List<GalleryPhoto>) : AlbumPickerUiState()
-    data class Error(val message: String) : AlbumPickerUiState()
+    data class Error(val message: UiText) : AlbumPickerUiState()
 }
 
 private const val MAX_TOTAL_PHOTOS = 10
@@ -68,7 +70,7 @@ class AlbumPickerViewModel @Inject constructor(
                 _uiState.value = AlbumPickerUiState.Ready(photos)
             }.onFailure { e ->
                 AppLogger.e("ALBUM_PICKER", "Gallery query failed: ${e.message}", e)
-                _uiState.value = AlbumPickerUiState.Error("사진을 불러올 수 없습니다")
+                _uiState.value = AlbumPickerUiState.Error(UiText.Resource(R.string.error_photos_load_failed))
             }
         }
     }

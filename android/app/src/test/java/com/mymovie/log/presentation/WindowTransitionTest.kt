@@ -57,7 +57,7 @@ import java.time.Duration
  */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-@Config(sdk = [34], application = Application::class, qualifiers = "w1400dp-h1100dp-mdpi")
+@Config(sdk = [34], application = Application::class, qualifiers = "ko-w1400dp-h1100dp-mdpi")
 class WindowTransitionTest {
 
     @get:Rule

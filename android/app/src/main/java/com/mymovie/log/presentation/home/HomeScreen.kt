@@ -134,7 +134,7 @@ internal fun HomeContent(
                     .padding(horizontal = HorizontalPadding)
             ) {
                 Text(
-                    text = "오늘은 어떤 영화를 봤나요?",
+                    text = stringResource(R.string.home_greeting),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 16.dp)
@@ -179,12 +179,12 @@ private fun RecordSections(
 ) {
     Column {
         SectionHeader(
-            title = "최근에 본 영화",
+            title = stringResource(R.string.home_recent),
             onMoreClick = { onNavigateToLibraryTab(WatchStatus.WATCHED) }
         )
         Spacer(modifier = Modifier.height(8.dp))
         if (uiState.recentWatched.isEmpty()) {
-            EmptyMessage("아직 감상 기록이 없어요. 영화를 검색해 기록해보세요!")
+            EmptyMessage(stringResource(R.string.home_recent_empty))
         } else {
             MoviePosterRow(
                 records = uiState.recentWatched,
@@ -195,12 +195,12 @@ private fun RecordSections(
         Spacer(modifier = Modifier.height(24.dp))
 
         SectionHeader(
-            title = "보고 싶은 영화",
+            title = stringResource(R.string.home_wishlist),
             onMoreClick = { onNavigateToLibraryTab(WatchStatus.WISHLIST) }
         )
         Spacer(modifier = Modifier.height(8.dp))
         if (uiState.wishlistPreview.isEmpty()) {
-            EmptyMessage("위시리스트가 비어있어요. 보고 싶은 영화를 추가해보세요!")
+            EmptyMessage(stringResource(R.string.home_wishlist_empty))
         } else {
             MoviePosterRow(
                 records = uiState.wishlistPreview,
@@ -217,16 +217,16 @@ private fun StatsSummaryPanel(totalWatched: Int, thisMonthCount: Int, onNavigate
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(
-            text = "나의 감상 요약",
+            text = stringResource(R.string.home_summary),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold
         )
-        StatCard(modifier = Modifier.fillMaxWidth(), label = "이번 달", value = "${thisMonthCount}편", highlighted = true)
-        StatCard(modifier = Modifier.fillMaxWidth(), label = "총 감상", value = "${totalWatched}편")
+        StatCard(modifier = Modifier.fillMaxWidth(), label = stringResource(R.string.common_this_month), value = stringResource(R.string.common_movie_count, thisMonthCount), highlighted = true)
+        StatCard(modifier = Modifier.fillMaxWidth(), label = stringResource(R.string.common_total_watched), value = stringResource(R.string.common_movie_count, totalWatched))
         OutlinedButton(onClick = onNavigateToCalendar, modifier = Modifier.fillMaxWidth()) {
             Icon(Icons.Default.CalendarMonth, contentDescription = null)
             Spacer(modifier = Modifier.width(8.dp))
-            Text("관람 캘린더 보기")
+            Text(stringResource(R.string.home_open_calendar))
         }
     }
 }
@@ -239,14 +239,14 @@ private fun StatsSummaryRow(totalWatched: Int, thisMonthCount: Int) {
     ) {
         StatCard(
             modifier = Modifier.weight(1f),
-            label = "이번 달",
-            value = "${thisMonthCount}편",
+            label = stringResource(R.string.common_this_month),
+            value = stringResource(R.string.common_movie_count, thisMonthCount),
             highlighted = true
         )
         StatCard(
             modifier = Modifier.weight(1f),
-            label = "총 감상",
-            value = "${totalWatched}편"
+            label = stringResource(R.string.common_total_watched),
+            value = stringResource(R.string.common_movie_count, totalWatched)
         )
     }
 }
@@ -281,7 +281,7 @@ private fun HomeHeader(onNavigateToCalendar: () -> Unit) {
             ),
             modifier = Modifier.size(44.dp)
         ) {
-            Icon(Icons.Default.CalendarMonth, contentDescription = "캘린더")
+            Icon(Icons.Default.CalendarMonth, contentDescription = stringResource(R.string.home_calendar_description))
         }
     }
 }
@@ -320,7 +320,7 @@ private fun SectionHeader(title: String, onMoreClick: (() -> Unit)? = null) {
         )
         if (onMoreClick != null) {
             TextButton(onClick = onMoreClick) {
-                Text("전체 보기", style = MaterialTheme.typography.labelLarge)
+                Text(stringResource(R.string.home_show_all), style = MaterialTheme.typography.labelLarge)
             }
         }
     }

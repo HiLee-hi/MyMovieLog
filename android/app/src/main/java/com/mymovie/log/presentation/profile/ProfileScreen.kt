@@ -39,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -48,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.mymovie.log.R
 import com.mymovie.log.domain.model.UserProfile
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -83,7 +85,7 @@ fun ProfileScreen(
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        TopAppBar(title = { Text("프로필", fontWeight = FontWeight.Bold) })
+        TopAppBar(title = { Text(stringResource(R.string.nav_profile), fontWeight = FontWeight.Bold) })
 
         if (currentUser == null) {
             LoginPromptContent(
@@ -130,7 +132,7 @@ private fun EmailLoginBottomSheet(
 
     val isLoading = emailAuthUiState is EmailAuthUiState.Loading
     val isVerificationRequired = emailAuthUiState is EmailAuthUiState.EmailVerificationRequired
-    val errorMessage = (emailAuthUiState as? EmailAuthUiState.Error)?.message
+    val errorMessage = (emailAuthUiState as? EmailAuthUiState.Error)?.message?.asString()
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -157,7 +159,7 @@ private fun EmailLoginBottomSheet(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = if (isSignUpMode) "회원가입" else "이메일로 로그인",
+                text = if (isSignUpMode) stringResource(R.string.profile_sign_up) else stringResource(R.string.profile_sign_in_email),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
@@ -167,7 +169,7 @@ private fun EmailLoginBottomSheet(
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("이메일") },
+                label = { Text(stringResource(R.string.profile_email)) },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 singleLine = true,
@@ -179,7 +181,7 @@ private fun EmailLoginBottomSheet(
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text("비밀번호") },
+                label = { Text(stringResource(R.string.profile_password)) },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
@@ -187,7 +189,7 @@ private fun EmailLoginBottomSheet(
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Icon(
                             imageVector = if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                            contentDescription = if (passwordVisible) "비밀번호 숨기기" else "비밀번호 보기"
+                            contentDescription = if (passwordVisible) stringResource(R.string.profile_hide_password) else stringResource(R.string.profile_show_password)
                         )
                     }
                 },
@@ -223,7 +225,7 @@ private fun EmailLoginBottomSheet(
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                 } else {
-                    Text(if (isSignUpMode) "회원가입" else "로그인")
+                    Text(if (isSignUpMode) stringResource(R.string.profile_sign_up) else stringResource(R.string.profile_sign_in))
                 }
             }
 
@@ -237,7 +239,7 @@ private fun EmailLoginBottomSheet(
                 enabled = !isLoading
             ) {
                 Text(
-                    text = if (isSignUpMode) "이미 계정이 있으신가요? 로그인" else "계정이 없으신가요? 회원가입",
+                    text = if (isSignUpMode) stringResource(R.string.profile_have_account) else stringResource(R.string.profile_no_account),
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -256,13 +258,13 @@ private fun EmailVerificationContent(onConfirmed: () -> Unit) {
     ) {
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "이메일을 확인해주세요",
+            text = stringResource(R.string.profile_verify_email_title),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = "가입하신 이메일로 인증 링크를 발송했습니다.\n링크를 클릭한 후 로그인해주세요.",
+            text = stringResource(R.string.profile_verify_email_message),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
@@ -273,7 +275,7 @@ private fun EmailVerificationContent(onConfirmed: () -> Unit) {
             onClick = onConfirmed,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("인증 완료 — 로그인하기")
+            Text(stringResource(R.string.profile_verified_sign_in))
         }
     }
 }
@@ -282,21 +284,21 @@ private fun EmailVerificationContent(onConfirmed: () -> Unit) {
 private fun LoginPromptContent(onEmailLogin: () -> Unit, onGoogleLogin: () -> Unit) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("로그인하여 기록을 저장하세요", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.profile_sign_in_prompt), style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(24.dp))
             Button(
                 colors = popcornButtonColors(),
                 onClick = onEmailLogin,
                 modifier = Modifier.fillMaxWidth(0.7f).widthIn(max = ActionButtonMaxWidth)
             ) {
-                Text("이메일로 로그인")
+                Text(stringResource(R.string.profile_sign_in_email))
             }
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedButton(
                 onClick = onGoogleLogin,
                 modifier = Modifier.fillMaxWidth(0.7f).widthIn(max = ActionButtonMaxWidth)
             ) {
-                Text("Google로 로그인")
+                Text(stringResource(R.string.profile_sign_in_google))
             }
         }
     }
@@ -312,7 +314,7 @@ private fun UserProfileContent(user: UserProfile, onSignOut: () -> Unit) {
     ) {
         AsyncImage(
             model = user.avatarUrl,
-            contentDescription = "프로필 사진",
+            contentDescription = stringResource(R.string.profile_photo_description),
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .size(80.dp)
@@ -320,7 +322,7 @@ private fun UserProfileContent(user: UserProfile, onSignOut: () -> Unit) {
         )
         Spacer(modifier = Modifier.height(12.dp))
         Text(
-            text = user.displayName ?: "사용자",
+            text = user.displayName ?: stringResource(R.string.profile_default_name),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold
         )
@@ -331,7 +333,7 @@ private fun UserProfileContent(user: UserProfile, onSignOut: () -> Unit) {
         )
         Spacer(modifier = Modifier.height(32.dp))
         OutlinedButton(onClick = onSignOut) {
-            Text("로그아웃")
+            Text(stringResource(R.string.profile_sign_out))
         }
     }
 }

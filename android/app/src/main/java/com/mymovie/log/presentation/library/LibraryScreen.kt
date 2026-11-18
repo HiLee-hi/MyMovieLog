@@ -43,6 +43,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import android.net.Uri
+import androidx.compose.ui.res.stringResource
+import com.mymovie.log.R
 import com.mymovie.log.domain.model.MovieRecord
 import com.mymovie.log.domain.model.WatchStatus
 import com.mymovie.log.presentation.ui.LoginRequiredContent
@@ -68,11 +70,11 @@ fun LibraryScreen(
     val selectedRecordSignedPhotoUrls by viewModel.existingPhotoSignedUrls.collectAsStateWithLifecycle()
 
     Column(modifier = Modifier.fillMaxSize()) {
-        TopAppBar(title = { Text("라이브러리", fontWeight = FontWeight.Bold) })
+        TopAppBar(title = { Text(stringResource(R.string.nav_library), fontWeight = FontWeight.Bold) })
 
         if (!isLoggedIn) {
             LoginRequiredContent(
-                message = "내 영화 목록을 보려면\n로그인이 필요해요",
+                message = stringResource(R.string.library_login_required),
                 onNavigateToLogin = onNavigateToLogin
             )
             return@Column
@@ -82,12 +84,12 @@ fun LibraryScreen(
             Tab(
                 selected = selectedTab == WatchStatus.WATCHED,
                 onClick = { viewModel.selectTab(WatchStatus.WATCHED) },
-                text = { Text("감상 완료 (${watchedRecords.size})") }
+                text = { Text(stringResource(R.string.library_watched_tab, watchedRecords.size)) }
             )
             Tab(
                 selected = selectedTab == WatchStatus.WISHLIST,
                 onClick = { viewModel.selectTab(WatchStatus.WISHLIST) },
-                text = { Text("위시리스트 (${wishlistRecords.size})") }
+                text = { Text(stringResource(R.string.library_wishlist_tab, wishlistRecords.size)) }
             )
         }
 
@@ -96,7 +98,7 @@ fun LibraryScreen(
         if (currentRecords.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
-                    text = if (selectedTab == WatchStatus.WATCHED) "감상 기록이 없어요" else "위시리스트가 비어있어요",
+                    text = if (selectedTab == WatchStatus.WATCHED) stringResource(R.string.library_watched_empty) else stringResource(R.string.library_wishlist_empty),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -168,15 +170,15 @@ private fun MovieGridItem(record: MovieRecord, onClick: () -> Unit = {}, onDelet
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("기록 삭제") },
-            text = { Text("\"${record.title}\" 기록을 삭제할까요?") },
+            title = { Text(stringResource(R.string.record_delete_title)) },
+            text = { Text(stringResource(R.string.record_delete_confirm, record.title)) },
             confirmButton = {
                 TextButton(onClick = { showDeleteDialog = false; onDelete() }) {
-                    Text("삭제", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.common_delete), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) { Text("취소") }
+                TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.common_cancel)) }
             }
         )
     }
@@ -194,7 +196,7 @@ private fun MovieGridItem(record: MovieRecord, onClick: () -> Unit = {}, onDelet
             ) {
                 Icon(
                     imageVector = Icons.Default.Delete,
-                    contentDescription = "삭제",
+                    contentDescription = stringResource(R.string.common_delete),
                     tint = MaterialTheme.colorScheme.onErrorContainer,
                     modifier = Modifier.padding(end = 8.dp)
                 )

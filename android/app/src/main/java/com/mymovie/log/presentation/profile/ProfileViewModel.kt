@@ -2,12 +2,15 @@ package com.mymovie.log.presentation.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.mymovie.log.R
 import com.mymovie.log.domain.model.UserProfile
 import com.mymovie.log.domain.usecase.ObserveCurrentUserUseCase
 import com.mymovie.log.domain.usecase.SignInWithEmailUseCase
 import com.mymovie.log.domain.usecase.SignInWithGoogleUseCase
 import com.mymovie.log.domain.usecase.SignOutUseCase
 import com.mymovie.log.domain.usecase.SignUpWithEmailUseCase
+import com.mymovie.log.presentation.ui.UiText
+import com.mymovie.log.presentation.ui.toUiText
 import com.mymovie.log.util.AppLogger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,7 +26,7 @@ sealed class EmailAuthUiState {
     object Loading : EmailAuthUiState()
     object Success : EmailAuthUiState()                  // sign-in succeeded
     object EmailVerificationRequired : EmailAuthUiState() // awaiting email verification after sign-up
-    data class Error(val message: String) : EmailAuthUiState()
+    data class Error(val message: UiText) : EmailAuthUiState()
 }
 
 @HiltViewModel
@@ -53,7 +56,7 @@ class ProfileViewModel @Inject constructor(
                 .onFailure { e ->
                     AppLogger.e("VM_PROFILE", "Email sign-in failed: ${e.message}", e)
                     _emailAuthUiState.value = EmailAuthUiState.Error(
-                        e.message ?: "로그인에 실패했습니다"
+                        e.toUiText(R.string.error_sign_in_failed)
                     )
                 }
         }
@@ -72,7 +75,7 @@ class ProfileViewModel @Inject constructor(
                 .onFailure { e ->
                     AppLogger.e("VM_PROFILE", "Email sign-up failed: ${e.message}", e)
                     _emailAuthUiState.value = EmailAuthUiState.Error(
-                        e.message ?: "회원가입에 실패했습니다"
+                        e.toUiText(R.string.error_sign_up_failed)
                     )
                 }
         }

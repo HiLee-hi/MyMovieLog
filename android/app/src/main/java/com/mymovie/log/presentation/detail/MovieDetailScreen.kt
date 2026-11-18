@@ -35,6 +35,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -51,7 +52,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
+import com.mymovie.log.R
 import com.mymovie.log.domain.model.MovieRecord
 import com.mymovie.log.domain.model.WatchStatus
 import com.mymovie.log.presentation.adaptive.AdaptiveDimens
@@ -77,10 +78,10 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
+import com.mymovie.log.presentation.ui.rememberDateTimeFormatter
 import com.mymovie.log.presentation.ui.theme.PopcornColors
 import com.mymovie.log.presentation.ui.theme.popcornButtonColors
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -123,7 +124,7 @@ fun MovieDetailScreen(
                                 .padding(start = 4.dp)
                                 .shadow(6.dp, CircleShape, ambientColor = PopcornColors.Shadow, spotColor = PopcornColors.Shadow)
                         ) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "뒤로가기")
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_navigate_back))
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -148,13 +149,13 @@ fun MovieDetailScreen(
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = "영화 정보를 불러오지 못했어요",
+                            text = stringResource(R.string.detail_load_failed),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         TextButton(onClick = viewModel::loadDetail) {
-                            Text("다시 시도")
+                            Text(stringResource(R.string.common_retry))
                         }
                     }
                 }
@@ -335,7 +336,7 @@ internal fun MovieDetailContent(
                 .height(52.dp)
         ) {
             Text(
-                if (record != null) "기록 수정" else "기록하기",
+                if (record != null) stringResource(R.string.record_edit) else stringResource(R.string.record_add),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
@@ -391,7 +392,7 @@ private fun OverviewCard(overview: String, modifier: Modifier = Modifier) {
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = "줄거리",
+                text = stringResource(R.string.detail_overview),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold
             )
@@ -415,7 +416,7 @@ private fun RecordCard(record: MovieRecord, modifier: Modifier = Modifier) {
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = MyLogTitle,
+                text = stringResource(R.string.detail_my_record),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold
             )
@@ -478,7 +479,7 @@ private fun WideMovieDetailContent(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     OverviewCard(
-                        overview = movie.overview.ifBlank { "줄거리 정보가 없어요" },
+                        overview = movie.overview.ifBlank { stringResource(R.string.detail_overview_empty) },
                         modifier = Modifier.widthIn(max = AdaptiveDimens.ReadableMaxWidth)
                     )
                 }
@@ -566,14 +567,14 @@ private fun MyMovieLogPane(
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = MyLogTitle,
+                    text = stringResource(R.string.detail_my_record),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.weight(1f)
                 )
                 if (isEditing) {
                     TextButton(onClick = onCancel, enabled = saveState !is AddRecordState.Saving) {
-                        Text("취소")
+                        Text(stringResource(R.string.common_cancel))
                     }
                 }
             }
@@ -584,7 +585,7 @@ private fun MyMovieLogPane(
                     draft = draft,
                     onDraftChange = onDraftChange,
                     saveState = saveState,
-                    saveLabel = "기록 저장",
+                    saveLabel = stringResource(R.string.record_save),
                     onSave = onSave,
                     attachedUris = attachedUris,
                     existingPhotoUrls = existingPhotoSignedUrls,
@@ -598,19 +599,19 @@ private fun MyMovieLogPane(
                     RecordSummary(record)
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(colors = popcornButtonColors(), onClick = onStartEditing, modifier = Modifier.fillMaxWidth()) {
-                        Text("기록 수정")
+                        Text(stringResource(R.string.record_edit))
                     }
                 }
 
                 else -> {
                     Text(
-                        text = "아직 이 영화의 기록이 없어요",
+                        text = stringResource(R.string.detail_no_record),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(colors = popcornButtonColors(), onClick = onStartEditing, modifier = Modifier.fillMaxWidth()) {
-                        Text("기록하기")
+                        Text(stringResource(R.string.record_add))
                     }
                 }
             }
@@ -620,10 +621,10 @@ private fun MyMovieLogPane(
 
 @Composable
 private fun RecordSummary(record: MovieRecord) {
-    val dateFormatter = remember { DateTimeFormatter.ofPattern("yyyy년 M월 d일") }
+    val dateFormatter = rememberDateTimeFormatter(R.string.format_date_full)
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(
-            text = if (record.status == WatchStatus.WATCHED) "봤어요" else "보고싶어요",
+            text = if (record.status == WatchStatus.WATCHED) stringResource(R.string.record_status_watched) else stringResource(R.string.record_status_wishlist),
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.primary
         )
@@ -640,7 +641,7 @@ private fun RecordSummary(record: MovieRecord) {
         }
         if (record.photoUrls.isNotEmpty()) {
             Text(
-                text = "사진 ${record.photoUrls.size}장",
+                text = stringResource(R.string.record_photo_count, record.photoUrls.size),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -651,8 +652,9 @@ private fun RecordSummary(record: MovieRecord) {
 /** Read-only stars; [StarRatingRow] is the editable version. */
 @Composable
 private fun RatingStars(rating: Float) {
+    val ratingDescription = stringResource(R.string.record_rating_summary, rating)
     Row(
-        modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = "별점 5점 중 ${rating}점" },
+        modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = ratingDescription },
         horizontalArrangement = Arrangement.spacedBy(2.dp)
     ) {
         for (star in 1..5) {
@@ -667,7 +669,6 @@ private fun RatingStars(rating: Float) {
 }
 
 private const val POSTER_ASPECT_RATIO = 2f / 3f
-private const val MyLogTitle = "내 기록"
 private val BackdropHeight = 240.dp
 private val PosterOverlap = 72.dp
 

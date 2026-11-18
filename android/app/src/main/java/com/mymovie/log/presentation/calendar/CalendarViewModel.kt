@@ -3,6 +3,7 @@ package com.mymovie.log.presentation.calendar
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.mymovie.log.R
 import com.mymovie.log.domain.model.MovieRecord
 import com.mymovie.log.domain.model.WatchStatus
 import com.mymovie.log.domain.usecase.GetHolidaysByMonthUseCase
@@ -11,6 +12,7 @@ import com.mymovie.log.domain.usecase.GetWatchedDatesByMonthUseCase
 import com.mymovie.log.domain.usecase.UpsertRecordUseCase
 import com.mymovie.log.presentation.ui.AddRecordState
 import com.mymovie.log.presentation.ui.RecordDraft
+import com.mymovie.log.presentation.ui.toUiText
 import com.mymovie.log.util.AppLogger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -140,7 +142,7 @@ class CalendarViewModel @Inject constructor(
                 )
             }
                 .onSuccess { _editRecordState.value = AddRecordState.Success }
-                .onFailure { _editRecordState.value = AddRecordState.Error(it.message ?: "저장 실패") }
+                .onFailure { _editRecordState.value = AddRecordState.Error(it.toUiText(R.string.error_save_failed)) }
         }
     }
 

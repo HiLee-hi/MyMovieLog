@@ -1,6 +1,7 @@
 package com.mymovie.log.presentation.navigation
 
 import android.net.Uri
+import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Home
@@ -33,6 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -44,6 +46,7 @@ import androidx.navigation.navArgument
 import com.mymovie.log.domain.model.WatchStatus
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.mymovie.log.R
 import com.mymovie.log.presentation.search.SearchViewModel
 import com.mymovie.log.presentation.calendar.CalendarScreen
 import com.mymovie.log.presentation.detail.MovieDetailScreen
@@ -82,16 +85,16 @@ sealed class Screen(val route: String) {
 
 data class BottomNavItem(
     val screen: Screen,
-    val label: String,
+    @StringRes val labelRes: Int,
     val icon: ImageVector
 )
 
 val bottomNavItems = listOf(
-    BottomNavItem(Screen.Home, "홈", Icons.Default.Home),
-    BottomNavItem(Screen.Search, "검색", Icons.Default.Search),
-    BottomNavItem(Screen.Library, "라이브러리", Icons.Default.LocalMovies),
-    BottomNavItem(Screen.Stats, "통계", Icons.Default.BarChart),
-    BottomNavItem(Screen.Profile, "프로필", Icons.Default.Person)
+    BottomNavItem(Screen.Home, R.string.nav_home, Icons.Default.Home),
+    BottomNavItem(Screen.Search, R.string.nav_search, Icons.Default.Search),
+    BottomNavItem(Screen.Library, R.string.nav_library, Icons.Default.LocalMovies),
+    BottomNavItem(Screen.Stats, R.string.nav_stats, Icons.Default.BarChart),
+    BottomNavItem(Screen.Profile, R.string.nav_profile, Icons.Default.Person)
 )
 
 fun navigateToLibraryTab(navController: androidx.navigation.NavController, tab: WatchStatus) {
@@ -161,12 +164,12 @@ private fun AppNavHostContent(appViewModel: AppViewModel) {
                             restoreState = true
                         }
                     },
-                    icon = { Icon(item.icon, contentDescription = item.label) },
+                    icon = { Icon(item.icon, contentDescription = stringResource(item.labelRes)) },
                     label = {
                         // Narrow cover screens leave less than the label's width inside the
                         // item's padding; keep one line, centered over the whole item.
                         Text(
-                            text = item.label,
+                            text = stringResource(item.labelRes),
                             maxLines = 1,
                             softWrap = false,
                             modifier = Modifier.wrapContentWidth(unbounded = true)
