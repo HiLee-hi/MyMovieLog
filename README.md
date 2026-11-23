@@ -33,7 +33,7 @@ MyMovieLog/
 ### API 키 발급
 
 1. [TMDB](https://developer.themoviedb.org) 에서 API 키 발급
-2. [공공데이터포털](https://data.go.kr) 에서 **한국천문연구원\_특일 정보 서비스** 활용 신청 후 인증키 발급 (Android 공휴일 표시용)
+2. [공공데이터포털](https://data.go.kr) 에서 **한국천문연구원\_특일 정보 서비스** 활용 신청 후 인증키 발급 (캘린더 공휴일 표시용, 두 앱 공통)
 3. [Supabase](https://supabase.com) 에서 프로젝트 생성
 
 ### Supabase 설정

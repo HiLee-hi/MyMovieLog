@@ -11,7 +11,7 @@ struct RecordDraftTests {
 
     @Test func watchedKeepsRatingDateAndReview() {
         let draft = RecordDraft(status: .watched, rating: 4.5, watchedAt: LocalDate(year: 2026, month: 10, day: 3),
-                                review: "좋았다", memo: "ignored")
+                                review: "좋았다", memo: "ignored", keptPhotoPaths: ["p.jpg"])
         let record = draft.applied(to: base)
         #expect(record.rating == 4.5)
         #expect(record.watchedAt == LocalDate(year: 2026, month: 10, day: 3))

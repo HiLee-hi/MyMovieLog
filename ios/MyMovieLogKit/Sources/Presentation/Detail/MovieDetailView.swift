@@ -35,13 +35,8 @@ struct MovieDetailView: View {
                 ProgressView()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             case .error(let message):
-                ContentUnavailableView {
-                    Label(L10n.detailLoadFailed, systemImage: "exclamationmark.triangle")
-                } description: {
-                    Text(message)
-                } actions: {
-                    Button(L10n.commonRetry) { Task { await viewModel.loadDetail() } }
-                }
+                PopcornEmptyState(title: L10n.detailLoadFailed, systemImage: "exclamationmark.triangle", message: message,
+                                  actionTitle: L10n.commonRetry) { Task { await viewModel.loadDetail() } }
             case .loaded(let movie):
                 if AdaptiveDimens.fitsTwoColumns(width - 64) {
                     wideContent(movie)
@@ -61,7 +56,7 @@ struct MovieDetailView: View {
                 title: viewModel.movie?.title ?? "",
                 draft: $viewModel.draft,
                 saveState: viewModel.saveState,
-                photoCount: viewModel.existingRecord?.photoUrls.count ?? 0,
+                photoPaths: viewModel.existingRecord?.photoUrls ?? [],
                 onSave: viewModel.saveRecord,
                 onCancel: viewModel.dismissEditor
             )

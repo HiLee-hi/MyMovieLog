@@ -5,13 +5,12 @@ struct LoginRequiredView: View {
     let onNavigateToLogin: () -> Void
 
     var body: some View {
-        ContentUnavailableView {
-            Label(message, systemImage: "lock")
-        } description: {
-            Text(L10n.loginRequiredMessage)
-        } actions: {
-            Button(L10n.loginRequiredAction, action: onNavigateToLogin)
-                .buttonStyle(.borderedProminent)
-        }
+        PopcornEmptyState(
+            title: message,
+            systemImage: "lock",
+            message: L10n.loginRequiredMessage,
+            actionTitle: L10n.loginRequiredAction,
+            action: onNavigateToLogin
+        )
     }
 }

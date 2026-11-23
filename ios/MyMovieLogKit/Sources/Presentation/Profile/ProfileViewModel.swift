@@ -11,14 +11,27 @@ public enum EmailAuthState: Equatable, Sendable {
     case error(String)
 }
 
+/// Numbers on the profile cards
+public struct ProfileRecordCounts: Equatable, Sendable {
+    public var watched = 0
+    public var wishlist = 0
+
+    public init(watched: Int = 0, wishlist: Int = 0) {
+        self.watched = watched
+        self.wishlist = wishlist
+    }
+}
+
 @MainActor
 @Observable
 public final class ProfileViewModel {
     public private(set) var currentUser: UserProfile?
+    public private(set) var recordCounts = ProfileRecordCounts()
     public private(set) var emailAuthState: EmailAuthState = .idle
     public private(set) var googleError: String?
 
     private let observeCurrentUser: ObserveCurrentUserUseCase
+    private let getRecords: GetRecordsUseCase
     private let signInWithEmailUseCase: SignInWithEmailUseCase
     private let signUpWithEmailUseCase: SignUpWithEmailUseCase
     private let signInWithGoogleUseCase: SignInWithGoogleUseCase
@@ -26,12 +39,14 @@ public final class ProfileViewModel {
 
     public init(
         observeCurrentUser: ObserveCurrentUserUseCase,
+        getRecords: GetRecordsUseCase,
         signInWithEmail: SignInWithEmailUseCase,
         signUpWithEmail: SignUpWithEmailUseCase,
         signInWithGoogle: SignInWithGoogleUseCase,
         signOut: SignOutUseCase
     ) {
         self.observeCurrentUser = observeCurrentUser
+        self.getRecords = getRecords
         signInWithEmailUseCase = signInWithEmail
         signUpWithEmailUseCase = signUpWithEmail
         signInWithGoogleUseCase = signInWithGoogle
@@ -41,6 +56,15 @@ public final class ProfileViewModel {
     public func observeUser() async {
         for await user in observeCurrentUser() {
             currentUser = user
+        }
+    }
+
+    public func observeRecordCounts() async {
+        for await records in getRecords() {
+            recordCounts = ProfileRecordCounts(
+                watched: records.filter { $0.status == .watched }.count,
+                wishlist: records.filter { $0.status == .wishlist }.count
+            )
         }
     }
 

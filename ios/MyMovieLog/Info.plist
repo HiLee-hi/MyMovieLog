@@ -59,5 +59,11 @@
 	<string>$(SUPABASE_URL)</string>
 	<key>SUPABASE_ANON_KEY</key>
 	<string>$(SUPABASE_ANON_KEY)</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Take a photo of your ticket or poster to attach it to a movie record.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Save the photos you take to your photo library.</string>
+	<key>PUBLIC_DATA_API_KEY</key>
+	<string>$(PUBLIC_DATA_API_KEY)</string>
 </dict>
 </plist>

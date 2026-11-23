@@ -43,12 +43,13 @@ struct LibraryView: View {
 
     private var content: some View {
         VStack(spacing: 0) {
-            Picker(L10n.libraryList, selection: $status) {
-                Text(L10n.libraryWatchedTab(viewModel.watchedRecords.count)).tag(WatchStatus.watched)
-                Text(L10n.libraryWishlistTab(viewModel.wishlistRecords.count)).tag(WatchStatus.wishlist)
+            PopcornToggle(options: [WatchStatus.watched, .wishlist], selection: $status) { status in
+                status == .watched
+                    ? L10n.libraryWatchedTab(viewModel.watchedRecords.count)
+                    : L10n.libraryWishlistTab(viewModel.wishlistRecords.count)
             }
-            .pickerStyle(.segmented)
-            .labelsHidden()
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel(L10n.libraryList)
             // Stays a compact control on wide windows instead of stretching edge to edge
             .frame(maxWidth: 420)
             .padding(.horizontal)
@@ -56,11 +57,11 @@ struct LibraryView: View {
 
             let records = viewModel.records(for: status)
             if records.isEmpty {
-                ContentUnavailableView {
-                    Label(status == .watched ? L10n.libraryWatchedEmpty : L10n.libraryWishlistEmpty, systemImage: "film")
-                } description: {
-                    Text(L10n.libraryEmptyHint)
-                }
+                PopcornEmptyState(
+                    title: status == .watched ? L10n.libraryWatchedEmpty : L10n.libraryWishlistEmpty,
+                    systemImage: "film",
+                    message: L10n.libraryEmptyHint
+                )
             } else {
                 ScrollView {
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 100), spacing: 12)], spacing: 16) {

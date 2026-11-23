@@ -15,6 +15,7 @@ struct CalendarView: View {
         _viewModel = State(initialValue: CalendarViewModel(
             getWatchedDatesByMonth: useCases.getWatchedDatesByMonth,
             getRecordsByDate: useCases.getRecordsByDate,
+            getHolidaysByMonth: useCases.getHolidaysByMonth,
             upsertRecord: useCases.upsertRecord
         ))
     }
@@ -57,10 +58,15 @@ struct CalendarView: View {
         } else {
             ScrollView {
                 monthCalendar
+                    .padding(.horizontal, 12)
+                    .padding(.top, 16)
+                    .padding(.bottom, 12)
+                    .popcornCard()
                     .padding()
                     .frame(maxWidth: 560)
                     .frame(maxWidth: .infinity)
             }
+            .popcornScreenBackground()
             .modifier(MonthControls(viewModel: viewModel))
             .sheet(isPresented: Binding(
                 get: { viewModel.selectedDate != nil },
@@ -78,45 +84,53 @@ struct CalendarView: View {
             weekdayHeader
             monthGrid
             HStack(spacing: 6) {
-                Circle().fill(Color.accentColor).frame(width: 6, height: 6)
+                Circle().fill(Color.popcornStar).frame(width: 6, height: 6)
                 Text(L10n.calendarLegendWatched)
             }
             .font(.caption)
-            .foregroundStyle(.secondary)
-            .frame(maxWidth: .infinity, alignment: .trailing)
+            .foregroundStyle(Color.popcornInkMuted)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 4)
         }
     }
 
     private var monthHeader: some View {
         HStack {
-            Button {
-                withAnimation { viewModel.showPreviousMonth() }
-            } label: {
-                Image(systemName: "chevron.left")
-            }
-            .accessibilityLabel(L10n.calendarPreviousMonth)
+            monthArrow("chevron.left", label: L10n.calendarPreviousMonth) { viewModel.showPreviousMonth() }
             Spacer()
             Text(viewModel.currentMonth.displayText)
-                .font(.title3.bold())
+                .font(.jua(20, relativeTo: .title3))
+                .foregroundStyle(Color.popcornInk)
                 .contentTransition(.numericText())
             Spacer()
-            Button {
-                withAnimation { viewModel.showNextMonth() }
-            } label: {
-                Image(systemName: "chevron.right")
-            }
-            .accessibilityLabel(L10n.calendarNextMonth)
+            monthArrow("chevron.right", label: L10n.calendarNextMonth) { viewModel.showNextMonth() }
         }
-        .buttonStyle(.borderless)
-        .font(.title3)
+        .padding(.horizontal, 4)
+    }
+
+    /// Round butter-light arrow from the design; the tap area stays 44 pt
+    private func monthArrow(_ systemImage: String, label: String, action: @escaping () -> Void) -> some View {
+        Button {
+            withAnimation { action() }
+        } label: {
+            Image(systemName: systemImage)
+                .font(.system(size: 15, weight: .bold))
+                .foregroundStyle(Color.popcornCaramel)
+                .frame(width: 36, height: 36)
+                .background(Color.popcornButterLight, in: Circle())
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(label)
     }
 
     private var weekdayHeader: some View {
         HStack(spacing: 0) {
             ForEach(Array(Self.weekdays.enumerated()), id: \.offset) { index, name in
                 Text(name)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(weekdayColor(column: index))
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(index == 0 || index == 6 ? weekdayColor(column: index) : .popcornInkMuted)
                     .frame(maxWidth: .infinity)
             }
         }
@@ -137,7 +151,7 @@ struct CalendarView: View {
                         isWatched: viewModel.watchedDates.contains(date),
                         // Only the side pane keeps a date selected; the sheet covers the grid
                         isSelected: isTwoPane && viewModel.selectedDate == date,
-                        color: weekdayColor(column: index % 7)
+                        color: viewModel.holidays.contains(date) ? Self.holidayRed : weekdayColor(column: index % 7)
                     ) {
                         viewModel.selectDate(date)
                     }
@@ -148,11 +162,14 @@ struct CalendarView: View {
         }
     }
 
+    /// Sundays and public holidays
+    private static let holidayRed = Color.popcornHoliday
+
     private func weekdayColor(column: Int) -> Color {
         switch column {
-        case 0: return .red
-        case 6: return .blue
-        default: return .primary
+        case 0: return Self.holidayRed
+        case 6: return .popcornSaturday
+        default: return .popcornInk
         }
     }
 }
@@ -177,6 +194,7 @@ private struct MonthControls: ViewModifier {
                 }
             }
             .task(id: viewModel.currentMonth) { await viewModel.observeWatchedDates() }
+            .task(id: viewModel.currentMonth) { await viewModel.loadHolidays() }
     }
 }
 
@@ -199,12 +217,12 @@ private struct DayCell: View {
                         if isSelected {
                             Circle().fill(Color.popcornButter)
                         } else if isToday {
-                            Circle().fill(Color.accentColor.opacity(0.18))
+                            Circle().strokeBorder(Color.popcornOutlineStrong, lineWidth: 1.5)
                         }
                     }
                 Circle()
-                    .fill(isWatched && !isSelected ? Color.accentColor : Color.clear)
-                    .frame(width: 6, height: 6)
+                    .fill(isWatched && !isSelected ? Color.popcornStar : Color.clear)
+                    .frame(width: 5, height: 5)
             }
             .frame(maxWidth: .infinity, minHeight: 44)
             .contentShape(Rectangle())
@@ -236,6 +254,7 @@ private struct DateRecordsSheet: View {
                     }
                 }
             }
+            .popcornScreenBackground()
             .navigationTitle(viewModel.selectedDate?.displayText ?? "")
             .inlineNavigationTitle()
             .toolbar {
@@ -291,11 +310,7 @@ private struct DateRecordsPane: View {
                     .padding(.vertical)
                 }
             } else {
-                ContentUnavailableView(
-                    L10n.calendarSelectDateTitle,
-                    systemImage: "calendar",
-                    description: Text(L10n.calendarSelectDateMessage)
-                )
+                PopcornEmptyState(title: L10n.calendarSelectDateTitle, systemImage: "calendar", message: L10n.calendarSelectDateMessage)
             }
         }
         .task(id: viewModel.selectedDate) { await viewModel.observeSelectedDateRecords() }

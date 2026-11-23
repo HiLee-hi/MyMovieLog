@@ -13,6 +13,11 @@ extension YearMonth {
     var displayText: String {
         formattedDate(year: year, month: month, day: 1, pattern: L10n.yearMonthPattern)
     }
+
+    /// "10월", "Oct": a chart axis label
+    var monthText: String {
+        formattedDate(year: year, month: month, day: 1, pattern: L10n.monthPattern)
+    }
 }
 
 private func formattedDate(year: Int, month: Int, day: Int, pattern: String) -> String {

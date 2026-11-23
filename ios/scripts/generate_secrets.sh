@@ -1,6 +1,6 @@
 #!/bin/sh
 # Writes ios/Config/Secrets.xcconfig from the Android local.properties, so both apps use the
-# same TMDB and Supabase keys.
+# same TMDB, Supabase and 공공데이터포털 keys. PUBLIC_DATA_API_KEY is optional (holidays).
 set -eu
 
 script_dir=$(cd "$(dirname "$0")" && pwd)
@@ -21,6 +21,7 @@ read_property() {
 tmdb_api_key=$(read_property TMDB_API_KEY)
 supabase_url=$(read_property SUPABASE_URL)
 supabase_anon_key=$(read_property SUPABASE_ANON_KEY)
+public_data_api_key=$(read_property PUBLIC_DATA_API_KEY)
 
 for name in TMDB_API_KEY SUPABASE_URL SUPABASE_ANON_KEY; do
     eval "value=\$$(echo "$name" | tr '[:upper:]' '[:lower:]')"
@@ -31,7 +32,10 @@ for name in TMDB_API_KEY SUPABASE_URL SUPABASE_ANON_KEY; do
 done
 
 # "//" starts a comment in xcconfig files
-escaped_url=$(printf '%s' "$supabase_url" | sed 's#//#/$()/#')
+escape() { printf '%s' "$1" | sed 's#//#/$()/#g'; }
+escaped_url=$(escape "$supabase_url")
+# A decoded key may contain "//" too
+escaped_public_data_key=$(escape "$public_data_api_key")
 
 umask 077
 cat > "$output" <<XCCONFIG
@@ -39,6 +43,11 @@ cat > "$output" <<XCCONFIG
 TMDB_API_KEY = $tmdb_api_key
 SUPABASE_URL = $escaped_url
 SUPABASE_ANON_KEY = $supabase_anon_key
+PUBLIC_DATA_API_KEY = $escaped_public_data_key
 XCCONFIG
+
+if [ -z "$public_data_api_key" ]; then
+    echo "PUBLIC_DATA_API_KEY is not set: the calendar will not show public holidays" >&2
+fi
 
 echo "Wrote $output"

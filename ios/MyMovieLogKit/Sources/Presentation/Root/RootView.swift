@@ -5,6 +5,7 @@ enum AppTab: Hashable {
     case home
     case search
     case library
+    case stats
     case profile
 }
 
@@ -55,12 +56,23 @@ public struct RootView: View {
             .tabItem { Label(L10n.tabLibrary, systemImage: "film.stack") }
             .tag(AppTab.library)
 
+            StatsView(
+                useCases: useCases,
+                isLoggedIn: appViewModel.isLoggedIn,
+                onNavigateToLogin: navigateToLogin,
+                onRefresh: appViewModel.refresh
+            )
+            .tabItem { Label(L10n.tabStats, systemImage: "chart.bar") }
+            .tag(AppTab.stats)
+
             ProfileView(useCases: useCases, onLoginSuccess: { selectedTab = .home })
                 .tabItem { Label(L10n.tabProfile, systemImage: "person") }
                 .tag(AppTab.profile)
         }
         // The design has a single light theme, the same as the Android app
         .tint(.popcornCaramel)
+        // Record editors in every tab show attached photos through this
+        .environment(\.getSignedPhotoUrls, useCases.getSignedPhotoUrls)
         .preferredColorScheme(.light)
         .task { await appViewModel.observeAuthAndSync() }
     }

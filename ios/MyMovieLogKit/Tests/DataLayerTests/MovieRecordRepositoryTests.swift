@@ -158,6 +158,16 @@ struct AppConfigTests {
             "SUPABASE_ANON_KEY": "anon"
         ])
         #expect(config?.supabaseURL.host() == "abc.supabase.co")
+        #expect(config?.publicDataApiKey == nil)
+    }
+
+    @Test func publicDataKeyIsOptional() {
+        let base = ["TMDB_API_KEY": "token", "SUPABASE_URL": "https://abc.supabase.co", "SUPABASE_ANON_KEY": "anon"]
+        let withKey = AppConfig.fromInfoDictionary(base.merging(["PUBLIC_DATA_API_KEY": "abc+/="]) { $1 })
+        #expect(withKey?.publicDataApiKey == "abc+/=")
+        // An unset build setting stays "$(...)" or empty in Info.plist
+        #expect(AppConfig.fromInfoDictionary(base.merging(["PUBLIC_DATA_API_KEY": "$(PUBLIC_DATA_API_KEY)"]) { $1 })?.publicDataApiKey == nil)
+        #expect(AppConfig.fromInfoDictionary(base.merging(["PUBLIC_DATA_API_KEY": ""]) { $1 })?.publicDataApiKey == nil)
     }
 
     @Test func rejectsMissingOrUnexpandedValues() {

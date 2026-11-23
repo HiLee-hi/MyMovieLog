@@ -161,12 +161,90 @@ final class InMemoryRecordRepository: MovieRecordRepository, @unchecked Sendable
     }
 }
 
+/// Fixed holidays for previews and tests
+final class InMemoryHolidayRepository: HolidayRepository, @unchecked Sendable {
+    private let dates: Set<LocalDate>
+
+    init(dates: Set<LocalDate> = []) {
+        self.dates = dates
+    }
+
+    func holidays(in month: YearMonth) async -> Set<LocalDate> {
+        dates.filter(month.contains)
+    }
+}
+
+/// Signs every path as a placeholder URL and keeps uploads in memory.
+/// `signingError` / `uploadError` / `deleteError` make the next calls fail.
+final class InMemoryPhotoRepository: PhotoRepository, @unchecked Sendable {
+    private let lock = NSLock()
+    private var _signingError: Error?
+    private var _uploadError: Error?
+    private var _deleteError: Error?
+    private var _signedPaths: [[String]] = []
+    private var _stored: Set<String>
+    private var _deletedPaths: [String] = []
+
+    init(stored: Set<String> = []) {
+        _stored = stored
+    }
+
+    var uploadError: Error? {
+        get { lock.withLock { _uploadError } }
+        set { lock.withLock { _uploadError = newValue } }
+    }
+
+    var deleteError: Error? {
+        get { lock.withLock { _deleteError } }
+        set { lock.withLock { _deleteError = newValue } }
+    }
+
+    /// Paths currently in "Storage"
+    var stored: Set<String> { lock.withLock { _stored } }
+    var deletedPaths: [String] { lock.withLock { _deletedPaths } }
+
+    var signingError: Error? {
+        get { lock.withLock { _signingError } }
+        set { lock.withLock { _signingError = newValue } }
+    }
+
+    /// Every request, for tests
+    var signedPaths: [[String]] { lock.withLock { _signedPaths } }
+
+    func signedURLs(for paths: [String]) async throws -> [String: URL] {
+        try lock.withLock {
+            _signedPaths.append(paths)
+            if let _signingError { throw _signingError }
+        }
+        return Dictionary(uniqueKeysWithValues: paths.map { ($0, URL(string: "https://example.invalid/sign/\($0)")!) })
+    }
+
+    func upload(_ images: [Data], userId: String, tmdbId: Int) async throws -> [String] {
+        try lock.withLock {
+            if let _uploadError { throw _uploadError }
+            let paths = images.indices.map { _ in "\(userId)/\(tmdbId)/\(UUID().uuidString.lowercased()).jpg" }
+            _stored.formUnion(paths)
+            return paths
+        }
+    }
+
+    func delete(paths: [String]) async throws {
+        try lock.withLock {
+            if let _deleteError { throw _deleteError }
+            _stored.subtract(paths)
+            _deletedPaths += paths
+        }
+    }
+}
+
 extension UseCaseContainer {
     static func preview(loggedIn: Bool = true) -> UseCaseContainer {
         UseCaseContainer(
             authRepository: InMemoryAuthRepository(user: loggedIn ? .preview : nil),
             movieRepository: InMemoryMovieRepository(),
-            recordRepository: InMemoryRecordRepository()
+            recordRepository: InMemoryRecordRepository(),
+            holidayRepository: InMemoryHolidayRepository(),
+            photoRepository: InMemoryPhotoRepository()
         )
     }
 }

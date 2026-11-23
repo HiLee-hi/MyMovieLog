@@ -11,6 +11,8 @@ extension Color {
     static let popcornSurface = Color.white
     static let popcornButterLight = Color(hex: 0xFFF5DC)
     static let popcornButter = Color(hex: 0xFAD27A)
+    /// Past months in the stats chart, a step lighter than butter
+    static let popcornButterSoft = Color(hex: 0xF6DDA8)
     static let popcornCaramel = Color(hex: 0x9A5214)
     static let popcornInk = Color(hex: 0x3B2A1A)
     static let popcornInkMuted = Color(hex: 0x7A6652)
@@ -18,6 +20,10 @@ extension Color {
     static let popcornOutlineStrong = Color(hex: 0xCDB99A)
     static let popcornStar = Color(hex: 0xF2A516)
     static let popcornStarEmpty = Color(hex: 0xE8DAC2)
+    /// Sundays and public holidays, the Android Material error red
+    static let popcornHoliday = Color(hex: 0xB3261E)
+    /// Saturdays, the Android PopcornColors.Saturday
+    static let popcornSaturday = Color(hex: 0x1976D2)
     static let popcornShadow = Color(hex: 0x9A5214).opacity(0.12)
 
     init(hex: UInt32) {
@@ -80,6 +86,12 @@ public enum PopcornTheme {
         tab.configureWithOpaqueBackground()
         tab.backgroundColor = .white
         tab.shadowColor = UIColor(Color.popcornOutline)
+        // Unselected tabs in muted ink instead of black; the selected one follows the caramel tint
+        let muted = UIColor(Color.popcornInkMuted)
+        for layout in [tab.stackedLayoutAppearance, tab.inlineLayoutAppearance, tab.compactInlineLayoutAppearance] {
+            layout.normal.iconColor = muted
+            layout.normal.titleTextAttributes = [.foregroundColor: muted]
+        }
         UITabBar.appearance().standardAppearance = tab
         UITabBar.appearance().scrollEdgeAppearance = tab
     }

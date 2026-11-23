@@ -11,9 +11,11 @@ public final class RecordEditSession {
     public private(set) var saveState: SaveState = .idle
 
     private let upsertRecord: UpsertRecordUseCase
+    private let photoSources: PhotoSourceIndex
 
-    public init(upsertRecord: UpsertRecordUseCase) {
+    public init(upsertRecord: UpsertRecordUseCase, photoSources: PhotoSourceIndex = .shared) {
         self.upsertRecord = upsertRecord
+        self.photoSources = photoSources
     }
 
     public func select(_ record: MovieRecord) {
@@ -28,12 +30,13 @@ public final class RecordEditSession {
         saveState = .idle
     }
 
-    /// Photos attached in the Android app are kept as they are
+    /// Uploads the new photos, saves, then deletes the photos that were removed
     public func save() async {
         guard let record, !saveState.isSaving else { return }
         saveState = .saving
         do {
-            try await upsertRecord(draft.applied(to: record))
+            let uploaded = try await upsertRecord(draft.applied(to: record), newPhotos: draft.newPhotos.map(\.data))
+            photoSources.remember(paths: uploaded, sourceIds: draft.newPhotos.map(\.sourceId))
             saveState = .success
         } catch {
             saveState = .error(error.localizedDescription)

@@ -20,10 +20,15 @@ public struct UseCaseContainer: Sendable {
     public let syncFromRemote: SyncFromRemoteUseCase
     public let clearLocalCache: ClearLocalCacheUseCase
 
+    public let getHolidaysByMonth: GetHolidaysByMonthUseCase
+    public let getSignedPhotoUrls: GetSignedPhotoUrlsUseCase
+
     public init(
         authRepository: any AuthRepository,
         movieRepository: any MovieRepository,
-        recordRepository: any MovieRecordRepository
+        recordRepository: any MovieRecordRepository,
+        holidayRepository: any HolidayRepository,
+        photoRepository: any PhotoRepository
     ) {
         observeCurrentUser = ObserveCurrentUserUseCase(repository: authRepository)
         getCurrentUserId = GetCurrentUserIdUseCase(repository: authRepository)
@@ -39,9 +44,12 @@ public struct UseCaseContainer: Sendable {
         getRecordByTmdbId = GetRecordByTmdbIdUseCase(repository: recordRepository)
         getRecordsByDate = GetRecordsByDateUseCase(repository: recordRepository)
         getWatchedDatesByMonth = GetWatchedDatesByMonthUseCase(repository: recordRepository)
-        upsertRecord = UpsertRecordUseCase(repository: recordRepository)
-        deleteRecord = DeleteRecordUseCase(repository: recordRepository)
+        upsertRecord = UpsertRecordUseCase(repository: recordRepository, photoRepository: photoRepository)
+        deleteRecord = DeleteRecordUseCase(repository: recordRepository, photoRepository: photoRepository)
         syncFromRemote = SyncFromRemoteUseCase(repository: recordRepository)
         clearLocalCache = ClearLocalCacheUseCase(repository: recordRepository)
+
+        getHolidaysByMonth = GetHolidaysByMonthUseCase(repository: holidayRepository)
+        getSignedPhotoUrls = GetSignedPhotoUrlsUseCase(repository: photoRepository)
     }
 }

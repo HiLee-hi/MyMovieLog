@@ -6,11 +6,14 @@ public struct AppConfig: Sendable {
     public let tmdbApiKey: String
     public let supabaseURL: URL
     public let supabaseAnonKey: String
+    /// Optional: without it the calendar shows weekends but no public holidays
+    public let publicDataApiKey: String?
 
-    public init(tmdbApiKey: String, supabaseURL: URL, supabaseAnonKey: String) {
+    public init(tmdbApiKey: String, supabaseURL: URL, supabaseAnonKey: String, publicDataApiKey: String? = nil) {
         self.tmdbApiKey = tmdbApiKey
         self.supabaseURL = supabaseURL
         self.supabaseAnonKey = supabaseAnonKey
+        self.publicDataApiKey = publicDataApiKey
     }
 
     /// Nil when a key is missing or still the `$(...)` placeholder of an unset build setting.
@@ -24,6 +27,11 @@ public struct AppConfig: Sendable {
               let urlString = value("SUPABASE_URL"), let supabaseURL = URL(string: urlString),
               let supabaseAnonKey = value("SUPABASE_ANON_KEY")
         else { return nil }
-        return AppConfig(tmdbApiKey: tmdbApiKey, supabaseURL: supabaseURL, supabaseAnonKey: supabaseAnonKey)
+        return AppConfig(
+            tmdbApiKey: tmdbApiKey,
+            supabaseURL: supabaseURL,
+            supabaseAnonKey: supabaseAnonKey,
+            publicDataApiKey: value("PUBLIC_DATA_API_KEY")
+        )
     }
 }

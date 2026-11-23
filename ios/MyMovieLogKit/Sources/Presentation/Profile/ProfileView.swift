@@ -12,6 +12,7 @@ struct ProfileView: View {
         self.onLoginSuccess = onLoginSuccess
         _viewModel = State(initialValue: ProfileViewModel(
             observeCurrentUser: useCases.observeCurrentUser,
+            getRecords: useCases.getRecords,
             signInWithEmail: useCases.signInWithEmail,
             signUpWithEmail: useCases.signUpWithEmail,
             signInWithGoogle: useCases.signInWithGoogle,
@@ -33,6 +34,7 @@ struct ProfileView: View {
             .navigationTitle(L10n.tabProfile)
         }
         .task { await viewModel.observeUser() }
+        .task { await viewModel.observeRecordCounts() }
         .onChange(of: viewModel.emailAuthState) { _, state in
             if state == .success {
                 password = ""
@@ -42,59 +44,100 @@ struct ProfileView: View {
         }
     }
 
+    /// Profile card, record counts and an outlined sign-out button, as on the design canvas
     private func signedIn(_ user: UserProfile) -> some View {
-        List {
-            Section {
-                HStack(spacing: 16) {
+        ScrollView {
+            VStack(spacing: 16) {
+                VStack(spacing: 6) {
                     avatar(user)
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(user.displayName ?? L10n.profileDefaultName)
-                            .font(.headline)
-                        Text(user.email)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
+                        .padding(.bottom, 8)
+                    Text(user.displayName ?? L10n.profileDefaultName)
+                        .font(.jua(22, relativeTo: .title2))
+                        .foregroundStyle(Color.popcornInk)
+                    Text(user.email)
+                        .font(.subheadline)
+                        .foregroundStyle(Color.popcornInkMuted)
                 }
-                .padding(.vertical, 6)
-            }
-            Section {
-                Button(L10n.profileSignOut, role: .destructive) {
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 20)
+                .padding(.top, 28)
+                .padding(.bottom, 24)
+                .popcornCard()
+
+                HStack(spacing: 12) {
+                    countCard(L10n.profileWatchedCount, count: viewModel.recordCounts.watched)
+                    countCard(L10n.profileWishlistCount, count: viewModel.recordCounts.wishlist)
+                }
+
+                Button {
                     Task { await viewModel.signOut() }
+                } label: {
+                    Text(L10n.profileSignOut)
+                        .font(.body.weight(.bold))
+                        .foregroundStyle(Color.popcornInk)
+                        .frame(maxWidth: .infinity, minHeight: 52)
+                        .background(Color.popcornSurface, in: Capsule())
+                        .overlay { Capsule().strokeBorder(Color.popcornOutlineStrong) }
+                        .contentShape(Capsule())
                 }
+                .buttonStyle(.plain)
+                .padding(.top, 12)
             }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 8)
+            .frame(maxWidth: 560)
+            .frame(maxWidth: .infinity)
         }
-        .groupedListStyle()
+        .popcornScreenBackground()
     }
 
+    private func countCard(_ label: String, count: Int) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label)
+                .font(.footnote.weight(.medium))
+                .foregroundStyle(Color.popcornInkMuted)
+            Text(L10n.commonMovieCount(count))
+                .font(.jua(24))
+                .foregroundStyle(Color.popcornInk)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+        .background(Color.popcornButterLight, in: RoundedRectangle(cornerRadius: PopcornRadius.large))
+        .accessibilityElement(children: .combine)
+    }
+
+    /// Butter circle with the Jua initial and a butter-light ring; the Google photo when there is one
     private func avatar(_ user: UserProfile) -> some View {
         AsyncImage(url: user.avatarUrl.flatMap(URL.init(string:))) { image in
             image.resizable().scaledToFill()
         } placeholder: {
             ZStack {
-                Circle().fill(Color.accentColor.opacity(0.2))
+                Circle().fill(Color.popcornButter)
                 Text(String((user.displayName ?? user.email).prefix(1)).uppercased())
-                    .font(.title2.bold())
-                    .foregroundStyle(Color.accentColor)
+                    .font(.jua(36))
+                    .foregroundStyle(Color.popcornInk)
             }
         }
-        .frame(width: 56, height: 56)
+        .frame(width: 88, height: 88)
         .clipShape(Circle())
+        .padding(4)
+        .background(Color.popcornButterLight, in: Circle())
         .accessibilityHidden(true)
     }
 
     private var verificationPending: some View {
-        ContentUnavailableView {
-            Label(L10n.profileVerifyEmailTitle, systemImage: "envelope.badge")
-        } description: {
-            Text(L10n.profileVerifyEmailMessage)
-        } actions: {
-            Button(L10n.profileVerifiedSignIn) {
-                isSignUpMode = false
-                password = ""
-                viewModel.resetEmailAuthState()
-            }
-            .buttonStyle(.borderedProminent)
+        PopcornEmptyState(
+            title: L10n.profileVerifyEmailTitle,
+            systemImage: "envelope.badge",
+            message: L10n.profileVerifyEmailMessage,
+            actionTitle: L10n.profileVerifiedSignIn
+        ) {
+            isSignUpMode = false
+            password = ""
+            viewModel.resetEmailAuthState()
         }
+        .popcornScreenBackground()
     }
 
     private var loginForm: some View {
@@ -177,6 +220,7 @@ struct ProfileView: View {
                 }
             }
         }
+        .popcornScreenBackground()
         .disabled(isLoading)
     }
 }

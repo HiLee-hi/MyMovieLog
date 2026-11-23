@@ -11,6 +11,15 @@ extension View {
         #endif
     }
 
+    /// Swipeable pages (the photo viewer); a plain tab view elsewhere
+    func pagedTabViewStyle() -> some View {
+        #if os(iOS)
+        tabViewStyle(.page(indexDisplayMode: .automatic))
+        #else
+        self
+        #endif
+    }
+
     func hidesNavigationBar(_ hidden: Bool) -> some View {
         #if os(iOS)
         toolbar(hidden ? .hidden : .visible, for: .navigationBar)
@@ -44,14 +53,6 @@ extension View {
         textContentType(isNew ? .newPassword : .password)
         #else
         textContentType(.password)
-        #endif
-    }
-
-    func groupedListStyle() -> some View {
-        #if os(iOS)
-        listStyle(.insetGrouped)
-        #else
-        listStyle(.inset)
         #endif
     }
 }

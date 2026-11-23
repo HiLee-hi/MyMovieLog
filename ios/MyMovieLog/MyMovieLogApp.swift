@@ -36,7 +36,9 @@ struct AppContainer {
             useCases: UseCaseContainer(
                 authRepository: data.authRepository,
                 movieRepository: data.movieRepository,
-                recordRepository: data.recordRepository
+                recordRepository: data.recordRepository,
+                holidayRepository: data.holidayRepository,
+                photoRepository: data.photoRepository
             )
         )
     }

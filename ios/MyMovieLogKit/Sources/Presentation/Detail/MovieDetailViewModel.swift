@@ -22,14 +22,17 @@ public final class MovieDetailViewModel {
     private let getRecordByTmdbId: GetRecordByTmdbIdUseCase
     private let upsertRecord: UpsertRecordUseCase
     private let getCurrentUserId: GetCurrentUserIdUseCase
+    private let photoSources: PhotoSourceIndex
 
     public init(
         movieId: Int,
         getMovieDetail: GetMovieDetailUseCase,
         getRecordByTmdbId: GetRecordByTmdbIdUseCase,
         upsertRecord: UpsertRecordUseCase,
-        getCurrentUserId: GetCurrentUserIdUseCase
+        getCurrentUserId: GetCurrentUserIdUseCase,
+        photoSources: PhotoSourceIndex = .shared
     ) {
+        self.photoSources = photoSources
         self.movieId = movieId
         self.getMovieDetail = getMovieDetail
         self.getRecordByTmdbId = getRecordByTmdbId
@@ -77,7 +80,7 @@ public final class MovieDetailViewModel {
         do {
             let userId = try await getCurrentUserId()
             let existing = existingRecord
-            // Movie metadata is refreshed from TMDB; photos attached on Android are kept
+            // Movie metadata is refreshed from TMDB; photos come from the draft
             let base = MovieRecord(
                 id: existing?.id ?? "",
                 userId: userId,
@@ -87,10 +90,10 @@ public final class MovieDetailViewModel {
                 posterPath: movie.posterPath,
                 genreIds: movie.genreIds,
                 status: draft.status,
-                photoUrls: existing?.photoUrls ?? [],
                 createdAt: existing?.createdAt ?? ""
             )
-            try await upsertRecord(draft.applied(to: base))
+            let uploaded = try await upsertRecord(draft.applied(to: base), newPhotos: draft.newPhotos.map(\.data))
+            photoSources.remember(paths: uploaded, sourceIds: draft.newPhotos.map(\.sourceId))
             saveState = .success
             isEditorPresented = false
         } catch {

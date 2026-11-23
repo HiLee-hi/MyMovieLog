@@ -6,16 +6,16 @@ import SwiftUI
 struct RecordEditorForm: View {
     @Binding var draft: RecordDraft
     let saveState: SaveState
-    var photoCount = 0
+    /// The record's saved photo paths (signed for the thumbnails)
+    var photoPaths: [String] = []
 
     var body: some View {
         Section {
-            Picker(L10n.recordStatus, selection: $draft.status) {
-                Text(L10n.recordStatusWatched).tag(WatchStatus.watched)
-                Text(L10n.recordStatusWishlist).tag(WatchStatus.wishlist)
+            PopcornToggle(options: [WatchStatus.watched, .wishlist], selection: $draft.status) { status in
+                status == .watched ? L10n.recordStatusWatched : L10n.recordStatusWishlist
             }
-            .pickerStyle(.segmented)
-            .labelsHidden()
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel(L10n.recordStatus)
             .listRowBackground(Color.clear)
             .listRowInsets(EdgeInsets())
         }
@@ -58,13 +58,7 @@ struct RecordEditorForm: View {
             }
         }
 
-        if photoCount > 0 {
-            Section {
-                Label(L10n.recordPhotosKept(photoCount), systemImage: "photo.on.rectangle")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
-        }
+        RecordPhotosSection(draft: $draft, savedPaths: photoPaths)
 
         if let message = saveState.errorMessage {
             Section {
@@ -96,7 +90,7 @@ struct RecordEditorSheet: View {
     @Binding var draft: RecordDraft
     let saveState: SaveState
     var saveLabel = L10n.commonSave
-    var photoCount = 0
+    var photoPaths: [String] = []
     var onDelete: (() -> Void)?
     let onSave: () async -> Void
     let onCancel: () -> Void
@@ -106,7 +100,7 @@ struct RecordEditorSheet: View {
     var body: some View {
         NavigationStack {
             Form {
-                RecordEditorForm(draft: $draft, saveState: saveState, photoCount: photoCount)
+                RecordEditorForm(draft: $draft, saveState: saveState, photoPaths: photoPaths)
 
                 if onDelete != nil {
                     Section {
@@ -114,6 +108,7 @@ struct RecordEditorSheet: View {
                     }
                 }
             }
+            .popcornScreenBackground()
             .navigationTitle(title)
             .inlineNavigationTitle()
             .disabled(saveState.isSaving)
@@ -168,7 +163,7 @@ private struct RecordEditSessionSheet: View {
                 title: record.title,
                 draft: $session.draft,
                 saveState: session.saveState,
-                photoCount: record.photoUrls.count,
+                photoPaths: record.photoUrls,
                 onDelete: onDelete.map { onDelete in { onDelete(record) } },
                 onSave: {
                     await session.save()
