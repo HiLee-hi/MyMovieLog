@@ -94,6 +94,7 @@
 
     <!-- Picker and camera -->
     <string name="picker_title">Select photos</string>
+    <string name="camera_hint">Snap your ticket or poster</string>
     <string name="camera_retake">Retake</string>
     <string name="camera_use_photo">Use photo</string>
     <string name="picker_done_count">Done (%1$d)</string>
@@ -116,11 +117,17 @@
     <string name="profile_photo_description">Profile photo</string>
     <string name="profile_default_name">User</string>
     <string name="profile_sign_out">Sign out</string>
+    <string name="profile_watched_count">Watched</string>
+    <string name="profile_wishlist_count">Want to watch</string>
 
     <!-- Stats -->
     <string name="stats_login_required">Sign in to see\nyour movie stats</string>
     <string name="stats_average_rating">Average rating</string>
     <string name="stats_watched_movies">Movies watched</string>
+    <string name="stats_vs_last_month">vs last month</string>
+    <string name="stats_vs_last_month_more">%1$d more</string>
+    <string name="stats_vs_last_month_fewer">%1$d fewer</string>
+    <string name="stats_same_as_last_month">Same as last month</string>
     <string name="stats_recent_six_months">Last 6 months</string>
     <string name="stats_average_rating_value">★ %1$s</string>
 

@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mymovie.log.R
 import com.mymovie.log.domain.model.UserProfile
+import com.mymovie.log.domain.model.WatchStatus
+import com.mymovie.log.domain.usecase.GetRecordsUseCase
 import com.mymovie.log.domain.usecase.ObserveCurrentUserUseCase
 import com.mymovie.log.domain.usecase.SignInWithEmailUseCase
 import com.mymovie.log.domain.usecase.SignInWithGoogleUseCase
@@ -17,6 +19,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -29,9 +32,12 @@ sealed class EmailAuthUiState {
     data class Error(val message: UiText) : EmailAuthUiState()
 }
 
+data class ProfileRecordCounts(val watched: Int = 0, val wishlist: Int = 0)
+
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     observeCurrentUserUseCase: ObserveCurrentUserUseCase,
+    getRecordsUseCase: GetRecordsUseCase,
     private val signInWithEmailUseCase: SignInWithEmailUseCase,
     private val signUpWithEmailUseCase: SignUpWithEmailUseCase,
     private val signInWithGoogleUseCase: SignInWithGoogleUseCase,
@@ -40,6 +46,15 @@ class ProfileViewModel @Inject constructor(
 
     val currentUser: StateFlow<UserProfile?> = observeCurrentUserUseCase()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    val recordCounts: StateFlow<ProfileRecordCounts> = getRecordsUseCase()
+        .map { records ->
+            ProfileRecordCounts(
+                watched = records.count { it.status == WatchStatus.WATCHED },
+                wishlist = records.count { it.status == WatchStatus.WISHLIST }
+            )
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ProfileRecordCounts())
 
     private val _emailAuthUiState = MutableStateFlow<EmailAuthUiState>(EmailAuthUiState.Idle)
     val emailAuthUiState: StateFlow<EmailAuthUiState> = _emailAuthUiState.asStateFlow()

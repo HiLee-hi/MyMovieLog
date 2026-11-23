@@ -94,6 +94,7 @@
 
     <!-- Picker and camera -->
     <string name="picker_title">사진 선택</string>
+    <string name="camera_hint">티켓이나 포스터를 찍어 보세요</string>
     <string name="camera_retake">다시찍기</string>
     <string name="camera_use_photo">사용하기</string>
     <string name="picker_done_count">완료 (%1$d장)</string>
@@ -116,11 +117,17 @@
     <string name="profile_photo_description">프로필 사진</string>
     <string name="profile_default_name">사용자</string>
     <string name="profile_sign_out">로그아웃</string>
+    <string name="profile_watched_count">감상 완료</string>
+    <string name="profile_wishlist_count">보고 싶은 영화</string>
 
     <!-- Stats -->
     <string name="stats_login_required">나의 영화 통계를 보려면\n로그인이 필요해요</string>
     <string name="stats_average_rating">평균 평점</string>
     <string name="stats_watched_movies">감상한 영화</string>
+    <string name="stats_vs_last_month">지난달보다</string>
+    <string name="stats_vs_last_month_more">%1$d편 더</string>
+    <string name="stats_vs_last_month_fewer">%1$d편 적게</string>
+    <string name="stats_same_as_last_month">지난달과 같아요</string>
     <string name="stats_recent_six_months">최근 6개월</string>
     <string name="stats_average_rating_value">★ %1$s</string>
 

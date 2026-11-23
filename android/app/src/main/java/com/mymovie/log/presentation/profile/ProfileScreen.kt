@@ -1,6 +1,11 @@
 package com.mymovie.log.presentation.profile
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.ui.platform.testTag
+import com.mymovie.log.presentation.ui.theme.PopcornColors
 import com.mymovie.log.presentation.ui.theme.popcornButtonColors
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -60,6 +65,7 @@ fun ProfileScreen(
 ) {
     val currentUser by viewModel.currentUser.collectAsStateWithLifecycle()
     val emailAuthUiState by viewModel.emailAuthUiState.collectAsStateWithLifecycle()
+    val recordCounts by viewModel.recordCounts.collectAsStateWithLifecycle()
 
     var showLoginSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -95,6 +101,7 @@ fun ProfileScreen(
         } else {
             UserProfileContent(
                 user = currentUser!!,
+                recordCounts = recordCounts,
                 onSignOut = viewModel::signOut
             )
         }
@@ -305,7 +312,7 @@ private fun LoginPromptContent(onEmailLogin: () -> Unit, onGoogleLogin: () -> Un
 }
 
 @Composable
-private fun UserProfileContent(user: UserProfile, onSignOut: () -> Unit) {
+internal fun UserProfileContent(user: UserProfile, recordCounts: ProfileRecordCounts, onSignOut: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -331,11 +338,51 @@ private fun UserProfileContent(user: UserProfile, onSignOut: () -> Unit) {
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .widthIn(max = ActionButtonMaxWidth)
+                .testTag(ProfileTestTags.RecordCounts),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            CountCard(
+                label = stringResource(R.string.profile_watched_count),
+                value = stringResource(R.string.common_movie_count, recordCounts.watched),
+                modifier = Modifier.weight(1f)
+            )
+            CountCard(
+                label = stringResource(R.string.profile_wishlist_count),
+                value = stringResource(R.string.common_movie_count, recordCounts.wishlist),
+                modifier = Modifier.weight(1f)
+            )
+        }
         Spacer(modifier = Modifier.height(32.dp))
         OutlinedButton(onClick = onSignOut) {
             Text(stringResource(R.string.profile_sign_out))
         }
     }
+}
+
+@Composable
+private fun CountCard(label: String, value: String, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .clip(MaterialTheme.shapes.large)
+            .background(PopcornColors.ButterLight)
+            .padding(horizontal = 16.dp, vertical = 14.dp)
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelLarge,
+            color = PopcornColors.InkMuted
+        )
+        Text(text = value, style = MaterialTheme.typography.headlineSmall)
+    }
+}
+
+internal object ProfileTestTags {
+    const val RecordCounts = "profile_record_counts"
 }
 
 /** Buttons keep their phone proportions but do not stretch across wide windows. */

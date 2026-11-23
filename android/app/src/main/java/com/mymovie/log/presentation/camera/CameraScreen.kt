@@ -42,6 +42,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
+import com.mymovie.log.presentation.ui.theme.PopcornColors
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -212,6 +214,12 @@ private fun CameraControls(onBack: () -> Unit, onShutter: () -> Unit) {
                 .padding(16.dp)
         )
 
+        CameraHint(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = 26.dp, start = 72.dp, end = 72.dp)
+        )
+
         ShutterButton(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -261,6 +269,20 @@ private fun CapturedPhotoContent(
                 }
             }
         }
+    )
+}
+
+/** Tells the user what is worth capturing for a movie record. */
+@Composable
+private fun CameraHint(modifier: Modifier = Modifier) {
+    Text(
+        text = stringResource(R.string.camera_hint),
+        style = MaterialTheme.typography.labelMedium,
+        color = PopcornColors.ButterLight,
+        textAlign = TextAlign.Center,
+        modifier = modifier
+            .background(Color.Black.copy(alpha = 0.35f), CircleShape)
+            .padding(horizontal = 12.dp, vertical = 5.dp)
     )
 }
 

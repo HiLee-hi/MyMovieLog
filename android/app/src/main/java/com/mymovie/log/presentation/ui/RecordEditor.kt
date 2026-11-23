@@ -20,9 +20,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -41,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import com.mymovie.log.R
 import com.mymovie.log.domain.model.MovieRecord
 import com.mymovie.log.domain.model.WatchStatus
+import androidx.compose.ui.semantics.Role
 import java.io.Serializable
 import java.time.LocalDate
 
@@ -97,18 +95,16 @@ fun RecordEditorForm(
     val errorMessage = (saveState as? AddRecordState.Error)?.message?.asString()
 
     Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-            SegmentedButton(
-                selected = draft.status == WatchStatus.WATCHED,
-                onClick = { onDraftChange(draft.copy(status = WatchStatus.WATCHED)) },
-                shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)
-            ) { Text(stringResource(R.string.record_status_watched)) }
-            SegmentedButton(
-                selected = draft.status == WatchStatus.WISHLIST,
-                onClick = { onDraftChange(draft.copy(status = WatchStatus.WISHLIST)) },
-                shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
-            ) { Text(stringResource(R.string.record_status_wishlist)) }
-        }
+        PopcornToggle(
+            options = listOf(WatchStatus.WATCHED, WatchStatus.WISHLIST),
+            selected = draft.status,
+            onSelect = { onDraftChange(draft.copy(status = it)) },
+            label = { status ->
+                if (status == WatchStatus.WATCHED) stringResource(R.string.record_status_watched)
+                else stringResource(R.string.record_status_wishlist)
+            },
+            role = Role.RadioButton
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
 

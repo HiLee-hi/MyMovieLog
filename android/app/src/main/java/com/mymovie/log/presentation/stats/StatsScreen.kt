@@ -24,6 +24,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
+import com.mymovie.log.presentation.ui.theme.PopcornColors
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mymovie.log.R
@@ -113,11 +119,7 @@ private fun SummarySection(uiState: StatsUiState) {
 
         Text(stringResource(R.string.common_this_month), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(8.dp))
-        StatCard(
-            modifier = Modifier.fillMaxWidth(),
-            label = stringResource(R.string.stats_watched_movies),
-            value = stringResource(R.string.common_movie_count, uiState.thisMonthCount)
-        )
+        ThisMonthCard(thisMonthCount = uiState.thisMonthCount, lastMonthCount = uiState.lastMonthCount)
     }
 }
 
@@ -148,6 +150,62 @@ private fun StatCard(modifier: Modifier = Modifier, label: String, value: String
             Text(text = label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
+}
+
+@Composable
+private fun ThisMonthCard(thisMonthCount: Int, lastMonthCount: Int) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(MaterialTheme.shapes.large)
+            .background(PopcornColors.ButterLight)
+            .padding(horizontal = 18.dp, vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = stringResource(R.string.stats_watched_movies),
+                style = MaterialTheme.typography.labelLarge,
+                color = PopcornColors.InkMuted
+            )
+            Text(
+                text = stringResource(R.string.common_movie_count, thisMonthCount),
+                style = MaterialTheme.typography.headlineMedium
+            )
+        }
+        MonthComparison(
+            thisMonthCount = thisMonthCount,
+            lastMonthCount = lastMonthCount,
+            modifier = Modifier.testTag(StatsTestTags.MonthComparison)
+        )
+    }
+}
+
+/** "지난달보다 3편 더": hidden while both months are empty, e.g. right after signing up. */
+@Composable
+private fun MonthComparison(thisMonthCount: Int, lastMonthCount: Int, modifier: Modifier = Modifier) {
+    if (thisMonthCount == 0 && lastMonthCount == 0) return
+    val diff = thisMonthCount - lastMonthCount
+    val emphasis = SpanStyle(color = PopcornColors.Caramel, fontWeight = FontWeight.Bold)
+    val text = if (diff == 0) {
+        buildAnnotatedString { append(stringResource(R.string.stats_same_as_last_month)) }
+    } else {
+        val prefix = stringResource(R.string.stats_vs_last_month)
+        val amount = if (diff > 0) stringResource(R.string.stats_vs_last_month_more, diff)
+        else stringResource(R.string.stats_vs_last_month_fewer, -diff)
+        buildAnnotatedString {
+            append(prefix)
+            append('\n')
+            withStyle(emphasis) { append(amount) }
+        }
+    }
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodySmall,
+        color = PopcornColors.InkMuted,
+        textAlign = TextAlign.End,
+        modifier = modifier.padding(start = 12.dp)
+    )
 }
 
 @Composable
@@ -190,6 +248,7 @@ private fun MonthStatRow(month: String, count: Int, maxCount: Int) {
 
 internal object StatsTestTags {
     const val TwoColumn = "stats_two_column"
+    const val MonthComparison = "stats_month_comparison"
 }
 
 @AdaptiveWindowPreviews
@@ -202,6 +261,7 @@ private fun StatsContentPreview() {
                 wishlistCount = 7,
                 averageRating = "4.1",
                 thisMonthCount = 3,
+                lastMonthCount = 6,
                 monthlyStats = (4..9).zip(listOf(2, 5, 1, 4, 6, 3)).associate { (month, count) -> YearMonth.of(2026, month) to count }
             )
         )

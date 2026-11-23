@@ -17,6 +17,7 @@ data class StatsUiState(
     val wishlistCount: Int = 0,
     val averageRating: String = "-",
     val thisMonthCount: Int = 0,
+    val lastMonthCount: Int = 0,
     val monthlyStats: Map<YearMonth, Int> = emptyMap()
 )
 
@@ -51,6 +52,7 @@ class StatsViewModel @Inject constructor(
                 wishlistCount = wishlist.size,
                 averageRating = avgRating,
                 thisMonthCount = thisMonthCount,
+                lastMonthCount = monthlyStats[thisMonth.minusMonths(1)] ?: 0,
                 monthlyStats = monthlyStats
             )
         }

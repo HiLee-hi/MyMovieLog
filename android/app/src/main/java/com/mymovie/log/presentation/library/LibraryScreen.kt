@@ -9,6 +9,9 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.ui.semantics.Role
+import com.mymovie.log.presentation.ui.PopcornToggle
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -21,8 +24,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -80,16 +81,19 @@ fun LibraryScreen(
             return@Column
         }
 
-        TabRow(selectedTabIndex = if (selectedTab == WatchStatus.WATCHED) 0 else 1) {
-            Tab(
-                selected = selectedTab == WatchStatus.WATCHED,
-                onClick = { viewModel.selectTab(WatchStatus.WATCHED) },
-                text = { Text(stringResource(R.string.library_watched_tab, watchedRecords.size)) }
-            )
-            Tab(
-                selected = selectedTab == WatchStatus.WISHLIST,
-                onClick = { viewModel.selectTab(WatchStatus.WISHLIST) },
-                text = { Text(stringResource(R.string.library_wishlist_tab, wishlistRecords.size)) }
+        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
+            PopcornToggle(
+                options = listOf(WatchStatus.WATCHED, WatchStatus.WISHLIST),
+                selected = selectedTab,
+                onSelect = viewModel::selectTab,
+                label = { status ->
+                    if (status == WatchStatus.WATCHED) stringResource(R.string.library_watched_tab, watchedRecords.size)
+                    else stringResource(R.string.library_wishlist_tab, wishlistRecords.size)
+                },
+                role = Role.Tab,
+                modifier = Modifier
+                    .widthIn(max = LibraryTabsMaxWidth)
+                    .padding(start = 16.dp, end = 16.dp, bottom = 12.dp)
             )
         }
 
@@ -231,3 +235,6 @@ private fun MovieGridItem(record: MovieRecord, onClick: () -> Unit = {}, onDelet
         }
     }
 }
+
+/** The tabs keep their phone proportions instead of stretching across wide windows. */
+private val LibraryTabsMaxWidth = 480.dp
