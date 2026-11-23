@@ -29,17 +29,9 @@ signing.properties
 # ============================================================
 # IDE — Android Studio / IntelliJ
 # ============================================================
-/android/.idea/workspace.xml
-/android/.idea/tasks.xml
-/android/.idea/gradle.xml
-/android/.idea/assetWizardSettings.xml
-/android/.idea/dictionaries
-/android/.idea/caches
-/android/.idea/libraries
-/android/.idea/deploymentTargetSelector.xml
+/android/.idea/
 # Android Studio로 저장소 루트를 열면 생기는 설정 (프로젝트는 android/ 를 연다)
 /.idea/
-# 공유 가능한 .idea 파일은 유지 (misc.xml, compiler.xml 등)
 
 # ============================================================
 # Kotlin 컴파일 세션
