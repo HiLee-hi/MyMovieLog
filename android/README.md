@@ -93,12 +93,12 @@ ViewModel  ──── UseCase ──── RepositoryImpl
 
 | UseCase | 설명 |
 |---------|------|
-| `UpsertRecordUseCase` | 영화 기록 추가/수정 (Supabase 저장 후 Room 반영). 수정 중 뺀 사진은 저장 후 Storage에서 삭제 |
+| `UpsertRecordUseCase` | 영화 기록 추가/수정 (Supabase 저장 후 Room 반영). 새 사진을 먼저 올리고, 저장이 실패하면 방금 올린 사진을 다시 삭제. 수정 중 뺀 사진은 저장 후 Storage에서 삭제 |
 | `DeleteRecordUseCase` | 기록 삭제 후 연결 사진을 Supabase Storage에서 삭제 (사진 삭제 실패는 기록 삭제를 되돌리지 않음) |
 | `SearchMoviesUseCase` | TMDB Paging3 기반 무한 스크롤 검색 |
 | `GetWatchedDatesByMonthUseCase` | 캘린더 dot 마커용 월별 감상 날짜 조회 |
 | `GetHolidaysByMonthUseCase` | 공휴일 API → Room 캐시 후 반환 |
-| `UploadPhotosUseCase` / `GetSignedPhotoUrlsUseCase` | Supabase Storage 사진 업로드·조회 |
+| `GetSignedPhotoUrlsUseCase` | Supabase Storage 사진 조회 (서명 URL). 업로드는 `UpsertRecordUseCase`가 맡음 |
 
 ---
 

@@ -10,7 +10,6 @@ import com.mymovie.log.domain.usecase.DeleteRecordUseCase
 import com.mymovie.log.domain.usecase.GetCurrentUserIdUseCase
 import com.mymovie.log.domain.usecase.GetRecordsUseCase
 import com.mymovie.log.domain.usecase.GetSignedPhotoUrlsUseCase
-import com.mymovie.log.domain.usecase.UploadPhotosUseCase
 import com.mymovie.log.domain.usecase.UpsertRecordUseCase
 import com.mymovie.log.presentation.calendar.CalendarScreen
 import com.mymovie.log.presentation.calendar.CalendarTestTags
@@ -181,7 +180,6 @@ class AdaptiveScreenLayoutTest(private val spec: WindowSpec) {
             GetRecordsUseCase(repo),
             DeleteRecordUseCase(repo, FakePhotoRepository()),
             UpsertRecordUseCase(repo, FakePhotoRepository()),
-            UploadPhotosUseCase(FakePhotoRepository()),
             GetSignedPhotoUrlsUseCase(FakePhotoRepository()),
             GetCurrentUserIdUseCase(FakeAuthRepository()),
             SavedStateHandle()

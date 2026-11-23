@@ -11,7 +11,6 @@ import com.mymovie.log.domain.usecase.GetRecordsByDateUseCase
 import com.mymovie.log.domain.usecase.GetSignedPhotoUrlsUseCase
 import com.mymovie.log.domain.usecase.GetWatchedDatesByMonthUseCase
 import com.mymovie.log.domain.usecase.SearchMoviesUseCase
-import com.mymovie.log.domain.usecase.UploadPhotosUseCase
 import com.mymovie.log.domain.usecase.UpsertRecordUseCase
 import com.mymovie.log.presentation.calendar.CalendarViewModel
 import com.mymovie.log.presentation.detail.DetailUiState
@@ -63,7 +62,6 @@ class StatePreservationTest {
     private fun movieDetailViewModel(handle: SavedStateHandle) = MovieDetailViewModel(
         getMovieDetailUseCase = GetMovieDetailUseCase(FakeMovieRepository()),
         upsertRecordUseCase = UpsertRecordUseCase(recordRepository, FakePhotoRepository()),
-        uploadPhotosUseCase = UploadPhotosUseCase(FakePhotoRepository()),
         getSignedPhotoUrlsUseCase = GetSignedPhotoUrlsUseCase(FakePhotoRepository()),
         getCurrentUserIdUseCase = GetCurrentUserIdUseCase(FakeAuthRepository()),
         getRecordByTmdbIdUseCase = GetRecordByTmdbIdUseCase(recordRepository),

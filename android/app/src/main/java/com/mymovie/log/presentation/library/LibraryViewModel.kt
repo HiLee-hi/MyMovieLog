@@ -11,7 +11,6 @@ import com.mymovie.log.domain.usecase.DeleteRecordUseCase
 import com.mymovie.log.domain.usecase.GetCurrentUserIdUseCase
 import com.mymovie.log.domain.usecase.GetRecordsUseCase
 import com.mymovie.log.domain.usecase.GetSignedPhotoUrlsUseCase
-import com.mymovie.log.domain.usecase.UploadPhotosUseCase
 import com.mymovie.log.domain.usecase.UpsertRecordUseCase
 import com.mymovie.log.presentation.ui.AddRecordState
 import com.mymovie.log.presentation.ui.PhotoAttachmentHost
@@ -33,7 +32,6 @@ class LibraryViewModel @Inject constructor(
     getRecordsUseCase: GetRecordsUseCase,
     private val deleteRecordUseCase: DeleteRecordUseCase,
     private val upsertRecordUseCase: UpsertRecordUseCase,
-    private val uploadPhotosUseCase: UploadPhotosUseCase,
     private val getSignedPhotoUrlsUseCase: GetSignedPhotoUrlsUseCase,
     private val getCurrentUserIdUseCase: GetCurrentUserIdUseCase,
     savedStateHandle: SavedStateHandle
@@ -143,21 +141,19 @@ class LibraryViewModel @Inject constructor(
             AppLogger.i("VM_LIBRARY", "Update record: id=${AppLogger.shortId(record.id)}, status=${status.value}")
             runCatching {
                 val userId = getCurrentUserIdUseCase()
-                val newPhotoPaths = if (_attachedUris.value.isNotEmpty()) {
-                    AppLogger.i("VM_LIBRARY", "Uploading ${_attachedUris.value.size} photos")
-                    uploadPhotosUseCase(userId, record.tmdbId, _attachedUris.value)
-                } else emptyList()
-
+                // New photos are uploaded by the use case, which also rolls them back if the save fails
                 upsertRecordUseCase(
                     record.copy(
+                        userId = userId,
                         status = status,
                         rating = rating,
                         watchedAt = watchedAt,
                         review = review?.takeIf { it.isNotBlank() },
                         memo = memo?.takeIf { it.isNotBlank() },
-                        photoUrls = _keptExistingPhotoPaths.value + newPhotoPaths,
+                        photoUrls = _keptExistingPhotoPaths.value,
                         photoSourceUris = _keptExistingPhotoSourceUris.value + _attachedUris.value.map { it.toString() }
-                    )
+                    ),
+                    newPhotoUris = _attachedUris.value
                 )
             }
                 .onSuccess {

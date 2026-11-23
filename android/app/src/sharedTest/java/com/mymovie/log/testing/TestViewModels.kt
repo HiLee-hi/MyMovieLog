@@ -12,7 +12,6 @@ import com.mymovie.log.domain.usecase.GetRecordsUseCase
 import com.mymovie.log.domain.usecase.GetSignedPhotoUrlsUseCase
 import com.mymovie.log.domain.usecase.GetWatchedDatesByMonthUseCase
 import com.mymovie.log.domain.usecase.SearchMoviesUseCase
-import com.mymovie.log.domain.usecase.UploadPhotosUseCase
 import com.mymovie.log.domain.usecase.UpsertRecordUseCase
 import com.mymovie.log.presentation.calendar.CalendarViewModel
 import com.mymovie.log.presentation.detail.MovieDetailViewModel
@@ -43,7 +42,6 @@ object TestViewModels {
     fun home(repo: FakeMovieRecordRepository = recordRepository()) = HomeViewModel(
         GetRecordsUseCase(repo),
         UpsertRecordUseCase(repo, FakePhotoRepository()),
-        UploadPhotosUseCase(FakePhotoRepository()),
         GetSignedPhotoUrlsUseCase(FakePhotoRepository()),
         GetCurrentUserIdUseCase(FakeAuthRepository())
     )
@@ -68,7 +66,6 @@ object TestViewModels {
     ) = MovieDetailViewModel(
         GetMovieDetailUseCase(FakeMovieRepository()),
         UpsertRecordUseCase(repo, FakePhotoRepository()),
-        UploadPhotosUseCase(FakePhotoRepository()),
         GetSignedPhotoUrlsUseCase(FakePhotoRepository()),
         GetCurrentUserIdUseCase(FakeAuthRepository()),
         GetRecordByTmdbIdUseCase(repo),

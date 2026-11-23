@@ -28,14 +28,25 @@ class PhotoRepositoryImpl @Inject constructor(
         private const val JPEG_QUALITY = 85
     }
 
+    /** All or nothing: if one photo fails, the ones already uploaded in this batch are deleted. */
     override suspend fun uploadPhotos(userId: String, tmdbId: Int, uris: List<Uri>): List<String> {
-        return uris.map { uri ->
-            val path = "$userId/$tmdbId/${UUID.randomUUID()}.jpg"
-            val bytes = compressImage(uri)
-            storage.from(BUCKET).upload(path, bytes) { upsert = true }
-            AppLogger.d("REPO_PHOTO", "Uploaded: $path (${bytes.size / 1024}KB)")
-            path
+        val uploaded = mutableListOf<String>()
+        try {
+            for (uri in uris) {
+                val path = "$userId/$tmdbId/${UUID.randomUUID()}.jpg"
+                val bytes = compressImage(uri)
+                storage.from(BUCKET).upload(path, bytes) { upsert = true }
+                AppLogger.d("REPO_PHOTO", "Uploaded: $path (${bytes.size / 1024}KB)")
+                uploaded += path
+            }
+        } catch (e: Exception) {
+            if (uploaded.isNotEmpty()) {
+                runCatching { deletePhotos(uploaded) }
+                    .onFailure { AppLogger.e("REPO_PHOTO", "Cleanup after failed upload failed: count=${uploaded.size}", it) }
+            }
+            throw e
         }
+        return uploaded
     }
 
     override suspend fun getSignedUrls(paths: List<String>): List<String> {

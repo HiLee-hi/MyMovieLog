@@ -50,6 +50,8 @@ class FakeMovieRepository(private val movies: List<Movie> = listOf(testMovie(1),
 
 class FakeMovieRecordRepository(initial: List<MovieRecord> = emptyList()) : MovieRecordRepository {
     val records = MutableStateFlow(initial)
+    /** Makes upsertRecord throw, like a failed Supabase request */
+    var failUpsert = false
     override fun getRecords(status: WatchStatus?): Flow<List<MovieRecord>> =
         records.map { list -> if (status == null) list else list.filter { it.status == status } }
     override fun getRecordByTmdbId(tmdbId: Int): Flow<MovieRecord?> =
@@ -59,6 +61,7 @@ class FakeMovieRecordRepository(initial: List<MovieRecord> = emptyList()) : Movi
     override fun getWatchedDatesByMonth(year: Int, month: Int): Flow<Set<LocalDate>> =
         records.map { list -> list.mapNotNull { it.watchedAt }.filter { it.year == year && it.monthValue == month }.toSet() }
     override suspend fun upsertRecord(record: MovieRecord) {
+        if (failUpsert) throw IllegalStateException("network unavailable")
         records.value = records.value.filterNot { it.id == record.id } + record
     }
     override suspend fun deleteRecord(recordId: String) {
@@ -70,7 +73,9 @@ class FakeMovieRecordRepository(initial: List<MovieRecord> = emptyList()) : Movi
 
 class FakePhotoRepository(private val failDelete: Boolean = false) : PhotoRepository {
     val deletedPaths = mutableListOf<String>()
-    override suspend fun uploadPhotos(userId: String, tmdbId: Int, uris: List<Uri>): List<String> = emptyList()
+    val uploadedPaths = mutableListOf<String>()
+    override suspend fun uploadPhotos(userId: String, tmdbId: Int, uris: List<Uri>): List<String> =
+        uris.indices.map { "$userId/$tmdbId/new$it.jpg" }.also { uploadedPaths += it }
     override suspend fun getSignedUrls(paths: List<String>): List<String> = paths.map { "https://signed/$it" }
     override suspend fun deletePhotos(paths: List<String>) {
         if (failDelete) throw IllegalStateException("storage unavailable")

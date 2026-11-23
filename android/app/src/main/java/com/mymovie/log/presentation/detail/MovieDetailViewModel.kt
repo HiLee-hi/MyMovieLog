@@ -13,7 +13,6 @@ import com.mymovie.log.domain.usecase.GetCurrentUserIdUseCase
 import com.mymovie.log.domain.usecase.GetMovieDetailUseCase
 import com.mymovie.log.domain.usecase.GetRecordByTmdbIdUseCase
 import com.mymovie.log.domain.usecase.GetSignedPhotoUrlsUseCase
-import com.mymovie.log.domain.usecase.UploadPhotosUseCase
 import com.mymovie.log.domain.usecase.UpsertRecordUseCase
 import com.mymovie.log.presentation.ui.AddRecordState
 import com.mymovie.log.presentation.ui.PhotoAttachmentHost
@@ -40,7 +39,6 @@ sealed interface DetailUiState {
 class MovieDetailViewModel @Inject constructor(
     private val getMovieDetailUseCase: GetMovieDetailUseCase,
     private val upsertRecordUseCase: UpsertRecordUseCase,
-    private val uploadPhotosUseCase: UploadPhotosUseCase,
     private val getSignedPhotoUrlsUseCase: GetSignedPhotoUrlsUseCase,
     private val getCurrentUserIdUseCase: GetCurrentUserIdUseCase,
     private val getRecordByTmdbIdUseCase: GetRecordByTmdbIdUseCase,
@@ -199,10 +197,6 @@ class MovieDetailViewModel @Inject constructor(
             _addRecordState.value = AddRecordState.Saving
             try {
                 val userId = getCurrentUserIdUseCase()
-                val newPhotoPaths = if (_attachedUris.value.isNotEmpty()) {
-                    AppLogger.i("VM_DETAIL", "Uploading ${_attachedUris.value.size} photos")
-                    uploadPhotosUseCase(userId, movie.id, _attachedUris.value)
-                } else emptyList()
 
                 val record = MovieRecord(
                     id = existingRecord.value?.id ?: "",
@@ -217,11 +211,12 @@ class MovieDetailViewModel @Inject constructor(
                     review = review?.takeIf { it.isNotBlank() },
                     memo = memo?.takeIf { it.isNotBlank() },
                     watchedAt = watchedAt,
-                    photoUrls = _keptExistingPhotoPaths.value + newPhotoPaths,
+                    photoUrls = _keptExistingPhotoPaths.value,
                     photoSourceUris = _keptExistingPhotoSourceUris.value + _attachedUris.value.map { it.toString() }
                 )
                 AppLogger.i("VM_DETAIL", "Saving record: tmdbId=${movie.id}, status=${status.value}, photos=${record.photoUrls.size}")
-                upsertRecordUseCase(record)
+                // New photos are uploaded by the use case, which also rolls them back if the save fails
+                upsertRecordUseCase(record, newPhotoUris = _attachedUris.value)
                 AppLogger.i("VM_DETAIL", "Record saved successfully")
                 _addRecordState.value = AddRecordState.Success
                 _recordSavedThisSession.value = true
