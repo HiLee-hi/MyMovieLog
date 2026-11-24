@@ -1,0 +1,11 @@
+public struct GetRecordByTmdbIdUseCase: Sendable {
+    private let repository: any MovieRecordRepository
+
+    public init(repository: any MovieRecordRepository) {
+        self.repository = repository
+    }
+
+    public func callAsFunction(tmdbId: Int) -> AsyncStream<MovieRecord?> {
+        repository.getRecordByTmdbId(tmdbId)
+    }
+}

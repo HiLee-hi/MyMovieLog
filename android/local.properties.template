@@ -1,0 +1,19 @@
+# Copy this file to local.properties and fill in the values below.
+# This file (.template) is committed to git; local.properties is excluded via .gitignore.
+
+# 공공데이터포털 API 인증키 (data.go.kr → 한국천문연구원_특일 정보 서비스 신청 후 발급)
+# 마이페이지 → 인증키 발급현황 → "일반 인증키" 항목의 [디코딩] 탭 키를 붙여넣기
+# (Retrofit이 요청할 때 키를 URL 인코딩하므로, [인코딩] 키를 쓰면 두 번 인코딩되어 인증이 실패함)
+PUBLIC_DATA_API_KEY=your_public_data_api_key_here
+
+# TMDB API key (obtain from https://developer.themoviedb.org)
+TMDB_API_KEY=your_tmdb_api_key_here
+
+# Supabase project URL (Supabase dashboard > Settings > API)
+SUPABASE_URL=https://your-project-id.supabase.co
+
+# Supabase anon public key
+SUPABASE_ANON_KEY=your_supabase_anon_key_here
+
+# Android SDK path (set automatically by Android Studio)
+sdk.dir=/Users/your_username/Library/Android/sdk

@@ -1,0 +1,308 @@
+package com.mymovie.log.presentation.ui
+
+import android.app.DatePickerDialog
+import android.net.Uri
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import com.mymovie.log.R
+import com.mymovie.log.domain.model.Movie
+import com.mymovie.log.domain.model.WatchStatus
+import java.time.LocalDate
+
+sealed class AddRecordState {
+    object Idle : AddRecordState()
+    object Saving : AddRecordState()
+    object Success : AddRecordState()
+    data class Error(val message: UiText) : AddRecordState()
+}
+
+private const val MAX_PHOTOS = 10
+private val THUMBNAIL_SIZE = 72.dp
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddRecordBottomSheet(
+    movie: Movie,
+    draft: RecordDraft,
+    onDraftChange: (RecordDraft) -> Unit,
+    addRecordState: AddRecordState,
+    existingPhotoSignedUrls: List<String> = emptyList(),
+    attachedUris: List<Uri> = emptyList(),
+    onOpenCamera: () -> Unit = {},
+    onOpenAlbumPicker: () -> Unit = {},
+    onRemovePhoto: (Uri) -> Unit = {},
+    onRemoveExistingPhoto: (String) -> Unit = {},
+    onDismiss: () -> Unit,
+    onSave: (WatchStatus, Float?, LocalDate?, String?, String?) -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    LaunchedEffect(addRecordState) {
+        if (addRecordState is AddRecordState.Success) {
+            sheetState.hide()
+            onDismiss()
+        }
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        dragHandle = { BottomSheetDefaults.DragHandle() }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = movie.title,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+            if (movie.originalTitle != movie.title) {
+                Text(
+                    text = movie.originalTitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            RecordEditorForm(
+                draft = draft,
+                onDraftChange = onDraftChange,
+                saveState = addRecordState,
+                saveLabel = stringResource(R.string.record_save),
+                onSave = onSave,
+                attachedUris = attachedUris,
+                existingPhotoUrls = existingPhotoSignedUrls,
+                onOpenCamera = onOpenCamera,
+                onOpenAlbumPicker = onOpenAlbumPicker,
+                onRemovePhoto = onRemovePhoto,
+                onRemoveExistingPhoto = onRemoveExistingPhoto
+            )
+        }
+    }
+}
+
+@Composable
+internal fun PhotoAttachSection(
+    attachedUris: List<Uri>,
+    existingPhotoUrls: List<String> = emptyList(),
+    onOpenCamera: () -> Unit,
+    onOpenAlbumPicker: () -> Unit,
+    onRemovePhoto: (Uri) -> Unit,
+    onRemoveExistingPhoto: (String) -> Unit = {},
+    enabled: Boolean
+) {
+    val totalPhotoCount = existingPhotoUrls.size + attachedUris.size
+    val canAddMore = totalPhotoCount < MAX_PHOTOS
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(stringResource(R.string.record_photos), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+            Text(
+                text = "$totalPhotoCount / $MAX_PHOTOS",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            if (canAddMore) {
+                PhotoActionButton(
+                    icon = Icons.Default.PhotoCamera,
+                    label = stringResource(R.string.record_camera),
+                    enabled = enabled,
+                    onClick = onOpenCamera
+                )
+                PhotoActionButton(
+                    icon = Icons.Default.PhotoLibrary,
+                    label = stringResource(R.string.record_album),
+                    enabled = enabled,
+                    onClick = onOpenAlbumPicker
+                )
+            }
+            attachedUris.forEach { uri ->
+                PhotoThumbnail(
+                    uri = uri,
+                    enabled = enabled,
+                    onRemove = { onRemovePhoto(uri) }
+                )
+            }
+            existingPhotoUrls.forEach { url ->
+                ExistingPhotoThumbnail(
+                    url = url,
+                    enabled = enabled,
+                    onRemove = { onRemoveExistingPhoto(url) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+internal fun PhotoActionButton(
+    icon: ImageVector,
+    label: String,
+    enabled: Boolean,
+    onClick: () -> Unit
+) {
+    OutlinedButton(
+        onClick = onClick,
+        enabled = enabled,
+        contentPadding = PaddingValues(0.dp),
+        modifier = Modifier.size(THUMBNAIL_SIZE),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(label, style = MaterialTheme.typography.labelSmall)
+        }
+    }
+}
+
+@Composable
+internal fun PhotoThumbnail(
+    uri: Uri,
+    enabled: Boolean,
+    onRemove: () -> Unit
+) {
+    Box(modifier = Modifier.size(THUMBNAIL_SIZE)) {
+        AsyncImage(
+            model = uri,
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1f)
+                .clip(RoundedCornerShape(8.dp))
+        )
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(3.dp)
+                .size(18.dp)
+                .background(Color.Black.copy(alpha = 0.6f), CircleShape)
+                .then(if (enabled) Modifier.clickable(onClick = onRemove) else Modifier),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = stringResource(R.string.record_remove_photo),
+                tint = Color.White,
+                modifier = Modifier.size(12.dp)
+            )
+        }
+    }
+}
+
+@Composable
+internal fun ExistingPhotoThumbnail(
+    url: String,
+    enabled: Boolean = true,
+    onRemove: () -> Unit = {}
+) {
+    Box(modifier = Modifier.size(THUMBNAIL_SIZE)) {
+        AsyncImage(
+            model = url,
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1f)
+                .clip(RoundedCornerShape(8.dp))
+        )
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(3.dp)
+                .size(18.dp)
+                .background(Color.Black.copy(alpha = 0.6f), CircleShape)
+                .then(if (enabled) Modifier.clickable(onClick = onRemove) else Modifier),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = stringResource(R.string.record_remove_photo),
+                tint = Color.White,
+                modifier = Modifier.size(12.dp)
+            )
+        }
+    }
+}
