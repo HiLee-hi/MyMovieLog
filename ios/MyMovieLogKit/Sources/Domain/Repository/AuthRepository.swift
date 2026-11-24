@@ -1,4 +1,4 @@
-/// Streams emit the current value immediately and again after every change.
+// streams emit now and after every change
 public protocol AuthRepository: Sendable {
     func observeCurrentUser() -> AsyncStream<UserProfile?>
     func currentUserId() async -> String?

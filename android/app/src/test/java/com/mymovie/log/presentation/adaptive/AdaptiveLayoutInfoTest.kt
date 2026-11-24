@@ -8,21 +8,17 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/**
- * Window-size / aspect-ratio / posture decisions. The windows are generic sizes that stand for
- * kinds of windows (phone, 10:16 cover screen, 4:3 inner display, tablet, split screen...),
- * not specific devices.
- */
+// size / aspect / posture decisions, windows are generic kinds, not devices
 class AdaptiveLayoutInfoTest {
 
     private fun window(width: Int, height: Int, isTabletop: Boolean = false, hinges: List<HingeInfo> = emptyList()) =
         AdaptiveLayoutInfo(width.dp, height.dp, isTabletop, hinges)
 
-    // Search: list 360 + spacing 24 + detail 360, shown next to the navigation rail
+    // search: list 360 + 24 + detail 360, next to the rail
     private fun AdaptiveLayoutInfo.searchPanes() =
         paneCount(AdaptiveDimens.ListPaneWidth, AdaptiveDimens.DetailPaneMinWidth)
 
-    // Calendar: 336 + 300 (+ 400 on Large), shown without the navigation rail
+    // calendar: 336 + 300 (+ 400 on Large), no rail
     private fun AdaptiveLayoutInfo.calendarPanes() =
         paneCount(336.dp, 300.dp, extraPaneMinWidth = 400.dp, hasNavigationRail = false)
 
@@ -30,7 +26,7 @@ class AdaptiveLayoutInfoTest {
     fun phonePortrait_isCompactWithBottomBarAndSinglePane() {
         val info = window(411, 891)
         assertEquals(WindowWidthClass.Compact, info.widthClass)
-        // Expanded height starts at 900dp
+        // expanded height from 900dp
         assertEquals(WindowHeightClass.Medium, info.heightClass)
         assertEquals(NavigationLayout.BottomBar, info.navigationLayout)
         assertEquals(1, info.searchPanes())
@@ -74,7 +70,7 @@ class AdaptiveLayoutInfoTest {
         assertEquals(NavigationLayout.Rail, info.navigationLayout)
         // 800dp next to the rail: list 360 + 24 + detail 416
         assertEquals(2, info.searchPanes())
-        // Not a Large window, so never three panes — even though it is "a big foldable"
+        // not Large -> no third pane, even on a big foldable
         assertEquals(2, info.calendarPanes())
     }
 
@@ -84,9 +80,9 @@ class AdaptiveLayoutInfoTest {
         assertEquals(WindowWidthClass.Medium, info.widthClass)
         assertTrue(info.isNearSquare)
         assertEquals(NavigationLayout.Rail, info.navigationLayout)
-        // 580dp next to the rail cannot fit list + detail without squeezing them
+        // 580dp next to the rail can't fit list + detail
         assertEquals(1, info.searchPanes())
-        // Calendar has no rail and smaller panes: 336 + 24 + 300 = 660
+        // calendar: no rail, smaller panes, 336 + 24 + 300 = 660
         assertEquals(2, info.calendarPanes())
     }
 

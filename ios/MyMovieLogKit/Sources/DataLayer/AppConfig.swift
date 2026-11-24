@@ -1,12 +1,11 @@
 import Foundation
 
-/// API keys and endpoints. The app reads them from Info.plist, which gets them from
-/// `Config/Secrets.xcconfig` (generated from the Android `local.properties`).
+// from Info.plist <- Config/Secrets.xcconfig <- android local.properties
 public struct AppConfig: Sendable {
     public let tmdbApiKey: String
     public let supabaseURL: URL
     public let supabaseAnonKey: String
-    /// Optional: without it the calendar shows weekends but no public holidays
+    // optional, without it the calendar shows weekends only
     public let publicDataApiKey: String?
 
     public init(tmdbApiKey: String, supabaseURL: URL, supabaseAnonKey: String, publicDataApiKey: String? = nil) {
@@ -16,7 +15,7 @@ public struct AppConfig: Sendable {
         self.publicDataApiKey = publicDataApiKey
     }
 
-    /// Nil when a key is missing or still the `$(...)` placeholder of an unset build setting.
+    // nil when missing or still the `$(...)` placeholder
     public static func fromInfoDictionary(_ info: [String: Any]) -> AppConfig? {
         func value(_ key: String) -> String? {
             guard let raw = info[key] as? String else { return nil }

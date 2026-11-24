@@ -42,11 +42,8 @@ import androidx.compose.ui.semantics.Role
 import java.io.Serializable
 import java.time.LocalDate
 
-/**
- * In-progress record form values. Held by ViewModels (never by the form composable) so a draft
- * survives fold/unfold, rotation, window resizing and the switch between the bottom sheet and
- * the inline pane. [Serializable] so it can also be kept in a SavedStateHandle.
- */
+// draft held by ViewModels, not the composable, so it survives fold / rotate / resize / sheet <-> pane
+// Serializable for SavedStateHandle
 data class RecordDraft(
     val status: WatchStatus = WatchStatus.WATCHED,
     val rating: Float = 0f,
@@ -67,11 +64,7 @@ data class RecordDraft(
     }
 }
 
-/**
- * The record form (status, rating, watched date, review/memo, photos, save), without any
- * container. Used inside the bottom sheets on compact windows and inline next to the movie
- * information on wide windows.
- */
+// form only, no container: inside sheets on compact, inline on wide
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecordEditorForm(

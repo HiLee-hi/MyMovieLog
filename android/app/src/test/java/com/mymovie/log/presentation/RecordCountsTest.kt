@@ -26,7 +26,7 @@ import org.junit.Before
 import org.junit.Test
 import java.time.LocalDate
 
-/** Counts behind the profile cards and the stats "vs last month" line. */
+// counts for the profile cards and the stats "vs last month" line
 @OptIn(ExperimentalCoroutinesApi::class)
 class RecordCountsTest {
 

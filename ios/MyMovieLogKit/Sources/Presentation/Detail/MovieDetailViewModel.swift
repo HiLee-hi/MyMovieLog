@@ -45,7 +45,7 @@ public final class MovieDetailViewModel {
         return nil
     }
 
-    /// Runs again each time the screen appears; only fetches until it has succeeded once
+    // runs on every appear, fetches until the first success
     public func loadDetail() async {
         guard movie == nil else { return }
         phase = .loading
@@ -80,7 +80,7 @@ public final class MovieDetailViewModel {
         do {
             let userId = try await getCurrentUserId()
             let existing = existingRecord
-            // Movie metadata is refreshed from TMDB; photos come from the draft
+            // metadata refreshed from TMDB, photos from the draft
             let base = MovieRecord(
                 id: existing?.id ?? "",
                 userId: userId,

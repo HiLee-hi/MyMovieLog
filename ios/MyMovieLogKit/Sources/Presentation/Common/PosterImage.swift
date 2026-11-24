@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// TMDB poster in the 2:3 ratio, with a film placeholder while loading or when there is none
+// 2:3 TMDB poster, film placeholder while loading / missing
 struct PosterImage: View {
     let url: URL?
     var cornerRadius: CGFloat = PopcornRadius.medium

@@ -10,10 +10,7 @@ class DeleteRecordUseCase @Inject constructor(
     private val repository: MovieRecordRepository,
     private val photoRepository: PhotoRepository
 ) {
-    /**
-     * Deletes the record, then its photos in Storage. A failed photo delete leaves an orphaned
-     * file but the record stays deleted.
-     */
+    // record first, then Storage photos, a failed photo delete just leaves an orphan
     suspend operator fun invoke(recordId: String) {
         val photos = repository.getRecords().first().firstOrNull { it.id == recordId }?.photoUrls.orEmpty()
         repository.deleteRecord(recordId)

@@ -34,7 +34,7 @@ class ColumnSplitTest {
 
     @Test
     fun zeroWidthFold_isCenteredInTheGap() {
-        // Layout starts at x=100 in the window; the fold is at x=600
+        // layout at x=100, fold at x=600
         val fold = Rect(600f, 0f, 600f, 2000f)
         val split = computeColumnSplit(100f, layoutWidth = 1000, minColumnWidth = 300, spacing = 24, firstFraction = 0.7f, verticalFolds = listOf(fold))
         assertTrue(split.sideBySide)

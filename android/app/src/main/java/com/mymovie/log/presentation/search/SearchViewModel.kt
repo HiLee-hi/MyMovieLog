@@ -23,7 +23,7 @@ class SearchViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    // Kept in SavedStateHandle so the query survives fold/unfold, rotation and process recreation
+    // SavedStateHandle -> query survives fold / rotate / process death
     val query: StateFlow<String> = savedStateHandle.getStateFlow(KEY_QUERY, "")
 
     val isSearchActive: StateFlow<Boolean> = savedStateHandle.getStateFlow(KEY_ACTIVE, false)

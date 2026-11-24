@@ -24,7 +24,7 @@ final class AuthRepositoryImpl: AuthRepository {
     }
 
     func currentUserId() async -> String? {
-        // `session` refreshes an expired token; fall back to the stored user when offline
+        // `session` refreshes expired tokens, offline -> stored user
         let user = (try? await auth.session.user) ?? auth.currentUser
         return user?.id.uuidString.lowercased()
     }

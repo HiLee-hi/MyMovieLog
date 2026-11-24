@@ -50,10 +50,9 @@ class MovieDetailViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<DetailUiState>(DetailUiState.Loading)
     val uiState: StateFlow<DetailUiState> = _uiState.asStateFlow()
 
-    // The record editor state below is mirrored into SavedStateHandle so an in-progress record
-    // survives configuration changes (fold/unfold, rotation, resize) and process recreation.
+    // editor state mirrored into SavedStateHandle -> draft survives config change / process death
 
-    /** Whether the record editor is open — rendered as a bottom sheet or as an inline pane. */
+    // bottom sheet or inline pane
     private val _showBottomSheet = MutableStateFlow(savedStateHandle[KEY_EDITOR_OPEN] ?: false)
     val showBottomSheet: StateFlow<Boolean> = _showBottomSheet.asStateFlow()
 
@@ -86,7 +85,7 @@ class MovieDetailViewModel @Inject constructor(
 
     init {
         loadDetail()
-        // Signed URLs expire, so after recreation they are fetched again for the kept photos
+        // signed URLs expire -> refetch for kept photos after recreation
         if (_showBottomSheet.value && _keptExistingPhotoPaths.value.isNotEmpty()) {
             loadSignedUrls(_keptExistingPhotoPaths.value)
         }
@@ -215,7 +214,7 @@ class MovieDetailViewModel @Inject constructor(
                     photoSourceUris = _keptExistingPhotoSourceUris.value + _attachedUris.value.map { it.toString() }
                 )
                 AppLogger.i("VM_DETAIL", "Saving record: tmdbId=${movie.id}, status=${status.value}, photos=${record.photoUrls.size}")
-                // New photos are uploaded by the use case, which also rolls them back if the save fails
+                // use case uploads new photos and rolls them back on failure
                 upsertRecordUseCase(record, newPhotoUris = _attachedUris.value)
                 AppLogger.i("VM_DETAIL", "Record saved successfully")
                 _addRecordState.value = AddRecordState.Success

@@ -1,12 +1,12 @@
 import Domain
 import Foundation
 
-/// A photo picked in this editing session, not uploaded yet
+// picked this session, not uploaded yet
 public struct AttachedPhoto: Identifiable, Equatable, Sendable {
     public let id: UUID
-    /// Image data as the picker or camera delivered it; resized when uploaded
+    // raw picker / camera data, resized on upload
     public let data: Data
-    /// Photo library item identifier for album picks; nil for camera photos
+    // library item id for album picks, nil for camera
     public let sourceId: String?
 
     public init(id: UUID = UUID(), data: Data, sourceId: String? = nil) {
@@ -16,20 +16,19 @@ public struct AttachedPhoto: Identifiable, Equatable, Sendable {
     }
 }
 
-/// In-progress record form values. Held by ViewModels, not by the form view, so a draft
-/// survives the sheet being re-created (rotation, iPad multitasking resizes).
+// draft held by ViewModels, not the view, survives sheet re-creation (rotate, iPad resize)
 public struct RecordDraft: Equatable, Sendable {
     public var status: WatchStatus
     public var rating: Double
     public var watchedAt: LocalDate?
     public var review: String
     public var memo: String
-    /// Storage paths of the record's photos that stay attached
+    // saved photo paths that stay
     public var keptPhotoPaths: [String]
-    /// Photos added in this session, uploaded on save
+    // added this session, uploaded on save
     public var newPhotos: [AttachedPhoto]
 
-    /// Same limit as the Android editor
+    // same limit as android
     public static let maxPhotos = 10
 
     public init(
@@ -53,14 +52,13 @@ public struct RecordDraft: Equatable, Sendable {
     public var photoCount: Int { keptPhotoPaths.count + newPhotos.count }
     public var remainingPhotoSlots: Int { max(Self.maxPhotos - photoCount, 0) }
 
-    /// Adds as many as fit under the limit
+    // up to the limit
     public mutating func attach(_ images: [Data]) {
         attach(images.map { AttachedPhoto(data: $0) })
     }
 
-    /// Adds as many as fit under the limit, skipping photos that are already attached: the same
-    /// library item (`knownSourceIds` covers the saved photos), or the same data when the item is
-    /// unknown. Returns how many were skipped as duplicates.
+    // up to the limit, skips duplicates: same library item (knownSourceIds = saved) or same data
+    // returns skipped count
     @discardableResult
     public mutating func attach(_ photos: [AttachedPhoto], knownSourceIds: Set<String> = []) -> Int {
         var seenSources = knownSourceIds.union(newPhotos.compactMap(\.sourceId))
@@ -94,9 +92,8 @@ public struct RecordDraft: Equatable, Sendable {
         )
     }
 
-    /// Writes the form into a record the same way the Android editor does: a watched record
-    /// keeps rating, date and review; a wishlist record keeps only the memo. Blank text and a
-    /// zero rating are stored as null.
+    // same as android: watched keeps rating / date / review, wishlist keeps memo only
+    // blank text and 0 rating -> null
     public func applied(to record: MovieRecord) -> MovieRecord {
         var updated = record
         let watched = status == .watched
@@ -105,7 +102,7 @@ public struct RecordDraft: Equatable, Sendable {
         updated.watchedAt = watched ? watchedAt : nil
         updated.review = watched ? review.nonBlank : nil
         updated.memo = watched ? nil : memo.nonBlank
-        // New photos are appended by UpsertRecordUseCase once they are uploaded
+        // UpsertRecordUseCase appends new photos after upload
         updated.photoUrls = keptPhotoPaths
         return updated
     }

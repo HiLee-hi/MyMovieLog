@@ -1,8 +1,8 @@
 import Domain
 import SwiftUI
 
-/// Watched totals, average rating, this month against last month and the last six months.
-/// Wide windows put the summary and the chart side by side, like the Android StatsScreen.
+// totals, average rating, this vs last month, last 6 months
+// wide: summary | chart, like android StatsScreen
 struct StatsView: View {
     private let isLoggedIn: Bool
     private let onNavigateToLogin: () -> Void
@@ -95,7 +95,7 @@ struct StatsView: View {
         }
     }
 
-    /// The highlighted card is filled with butter; the others are white outlined cards
+    // highlighted = butter fill, others = white outlined
     private func summaryCard<Value: View>(
         label: String,
         highlighted: Bool,
@@ -141,7 +141,7 @@ struct StatsView: View {
         .accessibilityElement(children: .combine)
     }
 
-    /// "지난달보다 / 3편 더" with the amount in caramel
+    // "지난달보다 / 3편 더", amount in caramel
     @ViewBuilder
     private func comparisonText(_ comparison: MonthComparison) -> some View {
         switch comparison {
@@ -215,7 +215,7 @@ struct StatsView: View {
     }
 }
 
-/// One column of the chart: the count over a bar whose height is relative to the busiest month
+// bar height relative to the busiest month
 private struct MonthBar: View {
     static let maxBarHeight: CGFloat = 120
 
@@ -240,7 +240,7 @@ private struct MonthBar: View {
         .accessibilityLabel(L10n.statsMonthBar(item.month.monthText, item.count))
     }
 
-    /// A month with no records keeps a thin sliver so the column is still visible
+    // thin sliver for 0 so the column still shows
     private var barHeight: CGFloat {
         item.count == 0 ? 3 : max(Self.maxBarHeight * CGFloat(item.count) / CGFloat(maximum), 8)
     }

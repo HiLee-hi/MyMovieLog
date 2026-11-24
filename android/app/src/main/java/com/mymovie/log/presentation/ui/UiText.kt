@@ -6,7 +6,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.res.stringResource
 import java.time.format.DateTimeFormatter
 
-/** User-facing text held by a ViewModel, which has no access to string resources. */
+// ViewModels can't read string resources
 sealed interface UiText {
     data class Dynamic(val value: String) : UiText
     data class Resource(@StringRes val id: Int) : UiText
@@ -18,7 +18,7 @@ sealed interface UiText {
     }
 }
 
-/** The exception's own message when it has one, otherwise [fallback]. */
+// exception message if any, else fallback
 fun Throwable.toUiText(@StringRes fallback: Int): UiText =
     message?.let(UiText::Dynamic) ?: UiText.Resource(fallback)
 

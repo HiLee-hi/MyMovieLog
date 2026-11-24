@@ -1,21 +1,19 @@
 import Foundation
 
-/// Saves a record together with its photos, in the same order as the Android app:
-/// upload the new photos, save the record, then delete the photos the edit removed.
+// upload new photos -> save record -> delete removed photos (same order as android)
 public struct UpsertRecordUseCase: Sendable {
     private let repository: any MovieRecordRepository
     private let photoRepository: (any PhotoRepository)?
 
-    /// Without `photoRepository` photos are left untouched (previews and tests that do not need them)
+    // no photoRepository -> photos untouched (previews / tests)
     public init(repository: any MovieRecordRepository, photoRepository: (any PhotoRepository)? = nil) {
         self.repository = repository
         self.photoRepository = photoRepository
     }
 
-    /// `record.photoUrls` are the photos to keep; `newPhotos` are appended after uploading.
-    /// Removed photos are deleted only after the record no longer references them, and a failed
-    /// delete never fails the save. If the save fails, the photos just uploaded are deleted again.
-    /// Returns the storage paths of the uploaded photos, in the order of `newPhotos`.
+    // record.photoUrls = keep, newPhotos appended after upload
+    // save fails -> roll back uploads, removed photo delete fails -> orphan, save still ok
+    // returns uploaded paths in newPhotos order
     @discardableResult
     public func callAsFunction(_ record: MovieRecord, newPhotos: [Data] = []) async throws -> [String] {
         guard let photoRepository else {

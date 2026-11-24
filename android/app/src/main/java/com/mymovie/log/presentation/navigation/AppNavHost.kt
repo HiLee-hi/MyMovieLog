@@ -108,7 +108,7 @@ fun navigateToLibraryTab(navController: androidx.navigation.NavController, tab: 
 
 @Composable
 fun AppNavHost(appViewModel: AppViewModel = hiltViewModel()) {
-    // Read once for the whole app; recomputed on every window change (fold, rotate, resize)
+    // read once, recomputed on fold / rotate / resize
     ProvideAdaptiveLayoutInfo {
         AppNavHostContent(appViewModel)
     }
@@ -116,8 +116,7 @@ fun AppNavHost(appViewModel: AppViewModel = hiltViewModel()) {
 
 @Composable
 private fun AppNavHostContent(appViewModel: AppViewModel) {
-    // The NavController lives above the adaptive navigation UI, so switching between the bottom
-    // bar and the rail never resets the current destination or the back stack.
+    // NavController above the navigation suite, so bar <-> rail keeps the back stack
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -133,7 +132,7 @@ private fun AppNavHostContent(appViewModel: AppViewModel) {
         }
     }
 
-    // Calendar and MovieDetail are hidden from BottomNav
+    // Calendar / MovieDetail not in bottom nav
     val showBottomBar = currentDestination?.route !in setOf(
         Screen.Calendar.route,
         Screen.MovieDetail.route,
@@ -141,7 +140,7 @@ private fun AppNavHostContent(appViewModel: AppViewModel) {
         Screen.AlbumPicker.route
     )
 
-    // Bar on compact windows (original), rail when there is room beside the content
+    // bar on compact, rail when there's room
     val navigationSuiteType = when {
         !showBottomBar -> NavigationSuiteType.None
         adaptiveInfo.navigationLayout == NavigationLayout.Rail -> NavigationSuiteType.NavigationRail
@@ -166,8 +165,7 @@ private fun AppNavHostContent(appViewModel: AppViewModel) {
                     },
                     icon = { Icon(item.icon, contentDescription = stringResource(item.labelRes)) },
                     label = {
-                        // Narrow cover screens leave less than the label's width inside the
-                        // item's padding; keep one line, centered over the whole item.
+                        // narrow cover screens: label wider than the item padding, keep one line centered on the item
                         Text(
                             text = stringResource(item.labelRes),
                             maxLines = 1,
@@ -182,8 +180,7 @@ private fun AppNavHostContent(appViewModel: AppViewModel) {
         NavHost(
             navController = navController,
             startDestination = Screen.Home.route,
-            // The bar consumes the bottom inset itself; with the rail or no navigation the
-            // content keeps clear of the system navigation bar
+            // bar handles the bottom inset itself, rail / no nav -> pad for system nav bar
             modifier = Modifier.windowInsetsPadding(
                 WindowInsets.navigationBars.only(WindowInsetsSides.Bottom + WindowInsetsSides.End)
             )
@@ -230,8 +227,7 @@ private fun AppNavHostContent(appViewModel: AppViewModel) {
                         navController.navigate(Screen.MovieDetail.createRoute(movieId))
                     },
                     detailPane = { movieId, isSinglePane, onClose ->
-                        // Two-pane detail: same screen and ViewModel as the MovieDetail destination,
-                        // scoped to the Search entry so it survives window changes
+                        // two-pane detail: same screen + ViewModel as MovieDetail, scoped to Search entry
                         val detailViewModel = movieDetailPaneViewModel(searchEntry, movieId)
                         PhotoPickerResultEffect(searchEntry.savedStateHandle, detailViewModel, "SearchDetailPane")
                         MovieDetailScreen(
@@ -386,11 +382,8 @@ private fun AppNavHostContent(appViewModel: AppViewModel) {
     }
 }
 
-/**
- * MovieDetailViewModel for the Search detail pane. It is stored in the Search back stack entry
- * (one instance per movie, keyed by id) and receives `movieId` through the same SavedStateHandle
- * argument the MovieDetail destination uses, so the ViewModel itself is unchanged.
- */
+// detail pane ViewModel in the Search back stack entry, one per movie id
+// gets movieId through the same SavedStateHandle arg as MovieDetail
 @Composable
 private fun movieDetailPaneViewModel(entry: NavBackStackEntry, movieId: Int): MovieDetailViewModel {
     val context = LocalContext.current

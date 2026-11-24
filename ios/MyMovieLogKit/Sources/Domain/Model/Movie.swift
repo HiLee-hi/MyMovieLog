@@ -10,7 +10,7 @@ public struct Movie: Identifiable, Hashable, Sendable {
     public let releaseDate: String
     public let voteAverage: Double
     public let genreIds: [Int]
-    /// Populated only by the movie detail request, empty for search results
+    // only from the detail request, empty in search results
     public let genres: [String]
 
     public init(
@@ -41,13 +41,13 @@ public struct Movie: Identifiable, Hashable, Sendable {
 
     public var backdropURL: URL? { TmdbImage.url(path: backdropPath, size: "w780") }
 
-    /// "2024" from "2024-05-01"; nil when TMDB has no release date
+    // "2024" from "2024-05-01", nil without a release date
     public var releaseYear: String? {
         releaseDate.count >= 4 ? String(releaseDate.prefix(4)) : nil
     }
 }
 
-/// One page of TMDB search results
+// one TMDB search page
 public struct MoviePage: Sendable {
     public let movies: [Movie]
     public let page: Int

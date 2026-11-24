@@ -25,12 +25,8 @@ import org.junit.Test
 import java.io.File
 import kotlin.math.roundToInt
 
-/**
- * Runs the real app on a foldable emulator and changes the actual window while it is running:
- * `wm size` changes the display the app sees (fold to a cover-sized screen, unfold, 4:3, 3:4,
- * tablet) which triggers a real configuration change and Activity recreation, and
- * `cmd device_state` changes the hinge posture reported through Jetpack WindowManager.
- */
+// real app on a foldable emulator, window changed at runtime
+// `wm size` -> config change + Activity recreation, `cmd device_state` -> hinge posture
 @HiltAndroidTest
 class FoldableDeviceTest {
 
@@ -54,7 +50,7 @@ class FoldableDeviceTest {
         width
     }.getOrNull()
 
-    /** Resizes the display in dp (null = physical size) and waits for the recreated Activity. */
+    // resize display in dp (null = physical size), wait for the recreated Activity
     private fun resizeTo(widthDp: Int?, heightDp: Int?) {
         val before = currentWidthDp()
         if (widthDp == null || heightDp == null) {
@@ -120,23 +116,23 @@ class FoldableDeviceTest {
         composeRule.onNode(hasSetTextAction() and hasText("리뷰 2")).performTextReplacement("폴드 테스트 리뷰")
         screenshot("01_unfolded_search_detail_editor")
 
-        // Fold: cover-sized screen, the Activity is recreated
+        // fold -> cover-sized screen, Activity recreated
         resizeTo(344, 882)
         assertEditableText("폴드 테스트 리뷰")
         screenshot("02_folded_cover_editor_sheet")
 
-        // Unfold into a 4:3 inner display
+        // unfold -> 4:3 inner display
         resizeTo(880, 660)
         assertEditableText("폴드 테스트 리뷰")
         screenshot("03_inner_4x3_editor")
 
-        // Large window: the detail pane is wide enough for the inline editor
+        // large window: detail pane fits the inline editor
         resizeTo(1280, 800)
         waitForText("나의 기록")
         assertEditableText("폴드 테스트 리뷰")
         screenshot("04_tablet_inline_editor")
 
-        // Rotated 3:4 and back to the cover screen
+        // rotate to 3:4, then back to cover screen
         resizeTo(660, 880)
         assertEditableText("폴드 테스트 리뷰")
         screenshot("05_inner_3x4_editor")
@@ -163,7 +159,7 @@ class FoldableDeviceTest {
 
         composeRule.activityRule.scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }
         composeRule.waitForIdle()
-        // Back from MovieDetail returns to the search results with the query intact
+        // back from MovieDetail -> results, query kept
         waitForText("영화 2")
     }
 

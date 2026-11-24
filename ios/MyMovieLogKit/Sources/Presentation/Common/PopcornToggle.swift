@@ -1,8 +1,7 @@
 import SwiftUI
 
-/// Pill options inside a white rounded track; the selected one is filled with butter.
-/// Replaces the segmented Picker for the library tabs and the watched / wishlist choice,
-/// the same control as the Android `PopcornToggle`.
+// pill options in a white track, selected = butter
+// replaces segmented Picker (library tabs, watched / wishlist), same as android PopcornToggle
 struct PopcornToggle<Value: Hashable>: View {
     let options: [Value]
     @Binding var selection: Value

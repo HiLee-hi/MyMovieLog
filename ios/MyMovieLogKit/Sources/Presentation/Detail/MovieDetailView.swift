@@ -4,7 +4,7 @@ import SwiftUI
 struct MovieDetailView: View {
     private let isLoggedIn: Bool
     private let onNavigateToLogin: () -> Void
-    /// Shown inside the search screen's side pane, so it leaves that screen's navigation bar alone
+    // in the search side pane -> leave its nav bar alone
     private let isEmbedded: Bool
     @State private var viewModel: MovieDetailViewModel
     @State private var width: CGFloat = 0
@@ -91,7 +91,7 @@ struct MovieDetailView: View {
         }
     }
 
-    /// Unfolded or wide windows: movie information on the left, my log with its button on the right
+    // wide: movie info left, my log + button right
     private func wideContent(_ movie: Movie) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
@@ -110,7 +110,7 @@ struct MovieDetailView: View {
                     }
                 } second: {
                     myLogPane
-                        // Starts below the backdrop, level with the title
+                        // below the backdrop, level with the title
                         .padding(.top, wideOverlap + 12)
                 }
                 .padding(.horizontal, 32)
@@ -143,7 +143,7 @@ struct MovieDetailView: View {
         .popcornCard(fill: .popcornButterLight, outlined: false)
     }
 
-    /// Backdrop with the poster overlapping its bottom edge; the title starts below the image
+    // backdrop, poster overlaps its bottom edge, title below the image
     private func header(_ movie: Movie, backdropHeight: CGFloat) -> some View {
         ZStack(alignment: .topLeading) {
             backdrop(movie, height: backdropHeight)
@@ -237,7 +237,7 @@ struct MovieDetailView: View {
                 }
             }
             .overlay {
-                // Keeps the back button readable on top and fades into the background below
+                // back button readable on top, fades into the background below
                 VStack(spacing: 0) {
                     if !isEmbedded {
                         LinearGradient(colors: [Color.popcornCream.opacity(0.8), .clear], startPoint: .top, endPoint: .bottom)
@@ -253,7 +253,7 @@ struct MovieDetailView: View {
     }
 
     private var posterOverlap: CGFloat { 72 }
-    /// How far the wide layout's poster row reaches up into the backdrop
+    // how far the wide poster row reaches into the backdrop
     private var wideOverlap: CGFloat { 96 }
 
     private var recordButton: some View {
@@ -271,7 +271,7 @@ struct MovieDetailView: View {
     }
 }
 
-/// The backdrop shows through the bar, so the bar carries only the back button
+// backdrop shows through the bar, only the back button on it
 private struct DetailNavigationBar: ViewModifier {
     let isEnabled: Bool
 
@@ -308,7 +308,7 @@ private struct GenreChips: View {
     }
 }
 
-/// Read-only record details: status, rating, date, review or memo, photo count
+// read-only: status, rating, date, review / memo, photo count
 struct RecordSummary: View {
     let record: MovieRecord
 

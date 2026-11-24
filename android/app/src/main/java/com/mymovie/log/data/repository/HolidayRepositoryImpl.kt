@@ -48,7 +48,7 @@ class HolidayRepositoryImpl @Inject constructor(
             val header = response.response.header
             AppLogger.i("HOLIDAY_REPO", "API $year/$month resultCode=${header.resultCode} msg=${header.resultMsg}")
 
-            // API 오류 응답 시 캐시하지 않고 빈 결과만 반환 — 다음 조회 때 재시도
+            // API error -> skip cache, return empty, retry on next fetch
             if (header.resultCode != "00") {
                 AppLogger.w("HOLIDAY_REPO", "API error for $year/$month — will retry next load")
                 emit(emptySet())

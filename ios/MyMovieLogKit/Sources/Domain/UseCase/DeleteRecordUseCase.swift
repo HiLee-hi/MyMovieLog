@@ -1,5 +1,4 @@
-/// Deletes a record, then its photos in Storage. A failed photo delete leaves an orphaned file
-/// but the record stays deleted, like the Android app.
+// record first, then Storage photos, a failed photo delete just leaves an orphan (same as android)
 public struct DeleteRecordUseCase: Sendable {
     private let repository: any MovieRecordRepository
     private let photoRepository: (any PhotoRepository)?

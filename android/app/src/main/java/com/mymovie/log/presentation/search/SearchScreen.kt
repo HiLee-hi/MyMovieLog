@@ -64,18 +64,9 @@ import coil.compose.AsyncImage
 import com.mymovie.log.R
 import com.mymovie.log.domain.model.Movie
 
-/**
- * Search results with a list-detail layout.
- *
- * One pane (compact / narrow windows): tapping a result navigates to the MovieDetail destination
- * exactly as before. Two panes (the window fits both panes next to the navigation rail, or a
- * separating hinge splits it): the result opens in the detail pane next to the list.
- * If the window shrinks while a movie is open in the detail pane (fold, split screen), the same
- * pane stays on screen — with its record draft — and back returns to the list.
- *
- * @param detailPane hosts the movie detail for [movieId]; `isSinglePane` tells it to show its own
- *   back arrow, `onClose` returns to the results.
- */
+// one pane: tap -> MovieDetail destination, two panes: detail next to the list
+// window shrinks with a movie open -> pane stays (with draft), back -> list
+// detailPane: isSinglePane shows its back arrow, onClose returns to results
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun SearchScreen(
@@ -87,7 +78,7 @@ fun SearchScreen(
     val query by viewModel.query.collectAsStateWithLifecycle()
     val isSearchActive by viewModel.isSearchActive.collectAsStateWithLifecycle()
     val lazyPagingItems = viewModel.searchResults.collectAsLazyPagingItems()
-    // Hoisted so the result position survives the list pane being hidden and shown again
+    // hoisted so scroll position survives the list pane hiding
     val listState = rememberLazyListState()
 
     val adaptiveInfo = LocalAdaptiveLayoutInfo.current
@@ -95,7 +86,7 @@ fun SearchScreen(
         listPaneWidth = AdaptiveDimens.ListPaneWidth,
         detailPaneMinWidth = AdaptiveDimens.DetailPaneMinWidth
     )
-    // Saves the selected movie id with rememberSaveable, so it survives configuration changes
+    // rememberSaveable -> survives config changes
     val navigator = rememberListDetailPaneScaffoldNavigator<Int>(
         scaffoldDirective = adaptiveInfo.paneScaffoldDirective(paneCount, AdaptiveDimens.ListPaneWidth)
     )
@@ -160,7 +151,7 @@ private fun SearchListPane(
     onMovieClick: (Movie) -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxSize().testTag(SearchTestTags.ListPane)) {
-        // The expanded bar covers the whole pane, so the title only shows while collapsed
+        // expanded bar covers the pane, title only while collapsed
         if (!isSearchActive) {
             Text(
                 text = stringResource(R.string.nav_search),
@@ -195,7 +186,7 @@ private fun SearchListPane(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
                 dividerColor = MaterialTheme.colorScheme.outlineVariant
             ),
-            // Collapsed, the title above already keeps clear of the status bar
+            // collapsed: title above already clears the status bar
             windowInsets = if (isSearchActive) SearchBarDefaults.windowInsets else WindowInsets(0),
             modifier = Modifier
                 .fillMaxWidth()
@@ -300,7 +291,7 @@ private fun SearchResultContent(
 
 @Composable
 private fun MovieSearchItem(movie: Movie, onClick: () -> Unit, isSelected: Boolean = false) {
-    // A selected card (the movie shown in the detail pane) turns butter
+    // selected (shown in detail pane) -> butter
     Surface(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),

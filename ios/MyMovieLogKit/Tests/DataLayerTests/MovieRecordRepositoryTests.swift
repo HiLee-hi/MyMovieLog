@@ -31,7 +31,7 @@ private actor FakeRemote: MovieRecordRemoteDataSource {
     func fetchAll() async throws -> [MovieRecordDto] { rows }
 }
 
-/// Waits for the first value that satisfies `predicate`
+// first value matching predicate
 private func firstValue<T: Sendable>(
     of stream: AsyncStream<T>,
     where predicate: @Sendable (T) -> Bool = { _ in true }
@@ -165,7 +165,7 @@ struct AppConfigTests {
         let base = ["TMDB_API_KEY": "token", "SUPABASE_URL": "https://abc.supabase.co", "SUPABASE_ANON_KEY": "anon"]
         let withKey = AppConfig.fromInfoDictionary(base.merging(["PUBLIC_DATA_API_KEY": "abc+/="]) { $1 })
         #expect(withKey?.publicDataApiKey == "abc+/=")
-        // An unset build setting stays "$(...)" or empty in Info.plist
+        // unset build setting stays "$(...)" or empty in Info.plist
         #expect(AppConfig.fromInfoDictionary(base.merging(["PUBLIC_DATA_API_KEY": "$(PUBLIC_DATA_API_KEY)"]) { $1 })?.publicDataApiKey == nil)
         #expect(AppConfig.fromInfoDictionary(base.merging(["PUBLIC_DATA_API_KEY": ""]) { $1 })?.publicDataApiKey == nil)
     }

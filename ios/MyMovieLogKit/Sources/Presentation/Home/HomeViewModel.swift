@@ -9,7 +9,7 @@ public struct HomeUiState: Equatable, Sendable {
 
     public init() {}
 
-    /// `records` are newest first, as the repository emits them
+    // records newest first, as the repo emits
     public init(records: [MovieRecord], currentMonth: YearMonth) {
         let watched = records.filter { $0.status == .watched }
         let wishlist = records.filter { $0.status == .wishlist }

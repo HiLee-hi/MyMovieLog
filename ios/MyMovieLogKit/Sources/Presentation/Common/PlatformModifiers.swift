@@ -1,7 +1,6 @@
 import SwiftUI
 
-// iOS-only modifiers behind one name each, so the screens also compile for macOS
-// (where the package is built and tested without a simulator).
+// iOS-only modifiers behind one name, so screens compile for macOS too (package tests)
 extension View {
     func inlineNavigationTitle() -> some View {
         #if os(iOS)
@@ -11,7 +10,7 @@ extension View {
         #endif
     }
 
-    /// Swipeable pages (the photo viewer); a plain tab view elsewhere
+    // swipeable pages (photo viewer), plain tab view elsewhere
     func pagedTabViewStyle() -> some View {
         #if os(iOS)
         tabViewStyle(.page(indexDisplayMode: .automatic))
@@ -28,7 +27,7 @@ extension View {
         #endif
     }
 
-    /// Lets the content (a backdrop image) show through the navigation bar
+    // backdrop shows through the nav bar
     func transparentNavigationBar() -> some View {
         #if os(iOS)
         toolbarBackground(.hidden, for: .navigationBar)

@@ -1,4 +1,4 @@
-/// Reads come from the local cache (offline support); writes go to Supabase first.
+// reads from local cache (offline), writes to Supabase first
 public protocol MovieRecordRepository: Sendable {
     func getRecords(status: WatchStatus?) -> AsyncStream<[MovieRecord]>
     func getRecordByTmdbId(_ tmdbId: Int) -> AsyncStream<MovieRecord?>

@@ -24,10 +24,10 @@ android {
         versionCode = major * 10000 + minor * 100 + patch
         versionName = "$major.$minor.$patch"
 
-        // Swaps in HiltTestApplication so instrumented tests can replace repositories with fakes
+        // HiltTestApplication so instrumented tests can swap repos for fakes
         testInstrumentationRunner = "com.mymovie.log.HiltTestRunner"
 
-        // Read API keys from local.properties
+        // API keys from local.properties
         val localProperties = Properties().apply {
             val localPropertiesFile = rootProject.file("local.properties")
             if (localPropertiesFile.exists()) load(localPropertiesFile.inputStream())
@@ -64,18 +64,18 @@ android {
     }
 
     sourceSets {
-        // Fakes shared by JVM (Robolectric) tests and on-device instrumented tests
+        // fakes shared by Robolectric and instrumented tests
         getByName("test").java.srcDir("src/sharedTest/java")
         getByName("androidTest").java.srcDir("src/sharedTest/java")
     }
 
     testOptions {
         unitTests {
-            // Robolectric renders Compose layouts at different window sizes on the JVM
+            // Robolectric renders Compose at different window sizes on the JVM
             isIncludeAndroidResources = true
             isReturnDefaultValues = true
             all {
-                // captureToImage() under Robolectric needs PixelCopy backed by real rendering
+                // captureToImage() under Robolectric needs real PixelCopy rendering
                 it.systemProperty("robolectric.pixelCopyRenderMode", "hardware")
             }
         }
@@ -83,7 +83,7 @@ android {
 }
 
 dependencies {
-    // Core
+    // core
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
@@ -99,14 +99,14 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.material.icons.extended)
 
-    // Adaptive layout (window size class, posture, pane scaffolds, navigation suite)
+    // adaptive layout (window size class, posture, pane scaffolds, navigation suite)
     implementation(libs.androidx.material3.adaptive)
     implementation(libs.androidx.material3.adaptive.layout)
     implementation(libs.androidx.material3.adaptive.navigation)
     implementation(libs.androidx.material3.adaptive.navigation.suite)
     implementation(libs.androidx.window)
 
-    // Navigation
+    // navigation
     implementation(libs.androidx.navigation.compose)
 
     // Hilt
@@ -134,7 +134,7 @@ dependencies {
     implementation(libs.ktor.client.okhttp)
     implementation(libs.ktor.client.core)
 
-    // Calendar
+    // calendar
     implementation(libs.calendar.compose)
 
     // Paging
@@ -147,13 +147,13 @@ dependencies {
     implementation(libs.camerax.lifecycle)
     implementation(libs.camerax.view)
 
-    // Coroutines
+    // coroutines
     implementation(libs.kotlinx.coroutines.android)
 
-    // Serialization
+    // serialization
     implementation(libs.kotlinx.serialization.json)
 
-    // Test
+    // test
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.robolectric)

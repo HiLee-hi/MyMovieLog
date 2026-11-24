@@ -18,10 +18,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
-/**
- * Feeds Jetpack WindowManager FoldingFeatures (the same objects a foldable reports) through
- * rememberAdaptiveLayoutInfo(), i.e. the real currentWindowAdaptiveInfo() pipeline.
- */
+// real FoldingFeatures through rememberAdaptiveLayoutInfo() / currentWindowAdaptiveInfo()
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], application = Application::class, qualifiers = "w880dp-h660dp")
 class FoldingFeaturePostureTest {
@@ -86,7 +83,7 @@ class FoldingFeaturePostureTest {
         assertFalse(current.isTabletop)
         assertTrue(current.isBookPosture)
         assertEquals(1, current.separatingVerticalHingeBounds.size)
-        // A separating hinge makes list/detail screens use two panes
+        // separating hinge -> two panes
         assertEquals(2, current.paneCount(AdaptiveDimens.ListPaneWidth, AdaptiveDimens.DetailPaneMinWidth))
     }
 

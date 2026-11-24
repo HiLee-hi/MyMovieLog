@@ -1,6 +1,6 @@
 import Domain
 
-// DTO (Supabase / cache file) → Domain model
+// DTO (Supabase / cache file) -> domain
 extension MovieRecordDto {
     func toDomain() -> MovieRecord {
         MovieRecord(
@@ -22,7 +22,7 @@ extension MovieRecordDto {
     }
 }
 
-// Domain model → DTO (id and created_at are assigned by the server)
+// domain -> DTO, id / created_at assigned by server
 extension MovieRecord {
     func toDto() -> MovieRecordDto {
         MovieRecordDto(

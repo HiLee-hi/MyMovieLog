@@ -25,7 +25,7 @@ class MovieRecordRepositoryImpl @Inject constructor(
         private const val TABLE = "movie_records"
     }
 
-    // Read from local cache (offline support)
+    // reads from local cache (offline)
     override fun getRecords(status: WatchStatus?): Flow<List<MovieRecord>> {
         AppLogger.d("REPO_RECORD", "getRecords from local: status=${status?.name ?: "ALL"}")
         return if (status == null) {
@@ -48,7 +48,7 @@ class MovieRecordRepositoryImpl @Inject constructor(
         }
     }
 
-    // Save to Supabase first, then update local cache
+    // Supabase first, then local cache
     override suspend fun upsertRecord(record: MovieRecord) {
         AppLogger.i("REPO_RECORD", "Upsert: tmdbId=${record.tmdbId}, title='${record.title}', status=${record.status.name}")
         try {
@@ -57,7 +57,7 @@ class MovieRecordRepositoryImpl @Inject constructor(
                 onConflict = "user_id,tmdb_id"
                 select()
             }.decodeSingle<com.mymovie.log.data.remote.supabase.dto.MovieRecordDto>()
-            // Preserve local-only photoSourceUris (device-specific URIs not stored in Supabase)
+            // keep local-only photoSourceUris (device URIs, not in Supabase)
             dao.upsertRecord(saved.toDomain().copy(photoSourceUris = record.photoSourceUris).toEntity())
             AppLogger.i("REPO_RECORD", "Upsert success: id=${saved.id?.let { AppLogger.shortId(it) }}")
         } catch (e: Exception) {
@@ -89,7 +89,7 @@ class MovieRecordRepositoryImpl @Inject constructor(
         }
     }
 
-    // Full sync from Supabase on login or manual refresh
+    // full sync on login / manual refresh
     override suspend fun syncFromRemote() {
         AppLogger.i("REPO_RECORD", "Sync from remote started")
         try {

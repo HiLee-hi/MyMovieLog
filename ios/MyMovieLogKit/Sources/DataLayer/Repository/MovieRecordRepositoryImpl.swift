@@ -10,7 +10,7 @@ final class MovieRecordRepositoryImpl: MovieRecordRepository {
         self.cache = cache
     }
 
-    // Read from local cache (offline support)
+    // reads from local cache (offline)
 
     func getRecords(status: WatchStatus?) -> AsyncStream<[MovieRecord]> {
         cache.observe { records in
@@ -39,7 +39,7 @@ final class MovieRecordRepositoryImpl: MovieRecordRepository {
         }
     }
 
-    // Save to Supabase first, then update local cache
+    // Supabase first, then local cache
 
     func upsertRecord(_ record: MovieRecord) async throws {
         Log.record.info("Upsert: tmdbId=\(record.tmdbId), status=\(record.status.rawValue, privacy: .public)")
@@ -64,8 +64,7 @@ final class MovieRecordRepositoryImpl: MovieRecordRepository {
         }
     }
 
-    // Full sync from Supabase on login or manual refresh. Rows deleted on another device
-    // disappear here too because the cache is replaced, not merged.
+    // full sync on login / refresh, cache replaced (not merged) so remote deletes show up
     func syncFromRemote() async throws {
         Log.record.info("Sync from remote started")
         do {

@@ -1,32 +1,31 @@
 import SwiftUI
 
-/// Shared measurements for wide windows (the iPhone Duo inner display, iPad, Mac),
-/// the same numbers as the Android AdaptiveDimens so both apps switch layouts at the same widths.
+// wide window thresholds (iPhone Duo inner, iPad, Mac), same numbers as android AdaptiveDimens
 enum AdaptiveDimens {
-    /// Space between panes and columns
+    // pane / column spacing
     static let paneSpacing: CGFloat = 24
-    /// Preferred width of a list pane (search results, calendar)
+    // list pane width (search results, calendar)
     static let listPaneWidth: CGFloat = 360
-    /// Smallest width a detail pane may shrink to before falling back to one pane
+    // below this -> one pane
     static let detailPaneMinWidth: CGFloat = 360
-    /// A column inside a screen (e.g. overview | my log) is never narrower than this
+    // min width of a column inside a screen (e.g. overview | my log)
     static let columnMinWidth: CGFloat = 300
-    /// Whole-screen content is capped so cards do not stretch across a wide display
+    // content width cap for wide displays
     static let contentMaxWidth: CGFloat = 1040
 
-    /// True when `width` fits two columns plus the spacer
+    // two columns + spacer fit
     static func fitsTwoColumns(_ width: CGFloat, minColumnWidth: CGFloat = columnMinWidth) -> Bool {
         width >= minColumnWidth * 2 + paneSpacing
     }
 
-    /// True when `width` fits a list pane next to a detail pane
+    // list pane + detail pane fit
     static func fitsListDetail(_ width: CGFloat) -> Bool {
         width >= listPaneWidth + paneSpacing + detailPaneMinWidth
     }
 }
 
 extension View {
-    /// Reports the view's width whenever it changes (unfolding, rotation, Split View, window resize)
+    // width on every change (unfold, rotate, Split View, resize)
     func onWidthChange(_ action: @escaping (CGFloat) -> Void) -> some View {
         onGeometryChange(for: CGFloat.self) { proxy in
             proxy.size.width
@@ -36,14 +35,14 @@ extension View {
     }
 }
 
-/// Two columns side by side, the first taking `firstFraction` of the width
+// first column gets firstFraction of the width
 struct AdaptiveTwoColumn<First: View, Second: View>: View {
     var firstFraction: CGFloat = 0.5
     @ViewBuilder var first: First
     @ViewBuilder var second: Second
 
     var body: some View {
-        // Layout splits the width by fraction without a GeometryReader taking all the height
+        // Layout, not GeometryReader, which would take all the height
         FractionalHStack(firstFraction: firstFraction, spacing: AdaptiveDimens.paneSpacing) {
             first
             second
@@ -51,7 +50,7 @@ struct AdaptiveTwoColumn<First: View, Second: View>: View {
     }
 }
 
-/// Places exactly two subviews in a row; the first gets `firstFraction` of the width left after the spacing
+// exactly two subviews, first gets firstFraction of the width minus spacing
 private struct FractionalHStack: Layout {
     let firstFraction: CGFloat
     let spacing: CGFloat
@@ -85,15 +84,14 @@ private struct FractionalHStack: Layout {
     }
 }
 
-/// Selected item of a list/detail screen that keeps its place when the window
-/// switches between one pane (pushed detail) and two panes (detail beside the list).
+// list/detail selection kept across one pane (pushed) <-> two panes (side)
 struct ListDetailSelection<ID: Hashable>: Equatable {
-    /// Detail shown beside the list on two panes
+    // two panes: side detail
     var selected: ID?
-    /// Navigation stack used on one pane
+    // one pane: nav stack
     var path: [ID] = []
 
-    /// Moves the open detail between the side pane and the navigation stack
+    // move the open detail between side pane and nav stack
     mutating func adapt(isTwoPane: Bool) {
         if isTwoPane {
             if let last = path.last {

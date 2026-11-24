@@ -28,10 +28,7 @@ import com.mymovie.log.presentation.ui.theme.MyMovieLogTheme
 import java.io.File
 import kotlin.math.roundToInt
 
-/**
- * A representative window: size and aspect ratio only. Names describe the kind of window,
- * they do not claim to emulate a particular device.
- */
+// window size + aspect only, names are kinds of windows, not devices
 data class WindowSpec(val name: String, val width: Int, val height: Int) {
     val info get() = AdaptiveLayoutInfo(width.dp, height.dp)
     override fun toString() = name
@@ -53,11 +50,8 @@ object WindowSpecs {
 
 const val WINDOW_TAG = "test_window"
 
-/**
- * Renders [content] inside a box of exactly the window size with the [AdaptiveLayoutInfo] the app
- * would compute for that window, optionally wrapped in the same NavigationSuiteScaffold choice
- * (bottom bar / rail) that AppNavHost makes.
- */
+// content in a window-sized box with the app's AdaptiveLayoutInfo
+// optionally inside the same NavigationSuiteScaffold (bar / rail) as AppNavHost
 @Composable
 fun TestWindow(spec: WindowSpec, withNavigationSuite: Boolean = false, content: @Composable () -> Unit) {
     val info = spec.info
@@ -88,11 +82,8 @@ fun TestWindow(spec: WindowSpec, withNavigationSuite: Boolean = false, content: 
     }
 }
 
-/**
- * Saves the rendered window to app/build/outputs/adaptive-screenshots for manual review.
- * Draws the Compose root view directly (captureToImage waits for a redraw that Robolectric's
- * paused looper never delivers) and crops it to the test window.
- */
+// save window to app/build/outputs/adaptive-screenshots
+// draws the root view directly, captureToImage waits for a redraw Robolectric's paused looper skips
 fun ComposeTestRule.saveWindowScreenshot(name: String) {
     waitForIdle()
     val node = onNodeWithTag(WINDOW_TAG).fetchSemanticsNode()

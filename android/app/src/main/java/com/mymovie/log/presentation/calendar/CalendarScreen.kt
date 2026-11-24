@@ -101,7 +101,7 @@ fun CalendarScreen(
 
     val firstDayOfWeek = firstDayOfWeekFromLocale()
     val maxMonth = YearMonth.now().plusMonths(3)
-    // Hoisted above the adaptive branches so the visible month survives pane changes
+    // hoisted so the visible month survives pane changes
     val calendarState = rememberCalendarState(
         startMonth = YearMonth.now().minusMonths(12),
         endMonth = maxMonth,
@@ -110,8 +110,8 @@ fun CalendarScreen(
     )
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    // Calendar is shown without the navigation rail, so the whole window width is available.
-    // 3 panes only when the window is Large and every pane still gets its minimum width.
+    // no rail here -> full window width
+    // 3 panes only on Large with every pane at min width
     val paneCount = LocalAdaptiveLayoutInfo.current.paneCount(
         listPaneWidth = CalendarPaneWidth,
         detailPaneMinWidth = RecordsPaneMinWidth,
@@ -194,7 +194,7 @@ fun CalendarScreen(
         }
     }
 
-    // Compact: date records in a BottomSheet (original behavior)
+    // compact: date records in a bottom sheet
     if (paneCount == 1 && selectedDate != null) {
         ModalBottomSheet(
             onDismissRequest = { viewModel.onBottomSheetDismissed() },
@@ -209,7 +209,7 @@ fun CalendarScreen(
         }
     }
 
-    // Record editor: sheet unless the third pane is showing it
+    // editor as a sheet unless the third pane shows it
     if (paneCount < 3) {
         selectedRecord?.let { record ->
             RecordDetailBottomSheet(
@@ -239,9 +239,8 @@ private fun CalendarPane(
 ) {
     val scope = rememberCoroutineScope()
 
-    // Scrollable so short windows (landscape, split screen, tabletop) never clip the month
+    // scrollable so short windows (landscape, split, tabletop) don't clip the month
     Column(modifier = modifier.verticalScroll(rememberScrollState())) {
-        // Month navigation header
         MonthNavigationHeader(
             currentMonth = currentMonth,
             maxMonth = maxMonth,
@@ -259,15 +258,12 @@ private fun CalendarPane(
             }
         )
 
-        // Day-of-week header aligned with firstDayOfWeek
         DayOfWeekHeader(firstDayOfWeek = firstDayOfWeek)
 
-        // Update current month when the calendar is scrolled
         LaunchedEffect(calendarState.firstVisibleMonth) {
             onMonthChange(calendarState.firstVisibleMonth.yearMonth)
         }
 
-        // Calendar
         HorizontalCalendar(
             state = calendarState,
             dayContent = { day ->
@@ -296,7 +292,7 @@ private fun CalendarPane(
     }
 }
 
-/** Second pane on wide windows: records of the selected date. */
+// second pane: records of the selected date
 @Composable
 private fun DateRecordsPane(
     date: LocalDate?,
@@ -319,7 +315,7 @@ private fun DateRecordsPane(
     }
 }
 
-/** Third pane on large windows: the record editor that is a BottomSheet elsewhere. */
+// third pane (Large): the editor that's a sheet elsewhere
 @Composable
 private fun RecordDetailPane(
     record: MovieRecord?,
@@ -557,12 +553,12 @@ private fun DateRecordItem(record: MovieRecord, onClick: () -> Unit, isSelected:
     }
 }
 
-/** Calendar pane: 48dp day cells. */
+// calendar pane: 48dp cells
 private val CalendarPaneWidth: Dp = 336.dp
 private val RecordsPaneMinWidth: Dp = 300.dp
 private val RecordDetailPaneWidth: Dp = 400.dp
 
-/** Single-pane calendar on a medium window stays compact instead of growing huge cells. */
+// single pane on medium keeps compact cells
 private val CalendarSinglePaneMaxWidth: Dp = 560.dp
 
 internal object CalendarTestTags {

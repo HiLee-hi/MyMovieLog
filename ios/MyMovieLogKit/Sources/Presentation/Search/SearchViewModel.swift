@@ -12,7 +12,7 @@ public enum SearchPhase: Equatable, Sendable {
 @MainActor
 @Observable
 public final class SearchViewModel {
-    /// Bound to the search field; the view debounces changes and then calls `search()`
+    // bound to the field, the view debounces then calls search()
     public var query = ""
     public private(set) var movies: [Movie] = []
     public private(set) var phase: SearchPhase = .idle
@@ -53,7 +53,7 @@ public final class SearchViewModel {
         }
     }
 
-    /// Loads the next page when the last row appears, like Paging 3 on Android
+    // next page when the last row appears, like Paging 3
     public func loadMoreIfNeeded(after movie: Movie) async {
         guard movie.id == movies.last?.id, lastPage < totalPages, !isLoadingMore else { return }
         let query = searchedQuery
@@ -62,13 +62,13 @@ public final class SearchViewModel {
         do {
             let page = try await searchMovies(query: query, page: lastPage + 1)
             guard query == searchedQuery else { return }
-            // TMDB pages can overlap when results shift between requests
+            // TMDB pages can overlap when results shift
             let known = Set(movies.map(\.id))
             movies += page.movies.filter { !known.contains($0.id) }
             lastPage = page.page
             totalPages = page.totalPages
         } catch {
-            // Scrolling to the end again retries
+            // scrolling to the end again retries
         }
     }
 

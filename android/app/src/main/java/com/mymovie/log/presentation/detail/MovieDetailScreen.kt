@@ -91,7 +91,7 @@ fun MovieDetailScreen(
     onNavigateToLogin: () -> Unit = {},
     onOpenCamera: () -> Unit = {},
     onOpenAlbumPicker: (List<Uri>) -> Unit = {},
-    // In a list-detail pane the back arrow is hidden and system back is owned by the scaffold
+    // in a list-detail pane: no back arrow, scaffold owns system back
     showNavigationIcon: Boolean = true,
     handleSystemBack: Boolean = true,
     viewModel: MovieDetailViewModel = hiltViewModel()
@@ -170,16 +170,14 @@ fun MovieDetailScreen(
                         viewModel.saveRecord(state.movie, status, rating, watchedAt, review, memo)
                     }
 
-                // Decided from the width this screen actually gets (full window or a pane),
-                // not from the device, so a narrow pane keeps the phone layout.
+                // from this screen's width (window or pane), so a narrow pane keeps the phone layout
                 BoxWithConstraints(modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())) {
                     val isWide = AdaptiveDimens.fitsTwoColumns(maxWidth)
                     val isShortWindow = adaptiveInfo.heightClass == WindowHeightClass.Compact
-                    // The backdrop runs under the transparent top bar; without one the content
-                    // starts below the bar
+                    // backdrop under the transparent top bar, otherwise start below the bar
                     val showsBackdrop = !isWide || !isShortWindow
 
-                    // Inline editor has no sheet to close it after saving
+                    // inline editor has no sheet to close after save
                     LaunchedEffect(addRecordState, isWide) {
                         if (isWide && addRecordState is AddRecordState.Success) viewModel.onDismissSheet()
                     }
@@ -212,7 +210,7 @@ fun MovieDetailScreen(
                         }
                     )
 
-                    // The same editor state is shown as a sheet only when there is no room inline
+                    // same editor state as a sheet when there's no room inline
                     if (showBottomSheet && !isWide) {
                         AddRecordBottomSheet(
                             movie = state.movie,
@@ -264,7 +262,7 @@ internal fun MovieDetailContent(
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
         ) {
-            // Backdrop with the poster overlapping its bottom edge
+            // backdrop, poster overlaps its bottom edge
             Box(modifier = Modifier.fillMaxWidth()) {
                 Backdrop(movie = movie, height = BackdropHeight)
                 Row(
@@ -285,7 +283,7 @@ internal fun MovieDetailContent(
                             .border(3.dp, MaterialTheme.colorScheme.background, MaterialTheme.shapes.medium)
                     )
                     Spacer(modifier = Modifier.width(16.dp))
-                    // Starts below the backdrop so the title never sits on the image
+                    // below the backdrop so the title stays off the image
                     MovieHeaderInfo(
                         movie = movie,
                         showGenres = false,
@@ -315,7 +313,7 @@ internal fun MovieDetailContent(
                 )
             }
 
-            // While editing, the sheet shows the same record
+            // hidden while editing, the sheet shows it
             if (record != null && !isEditing) {
                 RecordCard(
                     record = record,
@@ -326,7 +324,6 @@ internal fun MovieDetailContent(
             Spacer(modifier = Modifier.height(16.dp))
         }
 
-        // Bottom record button
         Button(
             colors = popcornButtonColors(),
             onClick = onRecordClick,
@@ -344,7 +341,6 @@ internal fun MovieDetailContent(
     }
 }
 
-/** Backdrop image fading into the cream background. */
 @Composable
 private fun Backdrop(movie: Movie, height: Dp) {
     Box(
@@ -406,7 +402,6 @@ private fun OverviewCard(overview: String, modifier: Modifier = Modifier) {
     }
 }
 
-/** Compact summary of the saved record, on a butter card. */
 @Composable
 private fun RecordCard(record: MovieRecord, modifier: Modifier = Modifier) {
     Surface(
@@ -426,15 +421,8 @@ private fun RecordCard(record: MovieRecord, modifier: Modifier = Modifier) {
     }
 }
 
-/**
- * Wide layout (unfolded foldables, 4:3 / 3:4 inner displays, landscape, tablets, wide panes):
- *
- * Poster | Title, rating, information   |  My movie log
- * Overview (readable width)             |  (inline record editor)
- *
- * The record editor starts at the top of the second column so it is visible without scrolling,
- * even on short 4:3 or landscape windows. Content is capped at [AdaptiveDimens.ContentMaxWidth].
- */
+// wide: poster + info + overview | my log (inline editor)
+// editor at the top of column 2, visible without scrolling on short 4:3 / landscape
 @Composable
 private fun WideMovieDetailContent(
     movie: Movie,
@@ -448,7 +436,7 @@ private fun WideMovieDetailContent(
             .imePadding()
             .verticalScroll(rememberScrollState())
     ) {
-        // Short windows (landscape phones, tabletop, split screen) skip the backdrop entirely
+        // short windows (landscape, tabletop, split) skip the backdrop
         if (!isShortWindow) {
             Backdrop(movie = movie, height = 160.dp)
         }
@@ -529,7 +517,7 @@ private fun MovieHeaderInfo(movie: Movie, modifier: Modifier = Modifier, showGen
         }
         if (showGenres && movie.genres.isNotEmpty()) {
             Spacer(modifier = Modifier.height(4.dp))
-            // Wraps instead of scrolling: there is room for several rows next to the poster
+            // wrap, not scroll: room for several rows next to the poster
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -540,7 +528,7 @@ private fun MovieHeaderInfo(movie: Movie, modifier: Modifier = Modifier, showGen
     }
 }
 
-/** "My movie log" column of the wide layout: record summary, or the inline record editor. */
+// "my movie log" column: summary or inline editor
 @Composable
 private fun MyMovieLogPane(
     record: MovieRecord?,
@@ -649,7 +637,7 @@ private fun RecordSummary(record: MovieRecord) {
     }
 }
 
-/** Read-only stars; [StarRatingRow] is the editable version. */
+// read-only, StarRatingRow is the editable one
 @Composable
 private fun RatingStars(rating: Float) {
     val ratingDescription = stringResource(R.string.record_rating_summary, rating)

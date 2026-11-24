@@ -1,13 +1,13 @@
 import Domain
 import Foundation
 
-/// Cache first; a month is requested once and kept. Errors are logged and show as "no holidays",
-/// without caching, so the next visit to the month tries again (same as the Android app).
+// cache first, one request per month
+// errors logged, shown as no holidays, not cached -> retried next visit (same as android)
 struct HolidayRepositoryImpl: HolidayRepository {
     private let api: HolidayApi?
     private let cache: HolidayCache
 
-    /// `api == nil` when PUBLIC_DATA_API_KEY is not set: the calendar then only colors weekends
+    // `api == nil` without PUBLIC_DATA_API_KEY -> weekends only
     init(api: HolidayApi?, cache: HolidayCache) {
         self.api = api
         self.cache = cache
@@ -32,7 +32,7 @@ struct HolidayRepositoryImpl: HolidayRepository {
 }
 
 extension LocalDate {
-    /// 20260924 → 2026-09-24
+    // 20260924 -> 2026-09-24
     init?(basicIsoNumber value: Int) {
         let year = value / 10_000, month = value / 100 % 100, day = value % 100
         guard (1...12).contains(month), (1...31).contains(day) else { return nil }

@@ -39,11 +39,8 @@ import org.junit.Test
 import java.time.LocalDate
 import java.time.YearMonth
 
-/**
- * Fold/unfold, rotation, resizing and multi-window changes recreate the Activity. ViewModels
- * survive that on their own; these tests cover the harder case where only SavedStateHandle
- * survives (process recreation), by building a new ViewModel from the old handle's contents.
- */
+// window changes recreate the Activity, ViewModels survive on their own
+// these cover process death: new ViewModel from the old SavedStateHandle
 @OptIn(ExperimentalCoroutinesApi::class)
 class StatePreservationTest {
 
@@ -99,7 +96,7 @@ class StatePreservationTest {
         )
         val handle = SavedStateHandle(mapOf("movieId" to 1))
         val first = movieDetailViewModel(handle)
-        // existingRecord is WhileSubscribed; collect it the way the screen does
+        // existingRecord is WhileSubscribed, collect like the screen
         val collector = CoroutineScope(Dispatchers.Main).launch { first.existingRecord.collect {} }
         first.onRecordClick()
         first.removeExistingPhoto("https://signed/user/1/a.jpg")

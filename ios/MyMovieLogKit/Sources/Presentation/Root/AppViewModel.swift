@@ -2,13 +2,12 @@ import Domain
 import Observation
 import OSLog
 
-/// Session-wide state: whether a user is signed in, and keeping the local cache in step with it
-/// (sync after sign-in, clear after sign-out), as the Android AppViewModel does.
+// signed-in state + cache in step (sync after sign-in, clear after sign-out), like android AppViewModel
 @MainActor
 @Observable
 public final class AppViewModel {
     public private(set) var isLoggedIn = false
-    /// False until the stored session has been read, so the UI does not flash the signed-out state
+    // false until the stored session is read, avoids a signed-out flash
     public private(set) var isSessionResolved = false
 
     private let observeCurrentUser: ObserveCurrentUserUseCase
@@ -43,7 +42,7 @@ public final class AppViewModel {
         }
     }
 
-    /// Pull-to-refresh and the initial sync after sign-in
+    // pull-to-refresh + first sync after sign-in
     public func refresh() async {
         guard isLoggedIn else { return }
         do {

@@ -1,4 +1,4 @@
-# Xcode project definition. Regenerate MyMovieLog.xcodeproj with `xcodegen` after editing.
+# run `xcodegen` after editing to regenerate MyMovieLog.xcodeproj
 name: MyMovieLog
 options:
   bundleIdPrefix: com.mymovie

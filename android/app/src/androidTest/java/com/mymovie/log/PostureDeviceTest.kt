@@ -25,12 +25,9 @@ import org.junit.Rule
 import org.junit.Test
 import java.io.File
 
-/**
- * Half-opened postures on the real app. This emulator image never reports HALF_OPENED through
- * WindowManager (its device-state to posture mapping always reports FLAT), so the official
- * WindowLayoutInfoPublisherRule publishes the FoldingFeature a half-opened device would report;
- * everything after that (currentWindowAdaptiveInfo -> AdaptiveLayoutInfo -> screens) is real.
- */
+// half-opened postures on the real app
+// this emulator image always reports FLAT, so WindowLayoutInfoPublisherRule fakes the FoldingFeature
+// everything after it (currentWindowAdaptiveInfo -> AdaptiveLayoutInfo -> screens) is real
 @HiltAndroidTest
 class PostureDeviceTest {
 
@@ -97,7 +94,7 @@ class PostureDeviceTest {
 
     @Test
     fun tabletop_cameraControlsSitBelowTheHinge_andNavigationStaysAtTheBottom() {
-        // Landscape: the fold runs horizontally across the middle (flip / fold in Flex mode)
+        // landscape: horizontal fold across the middle (Flex mode)
         shell("settings put system accelerometer_rotation 0")
         shell("settings put system user_rotation 1")
         composeRule.waitUntil(15_000) { windowSize().let { it.first > it.second } }
@@ -110,12 +107,12 @@ class PostureDeviceTest {
         waitForText("영화 1")
         screenshot("40_tabletop_search")
         composeRule.onNodeWithText("영화 1").performClick()
-        // Detail opens in the pane next to the list; start the record editor
+        // detail opens next to the list, start the editor
         waitForText(string(R.string.record_edit))
         composeRule.onNodeWithText(string(R.string.record_edit)).performClick()
         closeSoftKeyboard()
-        // Short landscape window: the camera button is further down the sheet. performScrollTo()
-        // cannot reach it inside the sheet's dialog window, so scroll with a real swipe.
+        // camera button is below the fold of a short sheet
+        // performScrollTo() can't reach into the sheet's dialog window -> real swipe
         val (swipeW, swipeH) = windowSize()
         shell("input swipe ${swipeW / 2} ${swipeH * 5 / 6} ${swipeW / 2} ${swipeH / 6} 400")
         Thread.sleep(1_000)
@@ -134,8 +131,7 @@ class PostureDeviceTest {
 
     @Test
     fun bookPosture_searchPanesMeetAtTheHinge() {
-        // Book posture only splits windows of Medium width or more (a vertical fold on a
-        // compact window would leave two unusably narrow panes)
+        // book posture splits Medium+ only, a compact window would get two tiny panes
         var widthDp = 0
         composeRule.activityRule.scenario.onActivity { widthDp = it.resources.configuration.screenWidthDp }
         assumeTrue("needs a Medium or wider window, was ${widthDp}dp", widthDp >= 600)

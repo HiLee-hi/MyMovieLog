@@ -4,14 +4,13 @@ import SwiftUI
 import UIKit
 #endif
 
-/// Butter cream palette, the same tokens as the Android PopcornColors.
-/// Butter is too light for text, so text accents use caramel.
+// same tokens as android PopcornColors, butter too light for text -> caramel accents
 extension Color {
     static let popcornCream = Color(hex: 0xFFFCF5)
     static let popcornSurface = Color.white
     static let popcornButterLight = Color(hex: 0xFFF5DC)
     static let popcornButter = Color(hex: 0xFAD27A)
-    /// Past months in the stats chart, a step lighter than butter
+    // past months in the stats chart, a step lighter than butter
     static let popcornButterSoft = Color(hex: 0xF6DDA8)
     static let popcornCaramel = Color(hex: 0x9A5214)
     static let popcornInk = Color(hex: 0x3B2A1A)
@@ -20,9 +19,9 @@ extension Color {
     static let popcornOutlineStrong = Color(hex: 0xCDB99A)
     static let popcornStar = Color(hex: 0xF2A516)
     static let popcornStarEmpty = Color(hex: 0xE8DAC2)
-    /// Sundays and public holidays, the Android Material error red
+    // sundays / holidays, android M3 error red
     static let popcornHoliday = Color(hex: 0xB3261E)
-    /// Saturdays, the Android PopcornColors.Saturday
+    // saturdays, android PopcornColors.Saturday
     static let popcornSaturday = Color(hex: 0x1976D2)
     static let popcornShadow = Color(hex: 0x9A5214).opacity(0.12)
 
@@ -36,7 +35,7 @@ extension Color {
 }
 
 extension Font {
-    /// Rounded Jua display face for titles. Scales with Dynamic Type relative to [textStyle].
+    // Jua for titles, scales with Dynamic Type relative to textStyle
     static func jua(_ size: CGFloat, relativeTo textStyle: Font.TextStyle = .title) -> Font {
         .custom(PopcornTheme.juaName, size: size, relativeTo: textStyle)
     }
@@ -51,7 +50,7 @@ enum PopcornRadius {
 public enum PopcornTheme {
     static let juaName = "Jua-Regular"
 
-    /// Registers the bundled font and styles the UIKit bars. Call once before the first view.
+    // register font + style UIKit bars, call once before the first view
     @MainActor
     public static func install() {
         registerFonts()
@@ -62,7 +61,7 @@ public enum PopcornTheme {
 
     private static func registerFonts() {
         guard let url = Bundle.module.url(forResource: juaName, withExtension: "ttf") else { return }
-        // Registering twice (tests, previews) reports an error that is safe to ignore
+        // double registration (tests, previews) errors, safe to ignore
         CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil)
     }
 
@@ -86,7 +85,7 @@ public enum PopcornTheme {
         tab.configureWithOpaqueBackground()
         tab.backgroundColor = .white
         tab.shadowColor = UIColor(Color.popcornOutline)
-        // Unselected tabs in muted ink instead of black; the selected one follows the caramel tint
+        // unselected tabs in muted ink, selected follows caramel tint
         let muted = UIColor(Color.popcornInkMuted)
         for layout in [tab.stackedLayoutAppearance, tab.inlineLayoutAppearance, tab.compactInlineLayoutAppearance] {
             layout.normal.iconColor = muted
@@ -98,7 +97,7 @@ public enum PopcornTheme {
     #endif
 }
 
-/// Butter filled button with ink text, the main call to action.
+// main CTA: butter fill, ink text
 struct PopcornPrimaryButtonStyle: ButtonStyle {
     @Environment(\.isEnabled) private var isEnabled
 
@@ -118,7 +117,7 @@ extension ButtonStyle where Self == PopcornPrimaryButtonStyle {
 }
 
 extension View {
-    /// White card with a thin outline, the default container of the design
+    // white card, thin outline (design default)
     func popcornCard(fill: Color = .popcornSurface, outlined: Bool = true) -> some View {
         background(fill, in: RoundedRectangle(cornerRadius: PopcornRadius.large))
             .overlay {
@@ -129,14 +128,14 @@ extension View {
             }
     }
 
-    /// Cream screen background behind lists and scroll views
+    // cream background behind lists / scroll views
     func popcornScreenBackground() -> some View {
         scrollContentBackground(.hidden)
             .background(Color.popcornCream)
     }
 }
 
-/// Brand mark: four popcorn puffs around a butter center
+// brand mark: four puffs around a butter center
 struct PopcornMark: View {
     var size: CGFloat = 34
 

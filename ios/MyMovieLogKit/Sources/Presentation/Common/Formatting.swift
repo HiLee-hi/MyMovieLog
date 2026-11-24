@@ -2,19 +2,19 @@ import Domain
 import Foundation
 
 extension LocalDate {
-    /// "2026년 10월 28일", "Oct 28, 2026"
+    // "2026년 10월 28일", "Oct 28, 2026"
     var displayText: String {
         formattedDate(year: year, month: month, day: day, pattern: L10n.datePattern)
     }
 }
 
 extension YearMonth {
-    /// "2026년 10월", "October 2026"
+    // "2026년 10월", "October 2026"
     var displayText: String {
         formattedDate(year: year, month: month, day: 1, pattern: L10n.yearMonthPattern)
     }
 
-    /// "10월", "Oct": a chart axis label
+    // "10월", "Oct" for chart axis
     var monthText: String {
         formattedDate(year: year, month: month, day: 1, pattern: L10n.monthPattern)
     }

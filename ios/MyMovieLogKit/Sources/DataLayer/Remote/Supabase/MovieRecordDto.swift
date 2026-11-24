@@ -1,6 +1,6 @@
 import Foundation
 
-/// Row of the `movie_records` table. Also the on-disk format of the local cache.
+// `movie_records` row, also the local cache format
 struct MovieRecordDto: Codable, Equatable, Sendable {
     var id: String?
     var userId: String
@@ -68,9 +68,8 @@ struct MovieRecordDto: Codable, Equatable, Sendable {
         createdAt = try c.decodeIfPresent(String.self, forKey: .createdAt)
     }
 
-    /// `id` and `created_at` are left out until the server has assigned them. The editable
-    /// fields are always written, as null when empty, so clearing a rating or review in an
-    /// update actually clears the column.
+    // id / created_at omitted until the server assigns them
+    // editable fields always sent (null when empty) so an update can clear them
     func encode(to encoder: Encoder) throws {
         var c = encoder.container(keyedBy: CodingKeys.self)
         if let id, !id.isEmpty { try c.encode(id, forKey: .id) }

@@ -3,20 +3,20 @@ import Testing
 
 struct AdaptiveDimensTests {
     @Test func phoneWidthsStayOneColumn() {
-        // iPhone 18 Pro Max portrait and the iPhone Duo outer display
+        // iPhone 18 Pro Max portrait, iPhone Duo outer display
         #expect(AdaptiveDimens.fitsTwoColumns(440 - 32) == false)
         #expect(AdaptiveDimens.fitsListDetail(466) == false)
     }
 
     @Test func unfoldedDisplaysSplit() {
-        // iPhone Duo inner display (890 pt) and an iPad in portrait (820 pt)
+        // iPhone Duo inner (890 pt), iPad portrait (820 pt)
         #expect(AdaptiveDimens.fitsTwoColumns(890 - 32))
         #expect(AdaptiveDimens.fitsListDetail(890))
         #expect(AdaptiveDimens.fitsListDetail(820))
     }
 
     @Test func detailPaneBesideSearchStaysCompact() {
-        // The detail pane next to a 360 pt result list is too narrow for two columns
+        // detail pane next to a 360 pt list is too narrow for two columns
         #expect(AdaptiveDimens.fitsTwoColumns(890 - 361 - 64) == false)
     }
 }

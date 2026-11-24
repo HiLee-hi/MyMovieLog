@@ -107,11 +107,8 @@ fun HomeScreen(
     }
 }
 
-/**
- * Compact: summary cards above the poster rows (original layout).
- * Wide: poster rows | summary side by side, capped at [AdaptiveDimens.ContentMaxWidth] so the
- * cards do not stretch across a 4:3 inner display or a tablet.
- */
+// compact: summary cards above poster rows
+// wide: poster rows | summary, capped at ContentMaxWidth
 @Composable
 internal fun HomeContent(
     uiState: HomeUiState,
@@ -251,7 +248,6 @@ private fun StatsSummaryRow(totalWatched: Int, thisMonthCount: Int) {
     }
 }
 
-/** Brand mark, app name and the calendar shortcut. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HomeHeader(onNavigateToCalendar: () -> Unit) {
@@ -286,7 +282,7 @@ private fun HomeHeader(onNavigateToCalendar: () -> Unit) {
     }
 }
 
-/** The highlighted card is filled with butter; the other one is a white outlined card. */
+// highlighted = butter fill, other = white outlined
 @Composable
 private fun StatCard(modifier: Modifier = Modifier, label: String, value: String, highlighted: Boolean = false) {
     Surface(
@@ -346,7 +342,7 @@ private fun EmptyMessage(message: String) {
 private fun MoviePosterRow(records: List<MovieRecord>, onRecordClick: (MovieRecord) -> Unit = {}) {
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
-        // Room for the poster shadow, which LazyRow would otherwise clip
+        // room for the poster shadow, LazyRow clips it otherwise
         contentPadding = PaddingValues(end = 8.dp, bottom = 8.dp)
     ) {
         items(records) { record ->

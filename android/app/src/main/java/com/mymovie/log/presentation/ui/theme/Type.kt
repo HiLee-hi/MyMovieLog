@@ -8,10 +8,10 @@ import androidx.compose.ui.text.font.FontSynthesis
 import androidx.compose.ui.text.font.FontWeight
 import com.mymovie.log.R
 
-/** Rounded display face for titles; body text keeps the system Korean font. */
+// Jua for titles, body keeps the system Korean font
 val Jua = FontFamily(Font(R.font.jua_regular, FontWeight.Normal))
 
-// Jua has a single weight; a fake bold would smear its rounded strokes
+// Jua has one weight, fake bold smears it
 private fun TextStyle.jua() = copy(
     fontFamily = Jua,
     fontWeight = FontWeight.Normal,

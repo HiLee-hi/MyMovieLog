@@ -27,8 +27,8 @@ import javax.inject.Inject
 sealed class EmailAuthUiState {
     object Idle : EmailAuthUiState()
     object Loading : EmailAuthUiState()
-    object Success : EmailAuthUiState()                  // sign-in succeeded
-    object EmailVerificationRequired : EmailAuthUiState() // awaiting email verification after sign-up
+    object Success : EmailAuthUiState()
+    object EmailVerificationRequired : EmailAuthUiState() // waiting for email verification
     data class Error(val message: UiText) : EmailAuthUiState()
 }
 
@@ -84,7 +84,7 @@ class ProfileViewModel @Inject constructor(
             runCatching { signUpWithEmailUseCase(email, password) }
                 .onSuccess {
                     AppLogger.i("VM_PROFILE", "Email sign-up success — verification required")
-                    // Use a distinct state instead of Success because email verification is still required
+                    // not Success, email still needs verifying
                     _emailAuthUiState.value = EmailAuthUiState.EmailVerificationRequired
                 }
                 .onFailure { e ->

@@ -39,11 +39,8 @@ import org.robolectric.annotation.Config
 import java.time.Duration
 import org.robolectric.annotation.GraphicsMode
 
-/**
- * Renders the real screens (real ViewModels over in-memory fakes) in representative windows and
- * checks that each one reflows as designed. Screenshots go to
- * app/build/outputs/adaptive-screenshots for visual review.
- */
+// real screens in representative windows, check reflow
+// screenshots -> app/build/outputs/adaptive-screenshots
 @RunWith(ParameterizedRobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(sdk = [34], application = Application::class, qualifiers = "ko-w1400dp-h1100dp-mdpi")
@@ -65,12 +62,12 @@ class AdaptiveScreenLayoutTest(private val spec: WindowSpec) {
         WindowSpecs.PhoneLandscape -> Expectation(true, true, true, 2, 2)
         WindowSpecs.FlipPortrait -> Expectation(false, false, false, 1, 1)
         WindowSpecs.NarrowCover -> Expectation(false, false, false, 1, 1)
-        // Content next to the rail is 610dp: one column; detail/calendar have no rail
+        // 610dp next to the rail: one column, detail / calendar have no rail
         WindowSpecs.BookInner -> Expectation(false, false, true, 2, 1)
         WindowSpecs.Cover10x16 -> Expectation(false, false, false, 1, 1)
-        // 4:3: two panes / columns, never three
+        // 4:3: two panes / columns, not three
         WindowSpecs.Inner4x3 -> Expectation(true, true, true, 2, 2)
-        // 3:4 next to the rail is 580dp: search stays single pane
+        // 3:4 next to the rail = 580dp: search stays single pane
         WindowSpecs.Inner3x4 -> Expectation(false, false, true, 2, 1)
         WindowSpecs.TabletLandscape -> Expectation(true, true, true, 3, 2)
         else -> error("no expectation for $spec")
@@ -115,7 +112,7 @@ class AdaptiveScreenLayoutTest(private val spec: WindowSpec) {
         composeRule.waitForIdle()
         composeRule.saveWindowScreenshot("movie_detail_$spec")
         composeRule.onNodeWithTag(MovieDetailTestTags.MyLogPane).assertExistsIf(expected.detailWide)
-        // Narrow windows show the saved record as a card instead of the pane
+        // narrow: saved record as a card, not the pane
         composeRule.onNodeWithTag(MovieDetailTestTags.RecordCard).assertExistsIf(!expected.detailWide)
     }
 
@@ -130,7 +127,7 @@ class AdaptiveScreenLayoutTest(private val spec: WindowSpec) {
         composeRule.runOnIdle { viewModel.onRecordClick() }
         composeRule.waitForIdle()
         if (expected.detailWide) {
-            // On wide windows the editor is inline, next to the movie information
+            // wide: editor inline next to movie info
             composeRule.saveWindowScreenshot("write_log_inline_$spec")
             composeRule.onNodeWithText("기록 저장").assertExistsIf(true)
         }
@@ -162,7 +159,7 @@ class AdaptiveScreenLayoutTest(private val spec: WindowSpec) {
                 SearchScreen(viewModel = viewModel)
             }
         }
-        // Let the 400ms query debounce run on the main looper
+        // run the 400ms debounce on the main looper
         repeat(6) {
             composeRule.waitForIdle()
             shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(100))

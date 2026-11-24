@@ -139,7 +139,7 @@ private fun MovieGrid(
     onRecordClick: (MovieRecord) -> Unit,
     onDelete: (String) -> Unit
 ) {
-    // Column count follows the available width: 3 on phones, more on unfolded / tablet windows
+    // columns by available width: 3 on phones, more on wide windows
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = AdaptiveDimens.PosterGridMinCellWidth),
         contentPadding = PaddingValues(8.dp),
@@ -207,7 +207,7 @@ private fun MovieGridItem(record: MovieRecord, onClick: () -> Unit = {}, onDelet
             }
         }
     ) {
-        // Opaque, so the delete background only shows while swiping
+        // opaque so the delete background only shows while swiping
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -236,5 +236,5 @@ private fun MovieGridItem(record: MovieRecord, onClick: () -> Unit = {}, onDelet
     }
 }
 
-/** The tabs keep their phone proportions instead of stretching across wide windows. */
+// phone-sized tabs on wide windows
 private val LibraryTabsMaxWidth = 480.dp

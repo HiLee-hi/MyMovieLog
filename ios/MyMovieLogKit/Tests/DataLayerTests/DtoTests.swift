@@ -44,7 +44,7 @@ struct MovieRecordDtoTests {
         #expect(object["id"] == nil)
         #expect(object["created_at"] == nil)
         #expect(object["status"] as? String == "wishlist")
-        // Cleared fields are sent as null so an update really clears them
+        // cleared fields sent as null so the update clears them
         #expect(object["rating"] is NSNull)
         #expect(object["watched_at"] is NSNull)
     }

@@ -7,12 +7,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.mymovie.log.presentation.ui.theme.MyMovieLogTheme
 
-/**
- * Representative window sizes / aspect ratios for checking reflow.
- *
- * These are generic window specs, not emulations of specific devices: "-like" names only hint at
- * the kind of window each size stands for (a 10:16 cover screen, a 4:3 inner display, ...).
- */
+// generic window sizes for reflow checks, "-like" names are hints, not device emulation
 @Preview(name = "Phone portrait", group = "window", showBackground = true, device = "spec:width=411dp,height=891dp")
 @Preview(name = "Phone landscape", group = "window", showBackground = true, device = "spec:width=891dp,height=411dp")
 @Preview(name = "Flip-like portrait 22:9", group = "window", showBackground = true, device = "spec:width=412dp,height=1004dp")
@@ -24,11 +19,8 @@ import com.mymovie.log.presentation.ui.theme.MyMovieLogTheme
 @Preview(name = "Tablet landscape", group = "window", showBackground = true, device = "spec:width=1280dp,height=800dp")
 annotation class AdaptiveWindowPreviews
 
-/**
- * Wraps preview content with the app theme and an [AdaptiveLayoutInfo] computed from the preview
- * window size, the same way [rememberAdaptiveLayoutInfo] does at runtime. Screen content is
- * previewed without the navigation rail/bar around it.
- */
+// theme + AdaptiveLayoutInfo from the preview size, same as rememberAdaptiveLayoutInfo
+// no navigation rail / bar around it
 @Composable
 fun AdaptivePreviewSurface(content: @Composable () -> Unit) {
     val configuration = LocalConfiguration.current

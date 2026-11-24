@@ -1,15 +1,14 @@
 import Foundation
 
-/// Which photo library item each uploaded photo came from. Like the Android app's local-only
-/// photoSourceUris it stays on this device, and lets the editor skip an album photo that is
-/// already attached to the record.
+// library item per uploaded photo, device-only like android photoSourceUris
+// lets the editor skip album photos already attached
 @MainActor
 public final class PhotoSourceIndex {
     public static let shared = PhotoSourceIndex(defaults: .standard)
 
     private static let key = "photoSourceIndex"
     private let defaults: UserDefaults
-    /// Storage path → photo library item identifier
+    // storage path -> library item id
     private var sources: [String: String]
 
     public init(defaults: UserDefaults) {
@@ -21,7 +20,7 @@ public final class PhotoSourceIndex {
         Set(paths.compactMap { sources[$0] })
     }
 
-    /// `sourceIds` line up with `paths`; photos without a library item (camera) are skipped
+    // sourceIds match paths, camera photos (no item) skipped
     public func remember(paths: [String], sourceIds: [String?]) {
         var changed = false
         for (path, sourceId) in zip(paths, sourceIds) {

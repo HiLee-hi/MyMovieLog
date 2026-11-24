@@ -12,16 +12,9 @@ class UpsertRecordUseCase @Inject constructor(
     private val repository: MovieRecordRepository,
     private val photoRepository: PhotoRepository
 ) {
-    /**
-     * Saves the record with its photos: uploads [newPhotoUris], saves the record, then deletes
-     * from Storage the photos the edit removed. [record]'s photoUrls are the photos to keep;
-     * the uploaded paths are appended after them.
-     *
-     * - If the save fails, the photos just uploaded are deleted again, so no file is left that
-     *   no record points to.
-     * - Removed photos are deleted only after the record no longer references them; a failed
-     *   delete leaves an orphaned file but never fails the save.
-     */
+    // upload newPhotoUris -> save record -> delete removed photos
+    // record.photoUrls = photos to keep, uploaded paths appended
+    // save fails -> roll back new uploads, removed photo delete fails -> orphan, save still ok
     suspend operator fun invoke(record: MovieRecord, newPhotoUris: List<Uri> = emptyList()) {
         val previousPhotos = repository.getRecordByTmdbId(record.tmdbId).first()?.photoUrls.orEmpty()
 

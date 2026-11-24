@@ -23,7 +23,7 @@ struct MyMovieLogApp: App {
     }
 }
 
-/// Composition root: repositories from the data layer, wrapped in use cases for the UI
+// composition root: data layer repos wrapped in use cases
 struct AppContainer {
     let data: DataContainer
     let useCases: UseCaseContainer

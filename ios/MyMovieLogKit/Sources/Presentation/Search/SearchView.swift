@@ -20,7 +20,7 @@ struct SearchView: View {
         _viewModel = State(initialValue: SearchViewModel(searchMovies: useCases.searchMovies))
     }
 
-    /// Unfolded or wide windows show the detail beside the results instead of pushing it
+    // wide: detail beside the results, not pushed
     private var isTwoPane: Bool { AdaptiveDimens.fitsListDetail(screenWidth) }
 
     var body: some View {
@@ -46,12 +46,12 @@ struct SearchView: View {
                 }
             }
             .onWidthChange { screenWidth = $0 }
-            // Folding keeps the open movie: the side pane becomes a pushed screen and back again
+            // fold keeps the open movie: side pane <-> pushed screen
             .onChange(of: isTwoPane) { _, twoPane in selection.adapt(isTwoPane: twoPane) }
             .popcornScreenBackground()
             .navigationTitle(L10n.tabSearch)
             .task(id: viewModel.query) {
-                // 400 ms debounce, the same as the Android SearchViewModel
+                // 400 ms debounce, same as android SearchViewModel
                 try? await Task.sleep(for: .milliseconds(400))
                 guard !Task.isCancelled else { return }
                 await viewModel.search()
@@ -77,7 +77,7 @@ struct SearchView: View {
                 onNavigateToLogin: onNavigateToLogin,
                 isEmbedded: true
             )
-            // A new movie gets a new view model
+            // new movie -> new view model
             .id(route)
         } else {
             PopcornEmptyState(title: L10n.searchSelectTitle, systemImage: "film", message: L10n.searchSelectMessage)

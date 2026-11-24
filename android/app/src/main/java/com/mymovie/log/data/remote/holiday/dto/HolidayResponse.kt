@@ -8,8 +8,8 @@ data class HolidayResponseWrapper(val header: HolidayHeader, val body: HolidayBo
 
 data class HolidayHeader(val resultCode: String, val resultMsg: String)
 
-// items: API가 totalCount=0 이면 빈 문자열(""), 1건 이상이면 객체({item: ...})로 반환
+// items: "" when totalCount=0, otherwise {item: ...}
 data class HolidayBody(val items: JsonElement?, val totalCount: Int)
 
-// item: 1건이면 단일 객체, 2건 이상이면 배열 — HolidayRepositoryImpl에서 분기 처리
+// item: object for 1, array for 2+, handled in HolidayRepositoryImpl
 data class HolidayItem(val dateName: String, val locdate: Long, val isHoliday: String)

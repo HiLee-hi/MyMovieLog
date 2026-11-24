@@ -33,7 +33,7 @@ struct CalendarView: View {
         .onWidthChange { width = $0 }
     }
 
-    /// Unfolded or wide windows show the day's records beside the month instead of in a sheet
+    // wide: day records beside the month, not a sheet
     private var isTwoPane: Bool { AdaptiveDimens.fitsListDetail(width) }
 
     @ViewBuilder
@@ -70,7 +70,7 @@ struct CalendarView: View {
             .modifier(MonthControls(viewModel: viewModel))
             .sheet(isPresented: Binding(
                 get: { viewModel.selectedDate != nil },
-                // Unfolding closes the sheet but keeps the date, which the side pane then shows
+                // unfold closes the sheet, date kept for the side pane
                 set: { if !$0 && !isTwoPane { viewModel.dismissDate() } }
             )) {
                 DateRecordsSheet(viewModel: viewModel)
@@ -108,7 +108,7 @@ struct CalendarView: View {
         .padding(.horizontal, 4)
     }
 
-    /// Round butter-light arrow from the design; the tap area stays 44 pt
+    // butter-light round arrow, 44 pt tap area
     private func monthArrow(_ systemImage: String, label: String, action: @escaping () -> Void) -> some View {
         Button {
             withAnimation { action() }
@@ -149,7 +149,7 @@ struct CalendarView: View {
                         day: day,
                         isToday: date == today,
                         isWatched: viewModel.watchedDates.contains(date),
-                        // Only the side pane keeps a date selected; the sheet covers the grid
+                        // only the side pane keeps a selection, the sheet covers the grid
                         isSelected: isTwoPane && viewModel.selectedDate == date,
                         color: viewModel.holidays.contains(date) ? Self.holidayRed : weekdayColor(column: index % 7)
                     ) {
@@ -162,7 +162,7 @@ struct CalendarView: View {
         }
     }
 
-    /// Sundays and public holidays
+    // sundays + public holidays
     private static let holidayRed = Color.popcornHoliday
 
     private func weekdayColor(column: Int) -> Color {
@@ -174,7 +174,7 @@ struct CalendarView: View {
     }
 }
 
-/// Swipe between months, the "today" button and the watched-day dots, shared by both layouts
+// month swipe, today button, watched dots, shared by both layouts
 private struct MonthControls: ViewModifier {
     let viewModel: CalendarViewModel
 
@@ -233,7 +233,7 @@ private struct DayCell: View {
     }
 }
 
-/// Records watched on the selected day, like the Android date BottomSheet
+// day records, like the android date bottom sheet
 private struct DateRecordsSheet: View {
     @Bindable var viewModel: CalendarViewModel
 
@@ -271,7 +271,7 @@ private struct DateRecordsSheet: View {
     }
 }
 
-/// Side pane of the two-pane calendar: the selected day's records, tapped to edit in place
+// side pane: day records, tap to edit in place
 private struct DateRecordsPane: View {
     @Bindable var viewModel: CalendarViewModel
 

@@ -2,14 +2,14 @@
 <resources>
     <string name="app_name">Popcorn Log</string>
 
-    <!-- Navigation -->
+    <!-- navigation -->
     <string name="nav_home">Home</string>
     <string name="nav_search">Search</string>
     <string name="nav_library">Library</string>
     <string name="nav_stats">Stats</string>
     <string name="nav_profile">Profile</string>
 
-    <!-- Common -->
+    <!-- common -->
     <string name="common_save">Save</string>
     <string name="common_cancel">Cancel</string>
     <string name="common_delete">Delete</string>
@@ -23,7 +23,7 @@
     <string name="common_wishlist">Wishlist</string>
     <string name="common_movie_count">%1$d</string>
 
-    <!-- Record -->
+    <!-- record -->
     <string name="record_save">Save record</string>
     <string name="record_add">Log movie</string>
     <string name="record_edit">Edit record</string>
@@ -44,12 +44,12 @@
     <string name="record_photo_count">Photos: %1$d</string>
     <string name="record_delete_confirm">Delete the record for \"%1$s\"?</string>
 
-    <!-- Login required -->
+    <!-- login required -->
     <string name="login_required_title">Sign in required</string>
     <string name="login_required_message">Sign in to save records\nand see your stats.</string>
     <string name="login_required_action">Sign in</string>
 
-    <!-- Home -->
+    <!-- home -->
     <string name="home_greeting">What movie did you watch today?</string>
     <string name="home_recent">Recently watched</string>
     <string name="home_recent_empty">No movies logged yet. Search for a movie to log it!</string>
@@ -60,7 +60,7 @@
     <string name="home_calendar_description">Calendar</string>
     <string name="home_show_all">See all</string>
 
-    <!-- Calendar -->
+    <!-- calendar -->
     <string name="calendar_title">Movie calendar</string>
     <string name="calendar_login_required">Sign in to see\nyour movie calendar</string>
     <string name="calendar_legend_watched">● Days you watched a movie</string>
@@ -70,14 +70,14 @@
     <string name="calendar_next_month">Next month</string>
     <string name="calendar_no_records">No records for this day yet</string>
 
-    <!-- Library -->
+    <!-- library -->
     <string name="library_login_required">Sign in to see\nyour movie list</string>
     <string name="library_watched_empty">No watched movies yet</string>
     <string name="library_wishlist_empty">Your wishlist is empty</string>
     <string name="library_watched_tab">Watched (%1$d)</string>
     <string name="library_wishlist_tab">Wishlist (%1$d)</string>
 
-    <!-- Search -->
+    <!-- search -->
     <string name="search_detail_placeholder">Select a movie to see its details here</string>
     <string name="search_placeholder">Search by movie title</string>
     <string name="search_clear">Clear</string>
@@ -85,21 +85,21 @@
     <string name="search_no_results">No results found</string>
     <string name="search_error">Error: %1$s</string>
 
-    <!-- Detail -->
+    <!-- detail -->
     <string name="detail_load_failed">Couldn\'t load movie details</string>
     <string name="detail_overview">Overview</string>
     <string name="detail_overview_empty">No overview available</string>
     <string name="detail_no_record">No record for this movie yet</string>
     <string name="detail_my_record">My record</string>
 
-    <!-- Picker and camera -->
+    <!-- picker / camera -->
     <string name="picker_title">Select photos</string>
     <string name="camera_hint">Snap your ticket or poster</string>
     <string name="camera_retake">Retake</string>
     <string name="camera_use_photo">Use photo</string>
     <string name="picker_done_count">Done (%1$d)</string>
 
-    <!-- Profile -->
+    <!-- profile -->
     <string name="profile_sign_up">Sign up</string>
     <string name="profile_sign_in_email">Sign in with email</string>
     <string name="profile_email">Email</string>
@@ -120,7 +120,7 @@
     <string name="profile_watched_count">Watched</string>
     <string name="profile_wishlist_count">Want to watch</string>
 
-    <!-- Stats -->
+    <!-- stats -->
     <string name="stats_login_required">Sign in to see\nyour movie stats</string>
     <string name="stats_average_rating">Average rating</string>
     <string name="stats_watched_movies">Movies watched</string>
@@ -131,7 +131,7 @@
     <string name="stats_recent_six_months">Last 6 months</string>
     <string name="stats_average_rating_value">★ %1$s</string>
 
-    <!-- Errors -->
+    <!-- errors -->
     <string name="error_save_failed">Couldn\'t save</string>
     <string name="error_load_failed">Couldn\'t load</string>
     <string name="error_capture_failed">Couldn\'t take the photo</string>
@@ -139,7 +139,7 @@
     <string name="error_sign_in_failed">Sign-in failed</string>
     <string name="error_sign_up_failed">Sign-up failed</string>
 
-    <!-- Date formats -->
+    <!-- date formats -->
     <string name="format_date_full">MMM d, yyyy</string>
     <string name="format_year_month">MMMM yyyy</string>
     <string name="format_month_day_weekday">EEE, MMM d</string>

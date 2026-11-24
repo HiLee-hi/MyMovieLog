@@ -1,7 +1,6 @@
 import SwiftUI
 
-/// Empty, error and "pick something" states in the butter cream look, in place of the system
-/// ContentUnavailableView (grey icon, black title).
+// empty / error / "pick something" states in butter cream, replaces ContentUnavailableView
 struct PopcornEmptyState: View {
     let title: String
     var systemImage: String = "film"
@@ -40,7 +39,7 @@ struct PopcornEmptyState: View {
     }
 }
 
-/// White capsule search field with a butter outline and a clear button, from the design canvas
+// white capsule search field, butter outline, clear button
 struct PopcornSearchField: View {
     @Binding var text: String
     let prompt: String

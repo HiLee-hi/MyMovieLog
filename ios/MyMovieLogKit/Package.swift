@@ -1,8 +1,8 @@
 // swift-tools-version: 6.0
 import PackageDescription
 
-// Domain → DataLayer / Presentation, the same layering as the Android app.
-// The package also builds for macOS so the layers can be compiled and tested without a simulator.
+// Domain -> DataLayer / Presentation, same layers as android
+// also builds for macOS to compile / test without a simulator
 let package = Package(
     name: "MyMovieLogKit",
     defaultLocalization: "ko",

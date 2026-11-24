@@ -44,7 +44,7 @@ struct ProfileView: View {
         }
     }
 
-    /// Profile card, record counts and an outlined sign-out button, as on the design canvas
+    // profile card, record counts, outlined sign-out button
     private func signedIn(_ user: UserProfile) -> some View {
         ScrollView {
             VStack(spacing: 16) {
@@ -107,7 +107,7 @@ struct ProfileView: View {
         .accessibilityElement(children: .combine)
     }
 
-    /// Butter circle with the Jua initial and a butter-light ring; the Google photo when there is one
+    // Jua initial on butter with a butter-light ring, Google photo if any
     private func avatar(_ user: UserProfile) -> some View {
         AsyncImage(url: user.avatarUrl.flatMap(URL.init(string:))) { image in
             image.resizable().scaledToFill()
@@ -165,8 +165,8 @@ struct ProfileView: View {
                 }
             }
 
-            // Buttons sit on the grouped background instead of inside rows: a centered button
-            // row gets a separator that starts at its text, which looks like a stray line.
+            // buttons on the grouped background, not in rows
+            // a centered button row gets a separator starting at its text (stray line)
             Section {
                 Button {
                     Task {
@@ -226,7 +226,7 @@ struct ProfileView: View {
 }
 
 private extension View {
-    /// A Form row that shows only its content: no row background, inset or separator
+    // Form row without background, inset or separator
     func buttonRow() -> some View {
         listRowBackground(Color.clear)
             .listRowInsets(EdgeInsets())

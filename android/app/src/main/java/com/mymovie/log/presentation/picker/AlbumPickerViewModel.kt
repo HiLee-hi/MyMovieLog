@@ -40,7 +40,7 @@ class AlbumPickerViewModel @Inject constructor(
     private val _selectedUris = MutableStateFlow<List<Uri>>(emptyList())
     val selectedUris = _selectedUris.asStateFlow()
 
-    // 앨범 외부에서 이미 점유된 사진 수 (기존 저장 사진 - content:// URI 없이 Supabase URL만 있는 것)
+    // slots taken by saved photos (Supabase paths, no content:// URI)
     private var reservedCount = 0
 
     fun initialize(alreadyAttached: List<Uri>, existingPhotoCount: Int = 0) {

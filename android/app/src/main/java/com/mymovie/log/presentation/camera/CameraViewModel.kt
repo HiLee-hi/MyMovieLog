@@ -106,7 +106,7 @@ class CameraViewModel @Inject constructor(
             resolver.update(destUri, contentValues, null, null)
         }
 
-        // AlbumPickerViewModel과 동일한 EXTERNAL_CONTENT_URI 형식으로 정규화
+        // same EXTERNAL_CONTENT_URI form as AlbumPickerViewModel
         val id = destUri.lastPathSegment?.toLongOrNull()
         return if (id != null) {
             ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)

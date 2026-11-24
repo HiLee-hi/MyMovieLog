@@ -5,7 +5,7 @@ public struct GetCurrentUserIdUseCase: Sendable {
         self.repository = repository
     }
 
-    /// Throws instead of returning an empty id, which Supabase RLS would reject anyway
+    // throw instead of an empty id, RLS would reject it anyway
     public func callAsFunction() async throws -> String {
         guard let userId = await repository.currentUserId(), !userId.isEmpty else {
             throw DomainError.notSignedIn

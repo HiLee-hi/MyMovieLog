@@ -5,15 +5,14 @@ import Observation
 import PhotosUI
 import SwiftUI
 
-/// Signed URLs for a record's photo paths. Signed URLs expire after an hour, so they are
-/// fetched each time the editor opens instead of being stored.
+// signed URLs expire after an hour -> fetched on each editor open, not stored
 @MainActor
 @Observable
 public final class RecordPhotosViewModel {
     public enum State: Equatable {
         case idle
         case loading
-        /// Signed URL by storage path; a path missing here could not be signed
+        // missing path = couldn't be signed
         case loaded([String: URL])
         case failed(String)
     }
@@ -43,8 +42,8 @@ public final class RecordPhotosViewModel {
     }
 }
 
-/// Lets every record editor sign photo paths without each screen's view model passing it down.
-/// RootView sets it; without it saved photos show as placeholders.
+// signer for every editor without passing it down, set by RootView
+// missing -> saved photos show placeholders
 private struct SignedPhotoUrlsKey: EnvironmentKey {
     static let defaultValue: GetSignedPhotoUrlsUseCase? = nil
 }
@@ -56,11 +55,11 @@ extension EnvironmentValues {
     }
 }
 
-/// "사진" section of the record form, like the Android PhotoAttachSection: add from the album,
-/// remove saved or new photos, at most 10. Nothing reaches Storage until the record is saved.
+// "사진" section, like android PhotoAttachSection: album add, remove, max 10
+// nothing hits Storage until save
 struct RecordPhotosSection: View {
     @Binding var draft: RecordDraft
-    /// The record's saved photo paths, signed once when the editor opens
+    // saved paths, signed once on open
     let savedPaths: [String]
     @Environment(\.getSignedPhotoUrls) private var getSignedPhotoUrls
 
@@ -79,7 +78,7 @@ struct RecordPhotosSection: View {
     }
 }
 
-/// One photo in the row: a saved one by its storage path or one picked in this session
+// saved (path) or picked this session
 private enum PhotoItem: Identifiable, Equatable {
     case saved(path: String)
     case new(AttachedPhoto)
@@ -98,7 +97,7 @@ private struct RecordPhotoEditor: View {
     @State private var viewModel: RecordPhotosViewModel?
     @State private var pickerItems: [PhotosPickerItem] = []
     @State private var isImporting = false
-    /// Album photos left out on the last pick because they were already attached
+    // skipped on the last pick, already attached
     @State private var skippedDuplicates = 0
     @State private var viewerStart: PhotoViewerStart?
     @State private var showsCamera = false
@@ -132,7 +131,7 @@ private struct RecordPhotoEditor: View {
                         thumbnail(item, index: index)
                     }
                 }
-                // Room for the remove buttons that stick out of the corners
+                // room for the corner remove buttons
                 .padding(.top, 6)
                 .padding(.trailing, 6)
             }
@@ -158,7 +157,7 @@ private struct RecordPhotoEditor: View {
         .task(id: savedPaths) { await viewModel?.load(paths: savedPaths) }
         .onChange(of: pickerItems) { _, picked in
             guard !picked.isEmpty else { return }
-            // Take the batch once, so a repeated change can never import it twice
+            // take the batch once so a repeated change can't import twice
             pickerItems = []
             Task { await importPicked(picked) }
         }
@@ -186,7 +185,7 @@ private struct RecordPhotoEditor: View {
             maxSelectionCount: draft.remainingPhotoSlots,
             selectionBehavior: .ordered,
             matching: .images,
-            // Gives each pick its library identifier (no library access needed) to spot duplicates
+            // library id per pick (no library access needed) for duplicate checks
             photoLibrary: .shared()
         ) {
             AddPhotoTile(title: L10n.recordPhotoAlbum, systemImage: "photo.on.rectangle", size: Self.thumbnailSize, isBusy: isImporting)
@@ -216,7 +215,7 @@ private struct RecordPhotoEditor: View {
                     .foregroundStyle(.white)
                     .frame(width: 22, height: 22)
                     .background(Color.popcornInk, in: Circle())
-                    // A bigger tap area than the visible dot
+                    // tap area bigger than the dot
                     .frame(width: 44, height: 44)
                     .contentShape(Rectangle())
             }
@@ -246,7 +245,7 @@ private struct RecordPhotoEditor: View {
         var photos: [AttachedPhoto] = []
         var skipped = 0
         for item in picked {
-            // Skip known items before loading their data
+            // skip known items before loading data
             if let sourceId = item.itemIdentifier, known.contains(sourceId) {
                 skipped += 1
                 continue
@@ -262,7 +261,7 @@ private struct RecordPhotoEditor: View {
     static let thumbnailSize: CGFloat = 76
 }
 
-/// Dashed butter tile used by the camera and album buttons
+// dashed butter tile for camera / album buttons
 private struct AddPhotoTile: View {
     let title: String
     let systemImage: String
@@ -295,13 +294,13 @@ private struct PhotoViewerStart: Identifiable {
     var id: Int { index }
 }
 
-/// A saved photo through its signed URL, or a picked photo from its data
+// saved via signed URL, picked via its data
 private struct PhotoImage: View {
     let item: PhotoItem
     let signedURL: URL?
     let isLoadingURL: Bool
     let contentMode: ContentMode
-    /// Pixel size to decode picked photos at; nil decodes them full size
+    // decode size for picked photos, nil = full size
     let thumbnailSize: CGFloat?
 
     var body: some View {
@@ -331,7 +330,7 @@ private struct PhotoImage: View {
     }
 }
 
-/// Decodes picked image data off the main thread, downscaled for thumbnails
+// decode off main thread, downscaled for thumbnails
 private struct LocalPhoto: View {
     let photo: AttachedPhoto
     let contentMode: ContentMode
@@ -364,7 +363,7 @@ private struct LocalPhoto: View {
     }
 }
 
-/// Swipe through the photos at full size
+// full-size swipe viewer
 private struct PhotoViewer: View {
     let items: [PhotoItem]
     let signedURLs: [String: URL]

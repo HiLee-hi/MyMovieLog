@@ -25,10 +25,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-/**
- * Centers content and caps its width, so text and cards never stretch across a tablet,
- * a 4:3 foldable display or a maximized desktop window.
- */
+// centered, width capped for tablet / 4:3 / maximized windows
 fun Modifier.constrainedWidth(maxWidth: Dp = AdaptiveDimens.ContentMaxWidth): Modifier =
     this
         .fillMaxWidth()
@@ -36,11 +33,8 @@ fun Modifier.constrainedWidth(maxWidth: Dp = AdaptiveDimens.ContentMaxWidth): Mo
         .widthIn(max = maxWidth)
         .fillMaxWidth()
 
-/**
- * [PaneScaffoldDirective] for the Material 3 pane scaffolds, derived from [AdaptiveLayoutInfo]
- * so the pane count also accounts for the navigation rail and per-screen minimum pane widths.
- * Separating vertical hinges are excluded, like the official `HingePolicy.AvoidSeparating`.
- */
+// pane count from AdaptiveLayoutInfo so the rail and per-screen min widths count
+// separating vertical hinges excluded, like HingePolicy.AvoidSeparating
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 fun AdaptiveLayoutInfo.paneScaffoldDirective(
     maxPanes: Int,
@@ -51,7 +45,7 @@ fun AdaptiveLayoutInfo.paneScaffoldDirective(
     maxVerticalPartitions = if (isTabletop) 2 else 1,
     verticalPartitionSpacerSize = if (isTabletop) AdaptiveDimens.PaneSpacing else 0.dp,
     defaultPanePreferredWidth = preferredPaneWidth,
-    // With a single pane the scaffold would otherwise leave one side of the fold empty.
+    // single pane would leave one side of the fold empty
     excludedBounds = if (maxPanes > 1) separatingVerticalHingeBounds else emptyList()
 )
 
@@ -62,11 +56,7 @@ internal data class ColumnSplit(
     val secondWidth: Int = 0,
 )
 
-/**
- * Decides whether two columns fit side by side in [layoutWidth] px and where they go.
- * When a vertical fold crosses the layout, the fold becomes the column boundary so no column
- * straddles the hinge.
- */
+// two columns in layoutWidth px? a vertical fold inside the layout becomes the boundary
 internal fun computeColumnSplit(
     layoutLeftInWindow: Float,
     layoutWidth: Int,
@@ -98,13 +88,9 @@ internal fun computeColumnSplit(
     return ColumnSplit(true, firstWidth, firstWidth + spacing, layoutWidth - firstWidth - spacing)
 }
 
-/**
- * Two columns side by side when the *available* width fits them, otherwise stacked vertically.
- * Both slots stay in the same composition across the switch, so state inside them (text fields,
- * scroll positions) survives fold/unfold, rotation and window resizing.
- *
- * Intended for scrolling content: in the stacked arrangement the height is the sum of both slots.
- */
+// side by side if the available width fits, else stacked
+// both slots stay in composition, so field / scroll state survives fold, rotate, resize
+// for scrolling content: stacked height = sum of both
 @Composable
 fun AdaptiveTwoColumn(
     first: @Composable () -> Unit,
@@ -162,14 +148,8 @@ fun AdaptiveTwoColumn(
     }
 }
 
-/**
- * [content] with [controls] on top of it; in tabletop posture (a half-opened horizontal fold,
- * e.g. flip phones in Flex mode) the two are split instead: [content] above the hinge and
- * [controls] below it, so nothing sits on the fold and the controls are on the lower half.
- *
- * Both slots keep their place in the composition when the posture changes, so an embedded
- * Android View (camera preview) is never re-parented.
- */
+// controls over content, tabletop -> content above the hinge, controls below
+// slots keep their composition place, so the camera AndroidView isn't re-parented
 @Composable
 fun TabletopAwareLayout(
     content: @Composable () -> Unit,
@@ -211,10 +191,7 @@ fun TabletopAwareLayout(
     }
 }
 
-/**
- * Returns (height above the fold, y where the area below the fold starts) in layout pixels,
- * or null when the fold does not cross the layout.
- */
+// (height above fold, y where below starts) in px, null if the fold misses the layout
 internal fun computeFoldSplit(layoutTopInWindow: Float, layoutHeight: Int, foldTop: Float, foldBottom: Float): Pair<Int, Int>? {
     val top = (foldTop - layoutTopInWindow).roundToInt()
     val bottom = (foldBottom - layoutTopInWindow).roundToInt().coerceAtLeast(top)

@@ -10,7 +10,7 @@ import java.time.LocalDate
 
 private val json = Json { ignoreUnknownKeys = true }
 
-// DTO (Supabase) → Domain model
+// DTO (Supabase) -> domain
 fun MovieRecordDto.toDomain() = MovieRecord(
     id = id,
     userId = userId,
@@ -28,7 +28,7 @@ fun MovieRecordDto.toDomain() = MovieRecord(
     createdAt = createdAt
 )
 
-// Domain model → DTO (for Supabase upsert; id is assigned by the server)
+// domain -> DTO for upsert, id assigned by server
 fun MovieRecord.toDto() = MovieRecordDto(
     id = id,
     userId = userId,
@@ -45,7 +45,7 @@ fun MovieRecord.toDto() = MovieRecordDto(
     photoUrls = photoUrls
 )
 
-// Entity (Room) → Domain model
+// entity (Room) -> domain
 fun MovieRecordEntity.toDomain() = MovieRecord(
     id = id,
     userId = userId,
@@ -64,7 +64,7 @@ fun MovieRecordEntity.toDomain() = MovieRecord(
     createdAt = createdAt
 )
 
-// Domain model → Entity (for Room local cache)
+// domain -> entity (Room cache)
 fun MovieRecord.toEntity() = MovieRecordEntity(
     id = id,
     userId = userId,

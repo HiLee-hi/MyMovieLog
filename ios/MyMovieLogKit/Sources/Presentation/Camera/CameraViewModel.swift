@@ -1,25 +1,24 @@
 import Foundation
 import Observation
 
-/// What the camera screen needs from the hardware. The iOS implementation is `AVCameraDevice`;
-/// tests use a fake, so the screen flow is tested on macOS too.
+// hardware seam, AVCameraDevice on iOS, fake in tests (runs on macOS)
 @MainActor
 public protocol CameraDevice: AnyObject {
-    /// Asks for camera access when undecided; true when granted
+    // asks when undecided, true if granted
     func requestAccess() async -> Bool
     func start() async throws
     func stop()
-    /// JPEG data with its EXIF orientation
+    // JPEG with EXIF orientation
     func capturePhoto() async throws -> Data
 }
 
-/// Keeps a copy of a used photo in the photo library, like the Android app saving to the gallery
+// copy of the used photo to the library, like android saving to the gallery
 @MainActor
 public protocol PhotoLibrarySaving {
     func save(_ jpeg: Data) async
 }
 
-/// Preview → capture → review (retake / use), the same flow as the Android CameraScreen
+// preview -> capture -> review (retake / use), same as android CameraScreen
 @MainActor
 @Observable
 public final class CameraViewModel {
@@ -73,7 +72,7 @@ public final class CameraViewModel {
         if case .review = phase { phase = .preview }
     }
 
-    /// The reviewed photo for the record; a copy goes to the photo library in the background
+    // reviewed photo for the record, library copy in the background
     public func usePhoto() -> Data? {
         guard case .review(let data) = phase else { return nil }
         if let library {

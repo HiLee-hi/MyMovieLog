@@ -1,8 +1,7 @@
 #if DEBUG
 import SwiftUI
 
-// PreviewProvider rather than #Preview: the macro plugin ships only with Xcode, and this
-// package is also built with the plain Swift toolchain.
+// PreviewProvider, not #Preview: the macro plugin is Xcode-only and this builds with plain swift too
 struct RootView_Previews: PreviewProvider {
     static var previews: some View {
         RootView(useCases: .preview())

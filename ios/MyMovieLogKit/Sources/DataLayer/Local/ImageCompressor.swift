@@ -7,8 +7,8 @@ enum ImageCompressionError: Error {
     case encodingFailed
 }
 
-/// Same output as the Android `compressImage`: the long side at most 1920 px, EXIF rotation
-/// applied to the pixels, JPEG at quality 0.85. Works for JPEG, HEIC and PNG input.
+// same as android compressImage: long side <= 1920 px, EXIF rotation baked in, JPEG 0.85
+// JPEG / HEIC / PNG input
 enum ImageCompressor {
     static let maxDimension = 1920
     static let jpegQuality = 0.85
@@ -18,8 +18,8 @@ enum ImageCompressor {
               CGImageSourceGetCount(source) > 0
         else { throw ImageCompressionError.unreadableImage }
 
-        // A thumbnail with the transform applied both downscales and rotates upright;
-        // "Always" makes it decode the full image instead of a small embedded preview.
+        // thumbnail with transform = downscale + upright in one step
+        // "Always" -> decode the full image, not the embedded preview
         let options: [CFString: Any] = [
             kCGImageSourceCreateThumbnailFromImageAlways: true,
             kCGImageSourceCreateThumbnailWithTransform: true,
@@ -36,7 +36,7 @@ enum ImageCompressor {
         return output as Data
     }
 
-    /// Small images are not upscaled
+    // no upscaling
     private static func longSide(of source: CGImageSource) -> Int? {
         guard let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any],
               let width = properties[kCGImagePropertyPixelWidth] as? Int,

@@ -2,14 +2,14 @@
 <resources>
     <string name="app_name">팝콘한알</string>
 
-    <!-- Navigation -->
+    <!-- navigation -->
     <string name="nav_home">홈</string>
     <string name="nav_search">검색</string>
     <string name="nav_library">라이브러리</string>
     <string name="nav_stats">통계</string>
     <string name="nav_profile">프로필</string>
 
-    <!-- Common -->
+    <!-- common -->
     <string name="common_save">저장</string>
     <string name="common_cancel">취소</string>
     <string name="common_delete">삭제</string>
@@ -23,7 +23,7 @@
     <string name="common_wishlist">위시리스트</string>
     <string name="common_movie_count">%1$d편</string>
 
-    <!-- Record -->
+    <!-- record -->
     <string name="record_save">기록 저장</string>
     <string name="record_add">기록하기</string>
     <string name="record_edit">기록 수정</string>
@@ -44,12 +44,12 @@
     <string name="record_photo_count">사진 %1$d장</string>
     <string name="record_delete_confirm">\"%1$s\" 기록을 삭제할까요?</string>
 
-    <!-- Login required -->
+    <!-- login required -->
     <string name="login_required_title">로그인이 필요한 기능이에요</string>
     <string name="login_required_message">기록을 저장하고 통계를 확인하려면\n로그인해주세요.</string>
     <string name="login_required_action">로그인하기</string>
 
-    <!-- Home -->
+    <!-- home -->
     <string name="home_greeting">오늘은 어떤 영화를 봤나요?</string>
     <string name="home_recent">최근에 본 영화</string>
     <string name="home_recent_empty">아직 감상 기록이 없어요. 영화를 검색해 기록해보세요!</string>
@@ -60,7 +60,7 @@
     <string name="home_calendar_description">캘린더</string>
     <string name="home_show_all">전체 보기</string>
 
-    <!-- Calendar -->
+    <!-- calendar -->
     <string name="calendar_title">관람 캘린더</string>
     <string name="calendar_login_required">관람 캘린더를 보려면\n로그인이 필요해요</string>
     <string name="calendar_legend_watched">● 영화를 본 날</string>
@@ -70,14 +70,14 @@
     <string name="calendar_next_month">다음 달</string>
     <string name="calendar_no_records">이 날은 아직 기록이 없어요</string>
 
-    <!-- Library -->
+    <!-- library -->
     <string name="library_login_required">내 영화 목록을 보려면\n로그인이 필요해요</string>
     <string name="library_watched_empty">감상 기록이 없어요</string>
     <string name="library_wishlist_empty">위시리스트가 비어있어요</string>
     <string name="library_watched_tab">감상 완료 (%1$d)</string>
     <string name="library_wishlist_tab">위시리스트 (%1$d)</string>
 
-    <!-- Search -->
+    <!-- search -->
     <string name="search_detail_placeholder">영화를 선택하면 상세 정보가 여기에 표시돼요</string>
     <string name="search_placeholder">영화 제목으로 검색</string>
     <string name="search_clear">지우기</string>
@@ -85,21 +85,21 @@
     <string name="search_no_results">검색 결과가 없어요</string>
     <string name="search_error">오류: %1$s</string>
 
-    <!-- Detail -->
+    <!-- detail -->
     <string name="detail_load_failed">영화 정보를 불러오지 못했어요</string>
     <string name="detail_overview">줄거리</string>
     <string name="detail_overview_empty">줄거리 정보가 없어요</string>
     <string name="detail_no_record">아직 이 영화의 기록이 없어요</string>
     <string name="detail_my_record">내 기록</string>
 
-    <!-- Picker and camera -->
+    <!-- picker / camera -->
     <string name="picker_title">사진 선택</string>
     <string name="camera_hint">티켓이나 포스터를 찍어 보세요</string>
     <string name="camera_retake">다시찍기</string>
     <string name="camera_use_photo">사용하기</string>
     <string name="picker_done_count">완료 (%1$d장)</string>
 
-    <!-- Profile -->
+    <!-- profile -->
     <string name="profile_sign_up">회원가입</string>
     <string name="profile_sign_in_email">이메일로 로그인</string>
     <string name="profile_email">이메일</string>
@@ -120,7 +120,7 @@
     <string name="profile_watched_count">감상 완료</string>
     <string name="profile_wishlist_count">보고 싶은 영화</string>
 
-    <!-- Stats -->
+    <!-- stats -->
     <string name="stats_login_required">나의 영화 통계를 보려면\n로그인이 필요해요</string>
     <string name="stats_average_rating">평균 평점</string>
     <string name="stats_watched_movies">감상한 영화</string>
@@ -131,7 +131,7 @@
     <string name="stats_recent_six_months">최근 6개월</string>
     <string name="stats_average_rating_value">★ %1$s</string>
 
-    <!-- Errors -->
+    <!-- errors -->
     <string name="error_save_failed">저장 실패</string>
     <string name="error_load_failed">불러오기 실패</string>
     <string name="error_capture_failed">촬영 실패</string>
@@ -139,7 +139,7 @@
     <string name="error_sign_in_failed">로그인에 실패했습니다</string>
     <string name="error_sign_up_failed">회원가입에 실패했습니다</string>
 
-    <!-- Date formats -->
+    <!-- date formats -->
     <string name="format_date_full">yyyy년 M월 d일</string>
     <string name="format_year_month">yyyy년 M월</string>
     <string name="format_month_day_weekday">M월 d일 (E)</string>

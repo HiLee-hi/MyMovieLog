@@ -55,7 +55,7 @@ class LibraryViewModel @Inject constructor(
     private val _editRecordState = MutableStateFlow<AddRecordState>(AddRecordState.Idle)
     val editRecordState: StateFlow<AddRecordState> = _editRecordState.asStateFlow()
 
-    // Edit form values live here so they survive rotation, fold/unfold and window resizing
+    // form lives here to survive rotate / fold / resize
     private val _editDraft = MutableStateFlow(RecordDraft())
     val editDraft: StateFlow<RecordDraft> = _editDraft.asStateFlow()
 
@@ -141,7 +141,7 @@ class LibraryViewModel @Inject constructor(
             AppLogger.i("VM_LIBRARY", "Update record: id=${AppLogger.shortId(record.id)}, status=${status.value}")
             runCatching {
                 val userId = getCurrentUserIdUseCase()
-                // New photos are uploaded by the use case, which also rolls them back if the save fails
+                // use case uploads new photos and rolls them back on failure
                 upsertRecordUseCase(
                     record.copy(
                         userId = userId,

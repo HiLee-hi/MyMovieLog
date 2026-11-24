@@ -2,7 +2,7 @@ import Domain
 import Foundation
 import Supabase
 
-/// Same bucket and URL lifetime as the Android `PhotoRepositoryImpl`
+// same bucket + URL lifetime as android PhotoRepositoryImpl
 struct PhotoRepositoryImpl: PhotoRepository {
     static let bucket = "movie-photos"
     static let signedURLLifetime = 3600
@@ -14,7 +14,7 @@ struct PhotoRepositoryImpl: PhotoRepository {
     }
 
     func signedURLs(for paths: [String]) async throws -> [String: URL] {
-        // One request for all paths; the server answers per path
+        // one request for all paths, answered per path
         let results = try await storage.from(Self.bucket)
             .createSignedURLs(paths: paths, expiresIn: Self.signedURLLifetime)
         var urls: [String: URL] = [:]
@@ -34,7 +34,7 @@ struct PhotoRepositoryImpl: PhotoRepository {
         do {
             for image in images {
                 let jpeg = try ImageCompressor.jpegData(from: image)
-                // Lowercase like the Android java.util.UUID paths
+                // lowercase like android java.util.UUID paths
                 let path = "\(userId)/\(tmdbId)/\(UUID().uuidString.lowercased()).jpg"
                 try await storage.from(Self.bucket).upload(
                     path,
@@ -45,7 +45,7 @@ struct PhotoRepositoryImpl: PhotoRepository {
                 paths.append(path)
             }
         } catch {
-            // All or nothing: a half-finished batch would leave files no record points to
+            // all or nothing, a half batch leaves orphan files
             if !paths.isEmpty { try? await delete(paths: paths) }
             throw error
         }

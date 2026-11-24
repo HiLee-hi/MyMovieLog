@@ -6,12 +6,12 @@ public enum EmailAuthState: Equatable, Sendable {
     case idle
     case loading
     case success
-    /// Sign-up finished; the user has to open the link in the verification e-mail first
+    // signed up, waiting for the verification e-mail link
     case emailVerificationRequired
     case error(String)
 }
 
-/// Numbers on the profile cards
+// profile card numbers
 public struct ProfileRecordCounts: Equatable, Sendable {
     public var watched = 0
     public var wishlist = 0
@@ -88,7 +88,7 @@ public final class ProfileViewModel {
         }
     }
 
-    /// True when the user came back signed in
+    // true if back signed in
     @discardableResult
     public func signInWithGoogle() async -> Bool {
         googleError = nil
@@ -96,7 +96,7 @@ public final class ProfileViewModel {
             try await signInWithGoogleUseCase()
             return true
         } catch {
-            // Closing the Google sheet is not an error worth showing
+            // closing the Google sheet isn't an error
             if !Self.isUserCancellation(error) {
                 googleError = error.localizedDescription
             }
@@ -104,7 +104,7 @@ public final class ProfileViewModel {
         }
     }
 
-    /// ASWebAuthenticationSessionError.canceledLogin, without importing AuthenticationServices here
+    // ASWebAuthenticationSessionError.canceledLogin without importing AuthenticationServices
     private static func isUserCancellation(_ error: Error) -> Bool {
         let nsError = error as NSError
         return error is CancellationError

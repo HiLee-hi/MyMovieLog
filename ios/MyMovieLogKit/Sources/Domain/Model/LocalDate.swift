@@ -1,8 +1,7 @@
 import Foundation
 
-/// A calendar date without a time or time zone, like `java.time.LocalDate`.
-/// Supabase stores `watched_at` as a `date` column ("yyyy-MM-dd"), so a record never moves to
-/// another day when the device time zone changes.
+// date without time / zone, like java.time.LocalDate
+// `watched_at` is a date column ("yyyy-MM-dd"), so time zone changes don't move records
 public struct LocalDate: Hashable, Comparable, Sendable {
     public let year: Int
     public let month: Int
@@ -14,7 +13,7 @@ public struct LocalDate: Hashable, Comparable, Sendable {
         self.day = day
     }
 
-    /// Parses "yyyy-MM-dd". A longer timestamp is accepted and its date part is used.
+    // "yyyy-MM-dd", longer timestamps use the date part
     public init?(isoString: String) {
         let parts = isoString.prefix(10).split(separator: "-")
         guard parts.count == 3,
@@ -42,7 +41,7 @@ public struct LocalDate: Hashable, Comparable, Sendable {
         YearMonth(year: year, month: month)
     }
 
-    /// Start of this day in the given calendar, for date pickers and formatters.
+    // start of day in calendar, for pickers / formatters
     public func date(calendar: Calendar = .current) -> Date {
         calendar.date(from: DateComponents(year: year, month: month, day: day)) ?? Date()
     }
@@ -52,7 +51,7 @@ public struct LocalDate: Hashable, Comparable, Sendable {
     }
 }
 
-/// A month of a year, like `java.time.YearMonth`.
+// like java.time.YearMonth
 public struct YearMonth: Hashable, Comparable, Sendable {
     public let year: Int
     public let month: Int
@@ -79,9 +78,9 @@ public struct YearMonth: Hashable, Comparable, Sendable {
         }
     }
 
-    /// Day of the week of the 1st, 1 = Sunday ... 7 = Saturday.
+    // weekday of the 1st, 1 = Sunday ... 7 = Saturday
     public var firstWeekday: Int {
-        // Zeller-style computation so the result does not depend on the device calendar
+        // Zeller-style, independent of the device calendar
         let shifted = month < 3 ? (year - 1, month + 12) : (year, month)
         let k = shifted.0 % 100
         let j = shifted.0 / 100

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <!-- 공공데이터포털 API는 HTTP만 지원 -->
+    <!-- 공공데이터포털 API is HTTP only -->
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">apis.data.go.kr</domain>
     </domain-config>

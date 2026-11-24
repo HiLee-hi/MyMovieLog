@@ -70,10 +70,10 @@ fun ProfileScreen(
     var showLoginSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    // Remember whether the user was logged out when this screen first composed (prevents navigation if already logged in on app start)
+    // logged out at first composition? avoids navigating when already logged in on start
     var wasLoggedOut by remember { mutableStateOf(currentUser == null) }
 
-    // Detect login transition (null → non-null) — handles both email and Google sign-in
+    // login transition (null -> non-null), email and Google
     LaunchedEffect(currentUser) {
         if (wasLoggedOut && currentUser != null) {
             onLoginSuccess()
@@ -81,7 +81,7 @@ fun ProfileScreen(
         wasLoggedOut = currentUser == null
     }
 
-    // Auto-close BottomSheet only on sign-in success (keep it open while awaiting email verification after sign-up)
+    // close sheet on sign-in only, stay open while waiting for email verification
     LaunchedEffect(emailAuthUiState) {
         if (emailAuthUiState is EmailAuthUiState.Success) {
             sheetState.hide()
@@ -146,11 +146,11 @@ private fun EmailLoginBottomSheet(
         sheetState = sheetState,
         dragHandle = { BottomSheetDefaults.DragHandle() }
     ) {
-        // Email verification prompt shown after sign-up
+        // verification prompt after sign-up
         if (isVerificationRequired) {
             EmailVerificationContent(
                 onConfirmed = {
-                    // Switch to sign-in mode after verification is confirmed
+                    // verified -> sign-in mode
                     onResetState()
                     isSignUpMode = false
                 }
@@ -241,7 +241,7 @@ private fun EmailLoginBottomSheet(
             TextButton(
                 onClick = {
                     isSignUpMode = !isSignUpMode
-                    onResetState()  // clear any previous error when switching modes
+                    onResetState()  // clear error on mode switch
                 },
                 enabled = !isLoading
             ) {
@@ -385,5 +385,5 @@ internal object ProfileTestTags {
     const val RecordCounts = "profile_record_counts"
 }
 
-/** Buttons keep their phone proportions but do not stretch across wide windows. */
+// phone-sized buttons on wide windows
 private val ActionButtonMaxWidth = 360.dp

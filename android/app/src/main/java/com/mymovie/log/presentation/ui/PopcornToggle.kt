@@ -24,11 +24,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.mymovie.log.presentation.ui.theme.PopcornColors
 
-/**
- * Two or more pill options inside a white rounded track; the selected one is filled with butter.
- * Used for the library tabs ([Role.Tab]) and the watched / wishlist choice in the record editor
- * ([Role.RadioButton]).
- */
+// pill options in a white track, selected = butter
+// library tabs (Role.Tab), watched / wishlist in the editor (Role.RadioButton)
 @Composable
 fun <T> PopcornToggle(
     options: List<T>,

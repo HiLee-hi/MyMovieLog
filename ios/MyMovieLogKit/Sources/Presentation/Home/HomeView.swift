@@ -46,7 +46,7 @@ struct HomeView: View {
                         loginBanner
                     }
                     if isWide {
-                        // Unfolded or wide windows: records on the left, the summary beside them
+                        // wide: records left, summary beside
                         AdaptiveTwoColumn(firstFraction: 0.62) {
                             VStack(alignment: .leading, spacing: 24) { recordSections }
                         } second: {
@@ -77,7 +77,7 @@ struct HomeView: View {
         }
     }
 
-    /// Brand mark, app name and the calendar shortcut, in place of the navigation bar
+    // brand mark, app name, calendar shortcut in place of the nav bar
     private var header: some View {
         HStack(spacing: 10) {
             PopcornMark()
@@ -134,7 +134,7 @@ struct HomeView: View {
         )
     }
 
-    /// Side column on wide windows: the stat cards stacked, with the calendar shortcut below
+    // wide side column: stat cards, calendar shortcut below
     private var summaryPanel: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(L10n.homeSummary)
@@ -161,7 +161,7 @@ struct HomeView: View {
         }
     }
 
-    /// The highlighted card is filled with butter; the other one is a white outlined card
+    // highlighted = butter fill, other = white outlined
     private func statCard(value: Int, label: String, highlighted: Bool) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(label)
@@ -217,7 +217,7 @@ struct HomeView: View {
                             .buttonStyle(.plain)
                         }
                     }
-                    // Room for the poster shadow
+                    // room for the poster shadow
                     .padding(.bottom, 8)
                 }
             }
@@ -225,7 +225,7 @@ struct HomeView: View {
     }
 }
 
-/// Poster, title and rating; used in the Home rows and the Library grid
+// used in Home rows and the Library grid
 struct RecordPosterCell: View {
     let record: MovieRecord
 

@@ -15,11 +15,8 @@ private const val KEY_SELECTED_PHOTOS = "selectedPhotos"
 internal const val KEY_ALREADY_ATTACHED_URIS = "alreadyAttachedUris"
 internal const val KEY_EXISTING_PHOTO_COUNT = "existingPhotoCount"
 
-/**
- * Delivers Camera / AlbumPicker results written to [savedStateHandle] (the back stack entry that
- * opened them) to [host]. Results live in the SavedStateHandle, so they are not lost if the
- * window changes (fold/unfold, rotation) while the camera or picker is open.
- */
+// camera / album results from savedStateHandle -> host
+// kept in SavedStateHandle, so fold / rotate while the picker is open doesn't drop them
 @Composable
 internal fun PhotoPickerResultEffect(
     savedStateHandle: SavedStateHandle,
@@ -60,7 +57,7 @@ internal fun PhotoPickerResultEffect(
     }
 }
 
-/** Opens the album picker with the photos [host] already has, as the original screens did. */
+// pass host's current photos to the picker
 internal fun openAlbumPicker(
     navController: NavController,
     savedStateHandle: SavedStateHandle,

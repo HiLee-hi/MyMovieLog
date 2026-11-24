@@ -12,7 +12,7 @@ data class MovieRecordEntity(
     val title: String,
     @ColumnInfo(name = "original_title") val originalTitle: String,
     @ColumnInfo(name = "poster_path") val posterPath: String?,
-    @ColumnInfo(name = "genre_ids") val genreIds: String,    // comma-separated string, e.g. "18,28"
+    @ColumnInfo(name = "genre_ids") val genreIds: String,    // comma-separated, e.g. "18,28"
     val status: String,
     val rating: Float?,
     val review: String?,

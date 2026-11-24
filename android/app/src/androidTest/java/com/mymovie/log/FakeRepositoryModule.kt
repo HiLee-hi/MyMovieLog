@@ -18,10 +18,7 @@ import dagger.hilt.components.SingletonComponent
 import dagger.hilt.testing.TestInstallIn
 import javax.inject.Singleton
 
-/**
- * The real app (MainActivity, AppNavHost, ViewModels, UseCases) with in-memory repositories and a
- * logged-in fake user, so record writing can be exercised without a real account or network.
- */
+// real app with in-memory repos and a fake logged-in user, no account / network needed
 @Module
 @TestInstallIn(components = [SingletonComponent::class], replaces = [RepositoryModule::class])
 object FakeRepositoryModule {

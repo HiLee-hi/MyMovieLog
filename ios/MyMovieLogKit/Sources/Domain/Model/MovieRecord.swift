@@ -1,7 +1,7 @@
 import Foundation
 
 public struct MovieRecord: Identifiable, Hashable, Sendable {
-    /// Assigned by Supabase; empty until the record is first saved
+    // set by Supabase, empty until first save
     public var id: String
     public var userId: String
     public var tmdbId: Int
@@ -10,12 +10,12 @@ public struct MovieRecord: Identifiable, Hashable, Sendable {
     public var posterPath: String?
     public var genreIds: [Int]
     public var status: WatchStatus
-    /// 0.5 ~ 5.0
+    // 0.5 ~ 5.0
     public var rating: Double?
     public var review: String?
     public var memo: String?
     public var watchedAt: LocalDate?
-    /// Storage paths in the `movie-photos` bucket, attached from the Android app
+    // paths in the `movie-photos` bucket
     public var photoUrls: [String]
     public var createdAt: String
 

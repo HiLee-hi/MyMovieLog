@@ -48,7 +48,7 @@ struct HolidayDtoTests {
     }
 }
 
-/// Answers every request with the next queued response and counts the requests
+// next queued response per request, counts requests
 final class HolidayStubProtocol: URLProtocol, @unchecked Sendable {
     nonisolated(unsafe) static var responses: [(status: Int, body: String)] = []
     nonisolated(unsafe) static var requestCount = 0
@@ -68,7 +68,7 @@ final class HolidayStubProtocol: URLProtocol, @unchecked Sendable {
     override func stopLoading() {}
 }
 
-/// Uses the shared stub, so the cases run one after another
+// shared stub -> cases run serially
 @Suite(.serialized) struct HolidayRepositoryTests {
     private let september = YearMonth(year: 2026, month: 9)
     private let chuseok = """
@@ -126,7 +126,7 @@ final class HolidayStubProtocol: URLProtocol, @unchecked Sendable {
 
         let reloaded = HolidayCache(fileURL: file)
         #expect(await reloaded.holidays(in: september) == [LocalDate(year: 2026, month: 9, day: 24)])
-        // A month without holidays is remembered, so it is not requested again
+        // empty month remembered, not refetched
         #expect(await reloaded.holidays(in: empty) == [])
         #expect(await reloaded.holidays(in: YearMonth(year: 2026, month: 10)) == nil)
     }

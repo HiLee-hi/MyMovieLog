@@ -3,8 +3,7 @@ import AVFoundation
 import SwiftUI
 import UIKit
 
-/// Full-screen camera from the design canvas: close button, the "티켓이나 포스터를 찍어 보세요"
-/// hint and a butter shutter; after a shot, retake or use it.
+// close button, "티켓이나 포스터를 찍어 보세요" hint, butter shutter, then retake / use
 struct CameraScreen: View {
     let onUse: (Data) -> Void
     let onClose: () -> Void
@@ -142,7 +141,7 @@ struct CameraScreen: View {
     }
 }
 
-/// Live preview layer of the capture session
+// capture session preview layer
 private struct CameraPreview: UIViewRepresentable {
     let device: AVCameraDevice
 

@@ -1,7 +1,6 @@
 import Foundation
 
-/// `getRestDeInfo` response. The API shapes `items` by count: an empty string for no holidays,
-/// `{"item": {...}}` for one and `{"item": [...]}` for several.
+// getRestDeInfo items by count: "" for 0, {"item": {...}} for 1, {"item": [...]} for 2+
 struct HolidayResponseDto: Decodable {
     let response: Wrapper
 
@@ -39,7 +38,7 @@ struct HolidayBodyDto: Decodable {
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        // "" (no holidays) fails to decode as an object and leaves the list empty
+        // "" (no holidays) fails as an object -> empty list
         switch try? container.decodeIfPresent(ItemsContainer.self, forKey: .items)?.item {
         case .one(let item): items = [item]
         case .many(let list): items = list
@@ -50,7 +49,7 @@ struct HolidayBodyDto: Decodable {
 
 struct HolidayItemDto: Decodable {
     let dateName: String
-    /// yyyyMMdd as a number, e.g. 20260924
+    // yyyyMMdd as a number, e.g. 20260924
     let locdate: Int
     let isHoliday: String
 }

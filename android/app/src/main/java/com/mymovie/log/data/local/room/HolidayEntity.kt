@@ -11,6 +11,6 @@ data class HolidayEntity(
     val month: Int
 )
 
-// 해당 (year, month)를 API에서 한 번 이상 조회했음을 표시 — 공휴일 0건 달도 재조회 방지
+// marks (year, month) as fetched, so months with 0 holidays aren't refetched
 @Entity(tableName = "holiday_fetch", primaryKeys = ["year", "month"])
 data class HolidayFetchEntity(val year: Int, val month: Int)

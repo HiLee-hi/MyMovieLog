@@ -84,7 +84,7 @@ fun RecordDetailBottomSheet(
     }
 }
 
-/** Poster/title header plus the record form. Shown in the sheet or in a pane on large windows. */
+// poster / title + form, in the sheet or a Large pane
 @Composable
 fun RecordDetailContent(
     record: MovieRecord,
@@ -101,7 +101,6 @@ fun RecordDetailContent(
     onRemoveExistingPhoto: (String) -> Unit = {},
 ) {
     Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-        // Poster + title header
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,

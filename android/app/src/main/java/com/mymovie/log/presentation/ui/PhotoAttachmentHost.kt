@@ -3,10 +3,7 @@ package com.mymovie.log.presentation.ui
 import android.net.Uri
 import kotlinx.coroutines.flow.StateFlow
 
-/**
- * ViewModels whose record form can attach photos. Lets the navigation layer deliver camera /
- * album picker results to whichever screen or pane opened them with one shared implementation.
- */
+// ViewModels with a photo-capable form, lets navigation deliver camera / album results to any of them
 interface PhotoAttachmentHost {
     val attachedUris: StateFlow<List<Uri>>
     val existingPhotoSourceUris: StateFlow<List<String>>

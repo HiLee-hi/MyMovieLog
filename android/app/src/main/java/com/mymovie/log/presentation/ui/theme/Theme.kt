@@ -14,12 +14,8 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 
-/**
- * Material roles for the butter cream palette.
- * primary is caramel so every text-colored default (TextButton, tabs, progress) stays readable;
- * butter fills containers instead: filled buttons via [popcornButtonColors] and the navigation
- * indicator via secondaryContainer.
- */
+// primary = caramel so text-colored defaults (TextButton, tabs, progress) stay readable
+// butter only fills containers: popcornButtonColors, nav indicator via secondaryContainer
 private val PopcornColorScheme = lightColorScheme(
     primary = PopcornColors.Caramel,
     onPrimary = Color.White,
@@ -58,7 +54,7 @@ private val PopcornShapes = Shapes(
     extraLarge = RoundedCornerShape(28.dp),
 )
 
-/** The design has a single light theme, so system dark mode and dynamic color are not applied. */
+// design is light only -> no dark mode / dynamic color
 @Composable
 fun MyMovieLogTheme(content: @Composable () -> Unit) {
     val view = LocalView.current
@@ -77,7 +73,7 @@ fun MyMovieLogTheme(content: @Composable () -> Unit) {
     )
 }
 
-/** Butter filled button with ink text, the main call to action. */
+// main CTA: butter fill, ink text
 @Composable
 fun popcornButtonColors(): ButtonColors = ButtonDefaults.buttonColors(
     containerColor = MaterialTheme.colorScheme.primaryContainer,

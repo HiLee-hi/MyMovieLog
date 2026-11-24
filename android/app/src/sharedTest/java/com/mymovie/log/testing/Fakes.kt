@@ -34,7 +34,7 @@ fun testMovie(id: Int = 1) = Movie(
 )
 
 class FakeMovieRepository(private val movies: List<Movie> = listOf(testMovie(1), testMovie(2))) : MovieRepository {
-    // Explicit NotLoading states, like a PagingSource that finished loading
+    // explicit NotLoading, like a finished PagingSource
     override fun searchMovies(query: String): Flow<PagingData<Movie>> = flowOf(
         PagingData.from(
             movies,
@@ -50,7 +50,7 @@ class FakeMovieRepository(private val movies: List<Movie> = listOf(testMovie(1),
 
 class FakeMovieRecordRepository(initial: List<MovieRecord> = emptyList()) : MovieRecordRepository {
     val records = MutableStateFlow(initial)
-    /** Makes upsertRecord throw, like a failed Supabase request */
+    // upsertRecord throws, like a failed Supabase call
     var failUpsert = false
     override fun getRecords(status: WatchStatus?): Flow<List<MovieRecord>> =
         records.map { list -> if (status == null) list else list.filter { it.status == status } }
@@ -98,6 +98,6 @@ class FakeHolidayRepository : HolidayRepository {
     override fun getHolidayDates(year: Int, month: Int): Flow<Set<LocalDate>> = flowOf(emptySet())
 }
 
-/** What survives process death: a new SavedStateHandle built from the old one's contents. */
+// process death: new SavedStateHandle from the old one's contents
 fun SavedStateHandle.recreated(): SavedStateHandle =
     SavedStateHandle(keys().associateWith { get<Any?>(it) })

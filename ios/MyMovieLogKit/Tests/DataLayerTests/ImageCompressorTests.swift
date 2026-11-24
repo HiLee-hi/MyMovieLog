@@ -6,7 +6,7 @@ import Testing
 import UniformTypeIdentifiers
 
 struct ImageCompressorTests {
-    /// A width × height JPEG carrying an EXIF orientation
+    // width x height JPEG with an EXIF orientation
     private func jpeg(width: Int, height: Int, orientation: Int = 1) throws -> Data {
         let context = try #require(CGContext(data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0,
                                              space: CGColorSpaceCreateDeviceRGB(),
@@ -35,7 +35,7 @@ struct ImageCompressorTests {
     }
 
     @Test func appliesTheExifRotation() throws {
-        // Orientation 6: stored landscape, shown portrait
+        // orientation 6: stored landscape, shown portrait
         let output = try ImageCompressor.jpegData(from: jpeg(width: 400, height: 300, orientation: 6))
         let (width, height) = try pixelSize(output)
         #expect(width == 300)

@@ -1,8 +1,7 @@
 import Domain
 import Observation
 
-/// Editing an existing record from Home, Library or Calendar: the selected record, its draft
-/// and the save state. One instance per screen.
+// editing from Home / Library / Calendar: selected record, draft, save state, one per screen
 @MainActor
 @Observable
 public final class RecordEditSession {
@@ -30,7 +29,7 @@ public final class RecordEditSession {
         saveState = .idle
     }
 
-    /// Uploads the new photos, saves, then deletes the photos that were removed
+    // upload new -> save -> delete removed
     public func save() async {
         guard let record, !saveState.isSaving else { return }
         saveState = .saving

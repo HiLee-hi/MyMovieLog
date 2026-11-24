@@ -1,7 +1,6 @@
 import SwiftUI
 
-/// Tapping a star sets that rating; tapping the same star again makes it a half star,
-/// the same interaction as the Android StarRatingRow.
+// tap = rating, same star again = half star (same as android StarRatingRow)
 struct StarRatingInput: View {
     @Binding var rating: Double
 
@@ -31,7 +30,7 @@ struct StarRatingInput: View {
     }
 }
 
-/// "★ 4.5" label for lists
+// "★ 4.5" for lists
 struct RatingLabel: View {
     let rating: Double?
 
@@ -50,7 +49,7 @@ struct RatingLabel: View {
     }
 }
 
-/// Read-only five stars; [StarRatingInput] is the editable version
+// read-only, StarRatingInput is the editable one
 struct RatingStars: View {
     let rating: Double
 
@@ -69,7 +68,7 @@ struct RatingStars: View {
 }
 
 extension Double {
-    /// "4" for whole ratings, "4.5" otherwise
+    // "4" for whole, "4.5" otherwise
     var ratingText: String {
         truncatingRemainder(dividingBy: 1) == 0 ? String(format: "%.0f", self) : String(format: "%.1f", self)
     }

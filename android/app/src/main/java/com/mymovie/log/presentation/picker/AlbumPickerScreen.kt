@@ -99,7 +99,7 @@ fun AlbumPickerScreen(
             }
 
             is AlbumPickerUiState.Ready -> {
-                // 3 columns on phones, more cells (not bigger ones) on wide windows
+                // 3 columns on phones, more (not bigger) cells on wide
                 LazyVerticalGrid(
                     columns = GridCells.Adaptive(minSize = AdaptiveDimens.PhotoGridMinCellWidth),
                     modifier = Modifier
@@ -168,7 +168,7 @@ private fun PhotoGridItem(
         )
 
         if (isSelected) {
-            // 선택 오버레이
+            // selected overlay
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -176,7 +176,7 @@ private fun PhotoGridItem(
             )
         }
 
-        // 선택 인디케이터 (우상단)
+        // selection badge, top-right
         Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)

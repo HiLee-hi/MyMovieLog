@@ -75,10 +75,7 @@ fun StatsScreen(
     }
 }
 
-/**
- * Compact: the original single scrolling column.
- * Wide: summary cards | monthly chart side by side, capped at a readable content width.
- */
+// compact: single scrolling column, wide: summary | chart, width capped
 @Composable
 internal fun StatsContent(uiState: StatsUiState, modifier: Modifier = Modifier) {
     val scrollState = rememberScrollState()
@@ -113,7 +110,6 @@ internal fun StatsContent(uiState: StatsUiState, modifier: Modifier = Modifier) 
 @Composable
 private fun SummarySection(uiState: StatsUiState) {
     Column {
-        // Overall stats cards
         Row(modifier = Modifier.fillMaxWidth()) {
             StatCard(modifier = Modifier.weight(1f), label = stringResource(R.string.common_total_watched), value = stringResource(R.string.common_movie_count, uiState.totalWatched))
             Spacer(modifier = Modifier.padding(4.dp))
@@ -141,7 +137,7 @@ private fun MonthlySection(uiState: StatsUiState) {
 
 private val MonthBarMaxHeight = 120.dp
 
-/** Vertical bars for the last six months with the current month in butter, as in the design canvas */
+// last 6 months, current month in butter
 @Composable
 private fun MonthlyChart(monthlyStats: Map<YearMonth, Int>) {
     val monthFormatter = rememberDateTimeFormatter(R.string.format_month)
@@ -192,11 +188,11 @@ private fun MonthlyChart(monthlyStats: Map<YearMonth, Int>) {
     }
 }
 
-/** The count over a bar whose height is relative to the busiest month */
+// bar height relative to the busiest month
 @Composable
 private fun MonthBar(month: String, count: Int, maxCount: Int, isCurrent: Boolean, modifier: Modifier = Modifier) {
     val countText = stringResource(R.string.common_movie_count, count)
-    // A month with no records keeps a thin sliver so the column is still visible
+    // thin sliver for 0 so the column still shows
     val barHeight = if (count == 0) 3.dp else maxOf(MonthBarMaxHeight * (count.toFloat() / maxCount), 8.dp)
     Column(
         modifier = modifier.clearAndSetSemantics { contentDescription = "$month $countText" },
@@ -265,7 +261,7 @@ private fun ThisMonthCard(thisMonthCount: Int, lastMonthCount: Int) {
     }
 }
 
-/** "지난달보다 3편 더": hidden while both months are empty, e.g. right after signing up. */
+// "지난달보다 3편 더", hidden when both months are empty
 @Composable
 private fun MonthComparison(thisMonthCount: Int, lastMonthCount: Int, modifier: Modifier = Modifier) {
     if (thisMonthCount == 0 && lastMonthCount == 0) return

@@ -2,15 +2,15 @@ import Domain
 import Foundation
 import Observation
 
-/// Watched count of one month in the "last 6 months" chart
+// one month in the last 6 months chart
 public struct MonthCount: Equatable, Sendable {
     public let month: YearMonth
     public let count: Int
 }
 
-/// This month against last month, for the "지난달보다 3편 더" line
+// for the "지난달보다 3편 더" line
 public enum MonthComparison: Equatable, Sendable {
-    /// Both months are empty, e.g. right after signing up: nothing is shown
+    // both months empty (e.g. just signed up) -> hidden
     case none
     case more(Int)
     case fewer(Int)
@@ -20,11 +20,11 @@ public enum MonthComparison: Equatable, Sendable {
 public struct StatsUiState: Equatable, Sendable {
     public var totalWatched = 0
     public var wishlistCount = 0
-    /// nil while no watched record has a rating
+    // nil until a watched record has a rating
     public var averageRating: Double?
     public var thisMonthCount = 0
     public var lastMonthCount = 0
-    /// Oldest first, ending with the current month
+    // oldest first, ends with the current month
     public var monthlyCounts: [MonthCount] = []
 
     public init() {}
@@ -56,12 +56,12 @@ public struct StatsUiState: Equatable, Sendable {
         return .same
     }
 
-    /// "4.3", one decimal like the Android app; "-" without ratings
+    // "4.3", one decimal like android, "-" without ratings
     public var averageRatingText: String {
         averageRating.map { String(format: "%.1f", $0) } ?? "-"
     }
 
-    /// Largest monthly count, never 0 so bar heights can be divided by it
+    // largest monthly count, min 1 so bar heights can divide by it
     public var chartMaximum: Int {
         max(monthlyCounts.map(\.count).max() ?? 0, 1)
     }

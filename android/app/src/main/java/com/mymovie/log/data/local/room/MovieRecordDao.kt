@@ -21,7 +21,7 @@ interface MovieRecordDao {
     @Query("SELECT * FROM movie_records WHERE watched_at = :date AND status = 'watched'")
     fun getRecordsByDate(date: String): Flow<List<MovieRecordEntity>>
 
-    // Query only watched dates for a specific month (used for calendar dot markers)
+    // watched dates of a month, for calendar dots
     @Query("""
         SELECT DISTINCT watched_at FROM movie_records
         WHERE status = 'watched'

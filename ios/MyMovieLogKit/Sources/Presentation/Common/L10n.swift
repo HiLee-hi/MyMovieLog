@@ -1,6 +1,6 @@
 import Foundation
 
-/// Typed access to `Localizable.xcstrings`, the counterpart of Android's `R.string`.
+// typed Localizable.xcstrings access, like android R.string
 enum L10n {
     static var appName: String { text("app.name") }
     static var commonSave: String { text("common.save") }
@@ -126,17 +126,17 @@ enum L10n {
     static func detailWatchedOn(_ arg0: String) -> String { format("detail.watched_on", arg0) }
     static func detailPhotoCount(_ arg0: Int) -> String { format("detail.photo_count", arg0) }
 
-    /// Sunday first
+    // sunday first
     static var weekdays: [String] {
         ["weekday.sun", "weekday.mon", "weekday.tue", "weekday.wed", "weekday.thu", "weekday.fri", "weekday.sat"].map(text)
     }
 
-    /// `DateFormatter` patterns, such as "yyyy년 M월 d일" or "MMM d, yyyy"
+    // DateFormatter patterns, e.g. "yyyy년 M월 d일", "MMM d, yyyy"
     static var datePattern: String { text("format.date") }
     static var yearMonthPattern: String { text("format.year_month") }
     static var monthPattern: String { text("format.month") }
 
-    /// The language the strings resolved to, so dates and text never mix languages.
+    // resolved strings language, keeps dates and text in one language
     static var locale: Locale {
         Locale(identifier: Bundle.module.preferredLocalizations.first ?? "ko")
     }
@@ -150,7 +150,7 @@ enum L10n {
     }
 }
 
-/// Text for the app target, which shows it before the main UI can start.
+// app target text, shown before the main UI starts
 public enum ConfigurationStrings {
     public static var missingKeyTitle: String { L10n.text("config.missing_key_title") }
     public static var missingKeyMessage: String { L10n.text("config.missing_key_message") }

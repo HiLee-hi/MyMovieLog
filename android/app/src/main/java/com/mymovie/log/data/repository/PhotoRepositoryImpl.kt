@@ -28,7 +28,7 @@ class PhotoRepositoryImpl @Inject constructor(
         private const val JPEG_QUALITY = 85
     }
 
-    /** All or nothing: if one photo fails, the ones already uploaded in this batch are deleted. */
+    // all or nothing: one failure deletes the batch's uploads
     override suspend fun uploadPhotos(userId: String, tmdbId: Int, uris: List<Uri>): List<String> {
         val uploaded = mutableListOf<String>()
         try {

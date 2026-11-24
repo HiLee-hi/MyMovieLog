@@ -1,12 +1,11 @@
 import Domain
 import SwiftUI
 
-/// The record form (status, rating, watched date, review or memo) as Form sections.
-/// Shown in a sheet from every screen that adds or edits a record.
+// form sections (status, rating, date, review / memo), shown in a sheet everywhere
 struct RecordEditorForm: View {
     @Binding var draft: RecordDraft
     let saveState: SaveState
-    /// The record's saved photo paths (signed for the thumbnails)
+    // saved paths, signed for thumbnails
     var photoPaths: [String] = []
 
     var body: some View {
@@ -84,7 +83,7 @@ struct RecordEditorForm: View {
     }
 }
 
-/// Sheet around `RecordEditorForm` with cancel / save buttons
+// sheet with cancel / save
 struct RecordEditorSheet: View {
     let title: String
     @Binding var draft: RecordDraft
@@ -139,12 +138,12 @@ struct RecordEditorSheet: View {
 }
 
 extension RecordEditSession {
-    /// Sheet for the selected record; it closes itself once the save succeeds
+    // closes itself on save success
     func editorSheet(onDelete: ((MovieRecord) -> Void)? = nil) -> some View {
         RecordEditSessionSheet(session: self, onDelete: onDelete)
     }
 
-    /// For `.sheet(isPresented:)`
+    // for .sheet(isPresented:)
     var isPresentedBinding: Binding<Bool> {
         Binding(
             get: { self.record != nil },

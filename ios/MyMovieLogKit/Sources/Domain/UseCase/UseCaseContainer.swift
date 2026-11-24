@@ -1,5 +1,5 @@
-/// Every use case the presentation layer needs, built from the repositories once at app start.
-/// ViewModels receive individual use cases from here, never a repository.
+// all use cases, built once at start
+// ViewModels get single use cases from here, not repos
 public struct UseCaseContainer: Sendable {
     public let observeCurrentUser: ObserveCurrentUserUseCase
     public let getCurrentUserId: GetCurrentUserIdUseCase

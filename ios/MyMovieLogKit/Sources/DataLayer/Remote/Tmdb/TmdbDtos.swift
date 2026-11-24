@@ -11,8 +11,8 @@ struct SearchResponseDto: Decodable {
     }
 }
 
-/// TMDB omits or nulls fields for obscure titles (release_date in particular), so every field
-/// except the id falls back to an empty value instead of failing the whole page.
+// TMDB omits / nulls fields on obscure titles (release_date mostly)
+// all but id fall back to empty instead of failing the page
 struct MovieDto: Decodable {
     let id: Int
     let title: String

@@ -37,14 +37,12 @@ class CalendarViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    // Month and date are kept in SavedStateHandle so they survive fold/unfold, rotation,
-    // resizing and process recreation.
+    // in SavedStateHandle -> survives fold, rotate, resize, process death
 
-    // Currently displayed month
     private val _currentMonth = MutableStateFlow(savedStateHandle[KEY_CURRENT_MONTH] ?: YearMonth.now())
     val currentMonth: StateFlow<YearMonth> = _currentMonth.asStateFlow()
 
-    // Selected date (BottomSheet on compact windows, records pane on wide windows)
+    // sheet on compact, records pane on wide
     private val _selectedDate = MutableStateFlow<LocalDate?>(savedStateHandle[KEY_SELECTED_DATE])
     val selectedDate: StateFlow<LocalDate?> = _selectedDate.asStateFlow()
 
@@ -54,14 +52,13 @@ class CalendarViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
-    // Set of watched dates in the current month (used for dot markers)
+    // for dot markers
     val watchedDates: StateFlow<Set<LocalDate>> = _currentMonth
         .flatMapLatest { month ->
             getWatchedDatesByMonthUseCase(month.year, month.monthValue)
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
-    // List of records for the selected date (BottomSheet content)
     val selectedDateRecords: StateFlow<List<MovieRecord>> = _selectedDate
         .flatMapLatest { date ->
             if (date == null) {
@@ -100,7 +97,7 @@ class CalendarViewModel @Inject constructor(
     private val _editRecordState = MutableStateFlow<AddRecordState>(AddRecordState.Idle)
     val editRecordState: StateFlow<AddRecordState> = _editRecordState.asStateFlow()
 
-    // Edit form values live here so they survive the switch between the sheet and the pane
+    // form lives here to survive the sheet <-> pane switch
     private val _editDraft = MutableStateFlow(RecordDraft())
     val editDraft: StateFlow<RecordDraft> = _editDraft.asStateFlow()
 

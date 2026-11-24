@@ -4,7 +4,7 @@ import AVFoundation
 #endif
 
 extension View {
-    /// Full-screen camera that hands back the used photo; nothing on platforms without one
+    // full-screen camera returning the used photo, no-op without a camera
     func cameraCover(isPresented: Binding<Bool>, onUse: @escaping (Data) -> Void) -> some View {
         #if os(iOS)
         fullScreenCover(isPresented: isPresented) {
@@ -23,7 +23,7 @@ extension View {
 }
 
 enum CameraSupport {
-    /// False on the simulator and Macs without a back camera, where the camera button is hidden
+    // false on simulator / Macs without a back camera -> button hidden
     @MainActor static var isAvailable: Bool {
         #if os(iOS)
         AVCameraDevice.isAvailable

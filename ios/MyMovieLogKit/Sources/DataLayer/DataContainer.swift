@@ -3,7 +3,7 @@ import Foundation
 import OSLog
 import Supabase
 
-/// Builds the live repositories. The app turns them into a `UseCaseContainer` at start-up.
+// live repos, the app wraps them in UseCaseContainer
 public struct DataContainer: Sendable {
     public let authRepository: any AuthRepository
     public let movieRepository: any MovieRepository
@@ -11,7 +11,7 @@ public struct DataContainer: Sendable {
     public let holidayRepository: any HolidayRepository
     public let photoRepository: any PhotoRepository
 
-    /// Same deep link the Android app registers for Google OAuth
+    // same Google OAuth deep link as android
     public static let authCallbackURL = URL(string: "mymovie://login-callback")!
 
     private let supabase: SupabaseClient
@@ -44,7 +44,7 @@ public struct DataContainer: Sendable {
         }
     }
 
-    /// Completes the OAuth flow when the app is opened through `mymovie://login-callback`
+    // finish OAuth when opened via `mymovie://login-callback`
     public func handleOpenURL(_ url: URL) {
         supabase.auth.handle(url)
     }

@@ -27,7 +27,7 @@ public final class LibraryViewModel {
     }
 
     public func observeRecords() async {
-        // One stream split in two keeps both tabs consistent with each other
+        // one stream split in two keeps the tabs consistent
         for await records in getRecords() {
             watchedRecords = records.filter { $0.status == .watched }
             wishlistRecords = records.filter { $0.status == .wishlist }

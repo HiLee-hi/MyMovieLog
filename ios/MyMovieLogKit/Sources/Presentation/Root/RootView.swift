@@ -9,7 +9,7 @@ enum AppTab: Hashable {
     case profile
 }
 
-/// Tab bar of the app. On iPad the same TabView is shown as the iPadOS tab bar / sidebar.
+// iPad shows the same TabView as the iPadOS tab bar / sidebar
 public struct RootView: View {
     private let useCases: UseCaseContainer
     @State private var appViewModel: AppViewModel
@@ -69,9 +69,9 @@ public struct RootView: View {
                 .tabItem { Label(L10n.tabProfile, systemImage: "person") }
                 .tag(AppTab.profile)
         }
-        // The design has a single light theme, the same as the Android app
+        // design is light only, same as android
         .tint(.popcornCaramel)
-        // Record editors in every tab show attached photos through this
+        // photo signer for the editors in every tab
         .environment(\.getSignedPhotoUrls, useCases.getSignedPhotoUrls)
         .preferredColorScheme(.light)
         .task { await appViewModel.observeAuthAndSync() }

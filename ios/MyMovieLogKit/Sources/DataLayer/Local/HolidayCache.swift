@@ -1,16 +1,15 @@
 import Domain
 import Foundation
 
-/// Holidays already fetched, by month, in a JSON file in Application Support — the counterpart of
-/// the Android `holidays` and `holiday_fetch` tables. A month without holidays is stored as an
-/// empty list so it is not requested again. Public data, so it survives sign-out.
+// fetched holidays by month, JSON in Application Support (android: holidays / holiday_fetch)
+// empty month stored as [] so it isn't refetched, kept on sign-out (public data)
 actor HolidayCache {
     private let fileURL: URL?
-    /// "2026-09" → ["2026-09-24", ...]
+    // "2026-09" -> ["2026-09-24", ...]
     private var months: [String: [String]] = [:]
     private var isLoaded = false
 
-    /// `fileURL == nil` keeps the cache in memory only (tests)
+    // `fileURL == nil` -> memory only (tests)
     init(fileURL: URL?) {
         self.fileURL = fileURL
     }
@@ -20,7 +19,7 @@ actor HolidayCache {
             .appending(path: "holidays.json")
     }
 
-    /// nil when the month was never fetched
+    // nil = month not fetched yet
     func holidays(in month: YearMonth) -> Set<LocalDate>? {
         loadIfNeeded()
         return months[Self.key(month)].map { Set($0.compactMap(LocalDate.init(isoString:))) }

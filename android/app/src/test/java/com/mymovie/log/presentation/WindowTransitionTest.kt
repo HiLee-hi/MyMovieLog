@@ -50,11 +50,7 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 import java.time.Duration
 
-/**
- * Runtime window changes: fold/unfold, rotation, split screen and resizing all change the window
- * size while the screen stays alive. The window is switched while the content is composed, then
- * we check that the layout reflows and the user's state is still there.
- */
+// window switched while composed (fold, rotate, split, resize), check reflow + state kept
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(sdk = [34], application = Application::class, qualifiers = "ko-w1400dp-h1100dp-mdpi")
@@ -86,13 +82,13 @@ class WindowTransitionTest {
         composeRule.onNode(hasSetTextAction() and hasText("리뷰 1")).performTextReplacement("접었다 펴도 남는 리뷰")
         composeRule.onNodeWithTag(MovieDetailTestTags.MyLogPane).assertExists()
 
-        // Unfolded -> folded (cover screen): the same draft is now in the bottom sheet
+        // unfolded -> cover screen: same draft, now in the sheet
         resizeTo(WindowSpecs.Cover10x16)
         composeRule.onNodeWithTag(MovieDetailTestTags.MyLogPane).assertDoesNotExist()
         composeRule.onNodeWithText("기록 저장").assertExists()
         composeRule.onNode(hasSetTextAction() and hasText("접었다 펴도 남는 리뷰")).assertExists()
 
-        // Rotate / unfold again: back inline, still the same text
+        // rotate / unfold: back inline, same text
         resizeTo(WindowSpecs.PhoneLandscape)
         composeRule.onNodeWithTag(MovieDetailTestTags.MyLogPane).assertExists()
         composeRule.onNode(hasSetTextAction() and hasText("접었다 펴도 남는 리뷰")).assertExists()
@@ -113,30 +109,30 @@ class WindowTransitionTest {
                 )
             }
         }
-        // Let the 400ms query debounce and paging load run
+        // run the 400ms debounce + paging load
         repeat(20) {
             composeRule.waitForIdle()
             if (composeRule.onAllNodesWithText("영화 2").fetchSemanticsNodes().isNotEmpty()) return@repeat
             shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(100))
         }
 
-        // Two panes: the result opens next to the list
+        // two panes: result opens next to the list
         composeRule.onNodeWithText("영화 2").performClick()
         composeRule.onNodeWithText("detail-2 single=false").assertExists()
         composeRule.onNodeWithTag(SearchTestTags.ListPane).assertExists()
 
-        // Fold to a compact window: the open movie stays on screen, full width
+        // fold to compact: open movie stays, full width
         resizeTo(WindowSpecs.PhonePortrait)
         composeRule.onNodeWithText("detail-2 single=true").assertExists()
         composeRule.onNodeWithTag(SearchTestTags.ListPane).assertDoesNotExist()
 
-        // Back returns to the results, with the query intact
+        // back -> results, query kept
         pressBack()
         composeRule.onNodeWithTag(SearchTestTags.ListPane).assertExists()
         composeRule.onNodeWithText("detail-2", substring = true).assertDoesNotExist()
         assertEquals("영화", viewModel.query.value)
 
-        // Unfold again: two panes, empty detail placeholder next to the list
+        // unfold: two panes, empty detail placeholder
         resizeTo(WindowSpecs.Inner4x3)
         composeRule.onNodeWithTag(SearchTestTags.DetailPane).assertExists()
         composeRule.onNodeWithTag(SearchTestTags.ListPane).assertExists()
@@ -154,7 +150,7 @@ class WindowTransitionTest {
         composeRule.onNodeWithTag(CalendarTestTags.RecordDetailPane).assertExists()
         composeRule.onNode(hasSetTextAction() and hasText("리뷰 2")).performTextReplacement("태블릿에서 쓰던 리뷰")
 
-        // Large -> 4:3: third pane goes away, the editor continues in a sheet
+        // Large -> 4:3: third pane gone, editor continues in a sheet
         resizeTo(WindowSpecs.Inner4x3)
         composeRule.onNodeWithTag(CalendarTestTags.RecordDetailPane).assertDoesNotExist()
         composeRule.onNodeWithTag(CalendarTestTags.RecordsPane).assertExists()
@@ -173,7 +169,7 @@ class WindowTransitionTest {
         lateinit var navController: NavHostController
         window = WindowSpecs.PhonePortrait
         composeRule.setContent {
-            // Same structure as AppNavHost: NavController above the navigation suite
+            // same as AppNavHost: NavController above the navigation suite
             navController = rememberNavController()
             TestWindow(window) {
                 val info = LocalAdaptiveLayoutInfo.current

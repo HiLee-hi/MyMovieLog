@@ -1,16 +1,15 @@
 import Domain
 import Foundation
 
-/// Local copy of the signed-in user's records, the iOS counterpart of the Android Room cache.
-/// Screens read from here so they work offline; every change is pushed to all observers and
-/// written to a JSON file in Application Support.
+// local copy of the user's records (android: Room cache), JSON in Application Support
+// screens read from here for offline, changes pushed to all observers
 actor RecordCache {
     private let fileURL: URL?
     private var records: [MovieRecord] = []
     private var isLoaded = false
     private var observers: [UUID: @Sendable ([MovieRecord]) -> Void] = [:]
 
-    /// `fileURL == nil` keeps the cache in memory only (tests, previews)
+    // `fileURL == nil` -> memory only (tests, previews)
     init(fileURL: URL?) {
         self.fileURL = fileURL
     }
@@ -21,7 +20,7 @@ actor RecordCache {
         return directory.appending(path: "movie_records.json")
     }
 
-    /// Emits the transformed records right away and after every change.
+    // emits now and after every change
     nonisolated func observe<T: Sendable>(
         _ transform: @escaping @Sendable ([MovieRecord]) -> T
     ) -> AsyncStream<T> {
@@ -77,7 +76,7 @@ actor RecordCache {
     }
 
     private func didChange() {
-        // Newest first, like `ORDER BY created_at DESC` in the Android DAO
+        // newest first, like the android DAO's ORDER BY created_at DESC
         records.sort { $0.createdAt > $1.createdAt }
         persist()
         for observer in observers.values {

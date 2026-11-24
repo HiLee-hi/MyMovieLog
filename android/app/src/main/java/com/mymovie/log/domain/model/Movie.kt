@@ -10,7 +10,7 @@ data class Movie(
     val releaseDate: String,
     val voteAverage: Double,
     val genreIds: List<Int>,
-    val genres: List<String> = emptyList()  // Populated only from getMovieDetail(), empty for search results
+    val genres: List<String> = emptyList()  // only from getMovieDetail(), empty in search results
 ) {
     val posterUrl: String?
         get() = posterPath?.let { "https://image.tmdb.org/t/p/w500$it" }

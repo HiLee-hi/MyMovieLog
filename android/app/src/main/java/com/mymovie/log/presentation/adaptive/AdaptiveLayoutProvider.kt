@@ -8,18 +8,11 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalDensity
 
-/**
- * The single place that reads window metrics and foldable posture.
- * Screens read [LocalAdaptiveLayoutInfo] instead of calling Window APIs themselves.
- */
+// only place that reads window metrics / posture, screens use LocalAdaptiveLayoutInfo
 val LocalAdaptiveLayoutInfo = compositionLocalOf { AdaptiveLayoutInfo.PhonePortrait }
 
-/**
- * Builds [AdaptiveLayoutInfo] from the official Material 3 adaptive APIs:
- * [currentWindowSize] (WindowMetricsCalculator — the app window, so split screen and freeform
- * windows report their own size) and [currentWindowAdaptiveInfo] (Jetpack WindowManager
- * FoldingFeature → tabletop posture and hinge bounds).
- */
+// currentWindowSize (app window, so split / freeform report their own size)
+// currentWindowAdaptiveInfo (FoldingFeature -> tabletop, hinge bounds)
 @Composable
 fun rememberAdaptiveLayoutInfo(): AdaptiveLayoutInfo {
     val windowAdaptiveInfo = currentWindowAdaptiveInfo()

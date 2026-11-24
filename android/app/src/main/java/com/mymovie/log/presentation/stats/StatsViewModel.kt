@@ -38,7 +38,6 @@ class StatsViewModel @Inject constructor(
                 record.watchedAt?.let { YearMonth.from(it) == thisMonth } ?: false
             }
 
-            // Stats for the last 6 months
             val monthlyStats = (5 downTo 0).associate { offset ->
                 val month = thisMonth.minusMonths(offset.toLong())
                 val count = watched.count { record ->

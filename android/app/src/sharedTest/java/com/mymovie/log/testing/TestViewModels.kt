@@ -20,7 +20,7 @@ import com.mymovie.log.presentation.search.SearchViewModel
 import com.mymovie.log.presentation.stats.StatsViewModel
 import java.time.LocalDate
 
-/** Real ViewModels wired to in-memory fakes, so tests render the actual screens. */
+// real ViewModels over in-memory fakes, tests render the actual screens
 object TestViewModels {
 
     val watchedDate: LocalDate = LocalDate.now().withDayOfMonth(10)

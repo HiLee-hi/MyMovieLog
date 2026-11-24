@@ -1,9 +1,8 @@
 import Foundation
 
-/// TMDB `language` value for the device language.
+// TMDB `language` for the device language
 enum TmdbLanguage {
-    /// Languages whose TMDB translations differ by region. Others send no region, because a
-    /// combination such as en-KR has no translation of its own.
+    // region only where TMDB translations differ, e.g. en-KR has none of its own
     private static let regionalLanguages: [String: Set<String>] = [
         "pt": ["BR", "PT"],
         "zh": ["CN", "TW", "HK"]

@@ -15,8 +15,8 @@ enum CameraError: LocalizedError {
     }
 }
 
-/// Back camera through AVFoundation. Session work runs on its own queue so starting the camera
-/// never blocks the UI; the rotation coordinator keeps the preview and the photo upright.
+// back camera via AVFoundation, session on its own queue to keep the UI free
+// rotation coordinator keeps preview / photo upright
 @MainActor
 final class AVCameraDevice: NSObject, CameraDevice {
     static var isAvailable: Bool {
@@ -74,7 +74,7 @@ final class AVCameraDevice: NSObject, CameraDevice {
         }
     }
 
-    /// Called by the preview on every layout, which includes each rotation
+    // called on every preview layout, incl. rotation
     func updatePreviewRotation(_ layer: AVCaptureVideoPreviewLayer) {
         guard let device else { return }
         if rotationCoordinator?.previewLayer !== layer {
@@ -117,14 +117,14 @@ extension AVCameraDevice: AVCapturePhotoCaptureDelegate {
     }
 }
 
-/// Add-only access, so the app never reads the user's library; a refusal just skips the copy
+// add-only access, no library reads, refusal just skips the copy
 struct PhotoLibrarySaver: PhotoLibrarySaving {
     func save(_ jpeg: Data) async {
         await Self.addToLibrary(jpeg)
     }
 
-    /// Nonisolated on purpose: Photos runs the change block on its own queue, and a block made
-    /// inside the main-actor protocol would trap on the isolation check there
+    // nonisolated on purpose: Photos runs the block on its own queue
+    // a main-actor block would trap on the isolation check
     private nonisolated static func addToLibrary(_ jpeg: Data) async {
         let status = await PHPhotoLibrary.requestAuthorization(for: .addOnly)
         guard status == .authorized || status == .limited else { return }

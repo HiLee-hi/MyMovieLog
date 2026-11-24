@@ -4,7 +4,7 @@ import Supabase
 protocol MovieRecordRemoteDataSource: Sendable {
     func upsert(_ record: MovieRecordDto) async throws -> MovieRecordDto
     func delete(id: String) async throws
-    /// Rows of the signed-in user (RLS limits the select to them)
+    // user's rows (RLS filters the select)
     func fetchAll() async throws -> [MovieRecordDto]
 }
 

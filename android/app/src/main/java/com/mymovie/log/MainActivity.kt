@@ -24,7 +24,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         AppLogger.d("APP_INIT", "MainActivity onCreate | coldStart=${savedInstanceState == null}")
         enableEdgeToEdge()
-        // Handle deeplink when the app was closed and launched via deeplink
+        // deep link on cold start
         handleAuthDeeplink(intent)
         setContent {
             MyMovieLogTheme {
@@ -33,7 +33,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // Handle deeplink when the app is already running in the foreground
+    // deep link while running
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         handleAuthDeeplink(intent)

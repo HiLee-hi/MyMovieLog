@@ -3,43 +3,37 @@ package com.mymovie.log.presentation.adaptive
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-/**
- * Shared layout measurements for adaptive screens.
- *
- * Window-level decisions come from [AdaptiveLayoutInfo]; these values only describe how much
- * room a piece of content needs, so every screen reflows against the same numbers instead of
- * scattering width checks.
- */
+// content size thresholds, window-level decisions live in AdaptiveLayoutInfo
 object AdaptiveDimens {
-    /** Material 3 spacer between panes / columns. */
+    // M3 spacer between panes / columns
     val PaneSpacing: Dp = 24.dp
 
-    /** Material 3 NavigationRail container width. */
+    // M3 NavigationRail width
     val NavigationRailWidth: Dp = 80.dp
 
-    /** Preferred width of a list pane (search results, calendar). */
+    // list pane width (search results, calendar)
     val ListPaneWidth: Dp = 360.dp
 
-    /** Smallest width a detail pane may shrink to before we fall back to a single pane. */
+    // below this -> single pane
     val DetailPaneMinWidth: Dp = 360.dp
 
-    /** Smallest width of the record detail (third) pane on Large windows. */
+    // min width of the record (third) pane on Large
     val ExtraPaneMinWidth: Dp = 360.dp
 
-    /** A column inside a screen (e.g. Overview | My log) is never narrower than this. */
+    // min width of a column inside a screen (e.g. overview | my log)
     val ColumnMinWidth: Dp = 300.dp
 
-    /** Long text is capped to a comfortable reading measure. */
+    // reading width cap for long text
     val ReadableMaxWidth: Dp = 640.dp
 
-    /** Whole-screen content is capped so cards do not stretch across a tablet or 4:3 display. */
+    // content width cap so cards don't stretch on tablet / 4:3
     val ContentMaxWidth: Dp = 1040.dp
 
-    /** Library / picker grid cells. */
+    // library / picker grid cell
     val PosterGridMinCellWidth: Dp = 108.dp
     val PhotoGridMinCellWidth: Dp = 112.dp
 
-    /** True when [availableWidth] fits two [ColumnMinWidth] columns plus the spacer. */
+    // two ColumnMinWidth columns + spacer fit
     fun fitsTwoColumns(availableWidth: Dp, minColumnWidth: Dp = ColumnMinWidth): Boolean =
         availableWidth >= minColumnWidth * 2 + PaneSpacing
 }

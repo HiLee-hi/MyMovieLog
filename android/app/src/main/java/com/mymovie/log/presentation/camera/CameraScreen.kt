@@ -175,7 +175,7 @@ private fun CameraPreviewContent(
         )
     }
 
-    // Tabletop (Flex mode): preview on the upper half, controls on the lower half
+    // tabletop: preview on top, controls below
     TabletopAwareLayout(
         modifier = Modifier.fillMaxSize(),
         content = { AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize()) },
@@ -272,7 +272,6 @@ private fun CapturedPhotoContent(
     )
 }
 
-/** Tells the user what is worth capturing for a movie record. */
 @Composable
 private fun CameraHint(modifier: Modifier = Modifier) {
     Text(

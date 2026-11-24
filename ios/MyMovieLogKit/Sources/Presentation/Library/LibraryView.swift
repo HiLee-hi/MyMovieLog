@@ -50,7 +50,7 @@ struct LibraryView: View {
             }
             .accessibilityElement(children: .contain)
             .accessibilityLabel(L10n.libraryList)
-            // Stays a compact control on wide windows instead of stretching edge to edge
+            // compact control on wide windows, no edge-to-edge stretch
             .frame(maxWidth: 420)
             .padding(.horizontal)
             .padding(.bottom, 8)

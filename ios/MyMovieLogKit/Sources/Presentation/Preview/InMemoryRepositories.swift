@@ -2,9 +2,9 @@
 import Domain
 import Foundation
 
-// In-memory repositories for SwiftUI previews and ViewModel tests
+// in-memory repos for previews / ViewModel tests
 
-/// Broadcasts a value to any number of AsyncStream observers
+// broadcast to any number of AsyncStream observers
 private final class Broadcaster<Value: Sendable>: @unchecked Sendable {
     private let lock = NSLock()
     private var value: Value
@@ -161,7 +161,7 @@ final class InMemoryRecordRepository: MovieRecordRepository, @unchecked Sendable
     }
 }
 
-/// Fixed holidays for previews and tests
+// fixed holidays for previews / tests
 final class InMemoryHolidayRepository: HolidayRepository, @unchecked Sendable {
     private let dates: Set<LocalDate>
 
@@ -174,8 +174,8 @@ final class InMemoryHolidayRepository: HolidayRepository, @unchecked Sendable {
     }
 }
 
-/// Signs every path as a placeholder URL and keeps uploads in memory.
-/// `signingError` / `uploadError` / `deleteError` make the next calls fail.
+// placeholder signed URLs, uploads in memory
+// signingError / uploadError / deleteError fail the next calls
 final class InMemoryPhotoRepository: PhotoRepository, @unchecked Sendable {
     private let lock = NSLock()
     private var _signingError: Error?
@@ -199,7 +199,7 @@ final class InMemoryPhotoRepository: PhotoRepository, @unchecked Sendable {
         set { lock.withLock { _deleteError = newValue } }
     }
 
-    /// Paths currently in "Storage"
+    // paths in "Storage"
     var stored: Set<String> { lock.withLock { _stored } }
     var deletedPaths: [String] { lock.withLock { _deletedPaths } }
 
@@ -208,7 +208,7 @@ final class InMemoryPhotoRepository: PhotoRepository, @unchecked Sendable {
         set { lock.withLock { _signingError = newValue } }
     }
 
-    /// Every request, for tests
+    // all requests, for tests
     var signedPaths: [[String]] { lock.withLock { _signedPaths } }
 
     func signedURLs(for paths: [String]) async throws -> [String: URL] {

@@ -3,7 +3,7 @@ import Foundation
 @testable import Presentation
 import Testing
 
-/// Polls until `condition` holds; ViewModels update from streams on the main actor
+// poll until condition holds, ViewModels update from streams on the main actor
 @MainActor
 private func eventually(_ condition: () -> Bool, timeout: Duration = .seconds(2)) async -> Bool {
     let deadline = ContinuousClock.now + timeout
@@ -415,7 +415,7 @@ struct RecordPhotosViewModelTests {
     }
 }
 
-/// Photo handling of UpsertRecordUseCase / DeleteRecordUseCase, with the in-memory repositories
+// photo handling in UpsertRecordUseCase / DeleteRecordUseCase over in-memory repos
 @MainActor
 struct RecordPhotoFlowTests {
     private let kept = "u1/10/kept.jpg"
@@ -500,7 +500,7 @@ struct RecordPhotoFlowTests {
 
     @Test func draftSkipsPhotosThatAreAlreadyAttached() {
         var draft = RecordDraft(record: record(photos: [kept]))
-        // "saved" is the library item behind the kept photo
+        // "saved" = library item behind the kept photo
         let skipped = draft.attach(
             [
                 AttachedPhoto(data: Data([1]), sourceId: "saved"),
@@ -512,9 +512,9 @@ struct RecordPhotoFlowTests {
         #expect(skipped == 2)
         #expect(draft.newPhotos.map(\.sourceId) == ["a"])
 
-        // Picking the same item again later in the session
+        // same item picked again later in the session
         #expect(draft.attach([AttachedPhoto(data: Data([2]), sourceId: "a")]) == 1)
-        // Without an identifier the data decides
+        // no identifier -> data decides
         draft.attach([Data([2]), Data([3])])
         #expect(draft.newPhotos.count == 2)
     }
@@ -534,7 +534,7 @@ struct RecordPhotoFlowTests {
 
         let saved = try #require(records.allRecords.first)
         #expect(index.sourceIds(for: saved.photoUrls) == ["album-1"])
-        // Survives a restart
+        // survives a restart
         #expect(PhotoSourceIndex(defaults: defaults).sourceIds(for: saved.photoUrls) == ["album-1"])
     }
 }

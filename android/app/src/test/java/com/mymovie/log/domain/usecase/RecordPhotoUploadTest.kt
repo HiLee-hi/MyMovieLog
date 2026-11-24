@@ -13,7 +13,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
-/** Uploading new photos inside UpsertRecordUseCase (Robolectric for android.net.Uri). */
+// new photo uploads in UpsertRecordUseCase (Robolectric for android.net.Uri)
 @RunWith(RobolectricTestRunner::class)
 class RecordPhotoUploadTest {
 
