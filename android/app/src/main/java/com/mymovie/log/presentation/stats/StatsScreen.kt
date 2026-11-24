@@ -1,5 +1,12 @@
 package com.mymovie.log.presentation.stats
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Surface
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -127,15 +134,92 @@ private fun SummarySection(uiState: StatsUiState) {
 private fun MonthlySection(uiState: StatsUiState) {
     Column {
         Text(stringResource(R.string.stats_recent_six_months), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(8.dp))
-        val monthFormatter = rememberDateTimeFormatter(R.string.format_month)
-        uiState.monthlyStats.forEach { (month, count) ->
-            MonthStatRow(
-                month = month.format(monthFormatter),
-                count = count,
-                maxCount = uiState.monthlyStats.values.maxOrNull()?.takeIf { it > 0 } ?: 1
-            )
+        Spacer(modifier = Modifier.height(12.dp))
+        MonthlyChart(uiState.monthlyStats)
+    }
+}
+
+private val MonthBarMaxHeight = 120.dp
+
+/** Vertical bars for the last six months with the current month in butter, as in the design canvas */
+@Composable
+private fun MonthlyChart(monthlyStats: Map<YearMonth, Int>) {
+    val monthFormatter = rememberDateTimeFormatter(R.string.format_month)
+    val maxCount = monthlyStats.values.maxOrNull()?.takeIf { it > 0 } ?: 1
+    val months = monthlyStats.entries.map { (month, count) -> month.format(monthFormatter) to count }
+
+    Surface(
+        modifier = Modifier.fillMaxWidth().testTag(StatsTestTags.MonthlyChart),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainerLowest,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    ) {
+        Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 14.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth().height(MonthBarMaxHeight + 24.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.Bottom
+            ) {
+                months.forEachIndexed { index, (month, count) ->
+                    MonthBar(
+                        month = month,
+                        count = count,
+                        maxCount = maxCount,
+                        isCurrent = index == months.lastIndex,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = PopcornColors.Outline)
+            Row(
+                modifier = Modifier.fillMaxWidth().clearAndSetSemantics { },
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                months.forEachIndexed { index, (month, _) ->
+                    val isCurrent = index == months.lastIndex
+                    Text(
+                        text = month,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
+                        color = if (isCurrent) PopcornColors.Ink else PopcornColors.InkMuted,
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
         }
+    }
+}
+
+/** The count over a bar whose height is relative to the busiest month */
+@Composable
+private fun MonthBar(month: String, count: Int, maxCount: Int, isCurrent: Boolean, modifier: Modifier = Modifier) {
+    val countText = stringResource(R.string.common_movie_count, count)
+    // A month with no records keeps a thin sliver so the column is still visible
+    val barHeight = if (count == 0) 3.dp else maxOf(MonthBarMaxHeight * (count.toFloat() / maxCount), 8.dp)
+    Column(
+        modifier = modifier.clearAndSetSemantics { contentDescription = "$month $countText" },
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = countText,
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
+            color = if (isCurrent) PopcornColors.Ink else PopcornColors.InkMuted,
+            maxLines = 1
+        )
+        Spacer(modifier = Modifier.height(6.dp))
+        Box(
+            modifier = Modifier
+                .widthIn(max = 34.dp)
+                .fillMaxWidth()
+                .height(barHeight)
+                .background(
+                    color = if (isCurrent) PopcornColors.Butter else PopcornColors.ButterSoft,
+                    shape = RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
+                )
+        )
     }
 }
 
@@ -249,6 +333,7 @@ private fun MonthStatRow(month: String, count: Int, maxCount: Int) {
 internal object StatsTestTags {
     const val TwoColumn = "stats_two_column"
     const val MonthComparison = "stats_month_comparison"
+    const val MonthlyChart = "stats_monthly_chart"
 }
 
 @AdaptiveWindowPreviews

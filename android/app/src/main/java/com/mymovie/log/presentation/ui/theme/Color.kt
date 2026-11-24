@@ -8,6 +8,8 @@ object PopcornColors {
     val Surface = Color(0xFFFFFFFF)
     val ButterLight = Color(0xFFFFF5DC)
     val Butter = Color(0xFFFAD27A)
+    /** Past months in the stats chart, a step lighter than [Butter] */
+    val ButterSoft = Color(0xFFF6DDA8)
     val Caramel = Color(0xFF9A5214)
     val Ink = Color(0xFF3B2A1A)
     val InkMuted = Color(0xFF7A6652)

@@ -101,6 +101,7 @@ class AdaptiveScreenLayoutTest(private val spec: WindowSpec) {
         composeRule.waitForIdle()
         composeRule.saveWindowScreenshot("stats_$spec")
         composeRule.onNodeWithTag(StatsTestTags.TwoColumn).assertExistsIf(expected.statsTwoColumns)
+        composeRule.onNodeWithTag(StatsTestTags.MonthlyChart).assertExists()
     }
 
     @Test
