@@ -97,3 +97,8 @@ swift test                        # Domain / DataLayer / Presentation 테스트
 
 패키지는 macOS에서도 빌드되도록 구성해서, 시뮬레이터 없이 `swift test`로 계층별 테스트를 돌릴 수 있습니다.
 Xcode에서는 `MyMovieLog` 스킴의 Test(⌘U)로 실행합니다.
+
+## 버전
+
+Android 앱과 같은 버전 번호를 씁니다. 규칙은 [저장소 README의 버전 정책](../README.md#버전-정책)을 따릅니다.
+값은 `project.yml`의 `MARKETING_VERSION`에서 바꾸고 `xcodegen`으로 프로젝트에 반영합니다.

@@ -150,12 +150,5 @@ cd android
 
 ## 버전 정책
 
-[Semantic Versioning](https://semver.org) 을 따릅니다.
-
-| 변경 유형                  | 버전 증가 | 예시          |
-| -------------------------- | --------- | ------------- |
-| 큰 구조 변경 / 호환성 깨짐 | major     | 1.0.0 → 2.0.0 |
-| 새 기능 추가               | minor     | 1.0.0 → 1.1.0 |
-| 버그 수정                  | patch     | 1.0.0 → 1.0.1 |
-
+iOS 앱과 같은 버전 번호를 씁니다. 규칙은 [저장소 README의 버전 정책](../README.md#버전-정책)을 따릅니다.
 버전은 `android/gradle.properties`의 `VERSION_MAJOR / VERSION_MINOR / VERSION_PATCH`에서 관리합니다.

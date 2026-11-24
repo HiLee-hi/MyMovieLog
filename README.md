@@ -107,6 +107,24 @@ PUBLIC_DATA_API_KEY=공공데이터포털_디코딩_인증키
 
 ---
 
+## 버전 정책
+
+Android와 iOS 앱은 **같은 버전 번호**를 씁니다 ([Semantic Versioning](https://semver.org)).
+
+| 변경 유형                  | 버전 증가 | 예시            |
+| -------------------------- | --------- | --------------- |
+| 큰 구조 변경 / 호환성 깨짐 | major     | 1.11.0 → 2.0.0  |
+| 새 기능 추가               | minor     | 1.11.0 → 1.12.0 |
+| 버그 수정                  | patch     | 1.11.0 → 1.11.1 |
+
+- 두 앱에 함께 들어가는 변경은 같은 번호로 올립니다.
+- 한 플랫폼만 바뀐 릴리스는 그 플랫폼만 번호를 올리고, 다른 플랫폼은 그 번호를 건너뜁니다 (예: Android 1.11.1 → iOS는 다음에 1.11.2).
+- 사용자에게 보이는 버전은 Android `android/gradle.properties`의 `VERSION_MAJOR / VERSION_MINOR / VERSION_PATCH`, iOS `ios/project.yml`의 `MARKETING_VERSION`에서 관리합니다. 빌드 번호(`versionCode`, `CURRENT_PROJECT_VERSION`)는 플랫폼마다 따로 올립니다.
+
+> iOS 앱은 1.11.0부터 이 규칙을 따릅니다 (그 전까지는 출시 전 1.0.0).
+
+---
+
 ## 라이선스
 
 MIT
